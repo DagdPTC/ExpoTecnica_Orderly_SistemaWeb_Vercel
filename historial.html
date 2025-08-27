@@ -1,163 +1,771 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Historial de Pedidos - RestoPro</title>
+  <title>Historial de Pedidos - Orderly</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/historial.css">
+  <style>
+    /* Configuración personalizada de Tailwind */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Variables CSS para temas */
+    :root {
+        --primary-color: #0ea5e9;
+        --primary-dark: #0284c7;
+        --secondary-color: #19426E;
+        --sidebar-width: 280px;
+        --sidebar-collapsed: 80px;
+        --header-height: 70px;
+        --shadow-light: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        --shadow-medium: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-large: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        --gradient-primary: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        --gradient-secondary: linear-gradient(135deg, #19426E 0%, #1e3a5f 100%);
+    }
+
+    /* Animaciones personalizadas */
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    .animate-slide-in { animation: slideIn 0.3s ease-out; }
+    .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+    .animate-scale-in { animation: scaleIn 0.2s ease-out; }
+
+    /* Layout responsive */
+    .sidebar {
+        width: var(--sidebar-width);
+        background: var(--gradient-secondary);
+        backdrop-filter: blur(20px);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow-xl);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar.collapsed {
+        width: var(--sidebar-collapsed);
+    }
+
+    .main-content {
+        margin-left: var(--sidebar-width);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+
+    .sidebar.collapsed + .main-content {
+        margin-left: var(--sidebar-collapsed);
+    }
+
+    /* Header responsivo */
+    .main-header {
+        height: var(--header-height);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: var(--shadow-light);
+    }
+
+    /* Sidebar elementos */
+    .logo-container {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        margin: 1rem;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .logo {
+        border-radius: 12px;
+        box-shadow: var(--shadow-medium);
+        transition: all 0.3s ease;
+    }
+
+    .logo:hover {
+        transform: scale(1.05);
+        box-shadow: var(--shadow-large);
+    }
+
+    .nav-item {
+        border-radius: 12px;
+        margin: 0.25rem 0.5rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .nav-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .nav-item:hover::before {
+        left: 100%;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+        background: var(--gradient-primary);
+        transform: translateX(4px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .section-title {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 1.5rem 0 0.5rem 0;
+        position: relative;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 30px;
+        height: 2px;
+        background: var(--primary-color);
+        border-radius: 1px;
+    }
+
+    /* Cards mejoradas */
+    .stat-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-primary);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--primary-color);
+    }
+
+    .stat-icon {
+        background: var(--gradient-primary);
+        border-radius: 16px;
+        box-shadow: var(--shadow-medium);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover .stat-icon {
+        transform: rotate(5deg) scale(1.1);
+        box-shadow: var(--shadow-large);
+    }
+
+    /* Estados de órdenes */
+    .status-proceso {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #92400e;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+    }
+
+    .status-confirmado {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        color: #065f46;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+    }
+
+    .status-pendiente {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #92400e;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+    }
+
+    /* Menú usuario */
+    .user-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        min-width: 200px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 16px;
+        box-shadow: var(--shadow-xl);
+        z-index: 9999;
+        padding: 0.5rem;
+        display: none;
+        animation: dropdownEnter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes dropdownEnter {
+        from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .user-dropdown.show {
+        display: block;
+    }
+
+    .user-dropdown-item {
+        padding: 0.75rem 1rem;
+        color: var(--secondary-color);
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-align: left;
+        background: none;
+        border: none;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+
+    .user-dropdown-item:hover {
+        background: rgba(14, 165, 233, 0.1);
+        transform: translateX(4px);
+        color: var(--primary-color);
+    }
+
+    .user-dropdown-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9998;
+        background: transparent;
+        display: none;
+    }
+
+    .user-dropdown-overlay.active {
+        display: block;
+    }
+
+    /* Notificaciones mejoradas */
+    .notification-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+        animation: pulse 2s infinite;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .sidebar {
+            transform: translateX(-100%);
+            position: fixed;
+            z-index: 9999;
+            height: 100vh;
+        }
+
+        .sidebar.mobile-open {
+            transform: translateX(0);
+        }
+
+        .main-content {
+            margin-left: 0;
+        }
+
+        .sidebar.collapsed + .main-content {
+            margin-left: 0;
+        }
+
+        .stat-card {
+            margin-bottom: 1rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .main-header {
+            padding: 1rem;
+        }
+
+        .stat-card {
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .user-dropdown {
+            right: 1rem;
+            min-width: 180px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .main-content > main {
+            padding: 1rem !important;
+        }
+
+        .grid {
+            gap: 1rem !important;
+        }
+
+        .stat-card {
+            padding: 1.25rem;
+        }
+
+        .sidebar {
+            width: 100vw;
+        }
+
+        .logo-container {
+            margin: 0.5rem;
+            padding: 0.75rem;
+        }
+
+        .nav-item {
+            margin: 0.125rem 0.25rem;
+            padding: 0.75rem;
+        }
+    }
+
+    /* Elementos ocultos en sidebar colapsado */
+    .sidebar.collapsed .nav-text,
+    .sidebar.collapsed .logo-text,
+    .sidebar.collapsed .section-title,
+    .sidebar.collapsed .user-info-text {
+        display: none !important;
+    }
+
+    .sidebar.collapsed .nav-item {
+        justify-content: center;
+        padding: 0.75rem;
+    }
+
+    .sidebar.collapsed .logo-container {
+        text-align: center;
+    }
+
+    /* Overlay para mobile */
+    .mobile-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9998;
+        display: none;
+    }
+
+    .mobile-overlay.active {
+        display: block;
+    }
+
+    /* Mejoras adicionales */
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-large);
+    }
+
+    .text-gradient {
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Scrollbar personalizado */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--gradient-primary);
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-dark);
+    }
+
+    /* Estilos específicos para historial */
+    .scrollbar-custom::-webkit-scrollbar { width: 6px; }
+    .scrollbar-custom::-webkit-scrollbar-track { 
+      background: linear-gradient(to bottom, #f8fafc, #e2e8f0); 
+      border-radius: 10px; 
+    }
+    .scrollbar-custom::-webkit-scrollbar-thumb { 
+      background: linear-gradient(to bottom, #3b82f6, #1e40af); 
+      border-radius: 10px; 
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .scrollbar-custom::-webkit-scrollbar-thumb:hover { 
+      background: linear-gradient(to bottom, #2563eb, #1d4ed8); 
+    }
+
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .gradient-button { background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); }
+
+    .modern-input {
+      transition: all 0.3s ease;
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(5px);
+    }
+    .modern-input:focus {
+      background: rgba(255,255,255,1);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(59,130,246,0.15);
+    }
+
+    .error-message { 
+      color: #ef4444; 
+      font-size: 0.875rem; 
+      margin-top: 0.25rem; 
+      display: none;
+    }
+    
+    .invalid-input { 
+      background: linear-gradient(135deg, #fef2f2, #fee2e2) !important; 
+      border-color: #ef4444 !important;
+    }
+
+    .modal-overlay { 
+      position: fixed; 
+      inset: 0; 
+      background: rgba(0,0,0,0.6); 
+      backdrop-filter: blur(4px);
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      z-index: 1000;
+    }
+    
+    .modal-content { 
+      background: linear-gradient(145deg, #ffffff, #f8fafc);
+      padding: 2rem; 
+      border-radius: 1rem; 
+      width: 95%; 
+      max-width: 600px; 
+      max-height: 90vh; 
+      overflow-y: auto;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .order-details { 
+      max-height: 0; 
+      overflow: hidden; 
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
+      background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+      border-radius: 0.5rem;
+      margin: 0.5rem 1rem;
+    }
+    .order-details.active { 
+      max-height: 600px; 
+      padding: 1rem;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .table-container {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .table-row {
+      transition: all 0.3s ease;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .table-row:hover {
+      background: linear-gradient(135deg, rgba(59,130,246,0.05), rgba(147,197,253,0.05));
+      transform: translateX(2px);
+    }
+
+    @media (max-width: 1024px) {
+      .sidebar { transform: translateX(-100%); position: fixed; z-index: 999; width: 280px; }
+      .sidebar.collapsed { transform: translateX(0); }
+      .main-content { margin-left: 0 !important; transition: all 0.3s ease; }
+      .main-content.collapsed { margin-left: 280px !important; }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 100vw; }
+      .main-content.collapsed { margin-left: 0 !important; }
+      .modal-content { width: 98%; padding: 1.5rem; max-height: 95vh; }
+      .table-container { overflow-x: auto; margin: 1rem; }
+      table { min-width: 800px; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .loading { animation: pulse 1.5s ease-in-out infinite; }
+
+    .status-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-entregado {
+      background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    .status-cancelado {
+      background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .status-proceso-historial {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      color: #92400e;
+      border: 1px solid #fed7aa;
+    }
+  </style>
 </head>
 
-<body class="bg-gray-50 font-sans">
-    <!-- Sidebar fijo -->
-    <div class="sidebar bg-white shadow-lg w-64 fixed h-full flex flex-col z-10">
-    <div class="p-4 flex items-center border-b border-gray-200">
-      <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-        <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo">
-      </div>
-      <span class="logo-text ml-3 text-xl font-semibold text-blue-500">Orderly</span>
-    </div>
-    <div class="flex-1 overflow-y-auto">
-      <div class="p-4">
-        <div class="text-xs uppercase text-black font-semibold mb-2">Main</div>
-        <a href="index.html" class="nav-item flex items-center p-2 rounded-lg mb-1">
-          <i class="fas fa-tachometer-alt w-6 text-center"></i>
-          <span class="nav-text ml-3">Inicio</span>
-        </a>
-        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Operations</div>
-        <a href="mesas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-chair w-6 text-center"></i>
-          <span class="nav-text ml-3">Mesas</span>
-        </a>
-        <a href="menu.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-book w-6 text-center"></i>
-          <span class="nav-text ml-3">Menu</span>
-        </a>
-        <a href="reservas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-calendar-check w-6 text-center"></i>
-          <span class="nav-text ml-3">Reservaciones</span>
-        </a>
-        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Management</div>
-        <a href="empleados.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-users w-6 text-center"></i>
-          <span class="nav-text ml-3">Empleados</span>
-        </a>
-        <a href="facturas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-file-invoice-dollar w-6 text-center"></i>
-          <span class="nav-text ml-3">Facturas</span>
-        </a>
-        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Reports</div>
-        <a href="ofertas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-chart-line w-6 text-center"></i>
-          <span class="nav-text ml-3">Ofertas</span>
-        </a>
-        <a href="historial.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-history w-6 text-center"></i>
-          <span class="nav-text ml-3">Historial</span>
-        </a>
+<body class="bg-gray-50 min-h-screen font-sans overflow-x-hidden">
+  <!-- Overlay para mobile -->
+  <div class="mobile-overlay" id="mobileOverlay"></div>
+
+  <!-- Barra lateral -->
+  <div class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
+    <div class="logo-container animate-fade-in">
+      <div class="flex items-center justify-center">
+        <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
+          <img src="https://via.placeholder.com/48/0ea5e9/ffffff?text=O" alt="Logo Orderly" class="logo w-10 h-10">
+        </div>
+        <span class="logo-text ml-3 text-xl font-bold text-white">Orderly</span>
       </div>
     </div>
-    <div class="p-4 border-t border-gray-200">
-      <div class="flex items-center">
-        <div class="user-info-icon w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-          <i class="fas fa-user text-gray-600"></i>
+
+    <div class="flex-1 overflow-y-auto px-4">
+      <div class="section-title">MAIN</div>
+      <a href="index.html" class="nav-item flex items-center p-3 rounded-xl mb-2 text-white hover:text-white">
+        <i class="fas fa-tachometer-alt w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Inicio</span>
+      </a>
+
+      <div class="section-title">OPERATIONS</div>
+      <a href="mesas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-chair w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Mesas</span>
+      </a>
+      <a href="menu.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-book w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Menú</span>
+      </a>
+      <a href="reservas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-calendar-check w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Reservaciones</span>
+      </a>
+
+      <div class="section-title">MANAGEMENT</div>
+      <a href="empleados.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-users w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Empleados</span>
+      </a>
+      <a href="facturas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-file-invoice-dollar w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Facturas</span>
+      </a>
+
+      <div class="section-title">REPORTS</div>
+      <a href="ofertas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-chart-line w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Ofertas</span>
+      </a>
+      <a href="historial.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2 active bg-gradient-to-r from-blue-500 to-blue-600">
+        <i class="fas fa-history w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Historial</span>
+      </a>
+    </div>
+
+    <div class="p-4 border-t border-white/20">
+      <div class="flex items-center glass-effect rounded-xl p-3">
+        <div class="user-info-icon w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+          <i class="fas fa-user text-white"></i>
         </div>
         <div class="user-info-text ml-3">
-          <div class="text-sm font-medium text-gray-800">Admin User</div>
-          <div class="text-xs text-gray-500">Administrator</div>
+          <div class="text-sm font-semibold text-white">Admin User</div>
+          <div class="text-xs text-white/70">Administrator</div>
         </div>
       </div>
     </div>
   </div>
+
   <!-- Contenido principal -->
-  <div class="main-content flex flex-col min-h-screen transition-all ml-64">
-    <!-- Navbar -->
-    <header class="bg-white shadow-sm py-4 px-6 flex items-center justify-between">
+  <div class="main-content flex flex-col min-h-screen">
+    <!-- Barra superior - Estilo igual al index -->
+    <header class="main-header flex items-center justify-between px-6 animate-fade-in">
       <div class="flex items-center">
-        <button id="sidebarToggle" class="text-gray-500 focus:outline-none mr-4">
-          <i class="fas fa-bars"></i>
+        <button id="sidebarToggle" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
+          <i class="fas fa-bars text-lg"></i>
         </button>
-        <h1 class="text-xl font-semibold text-gray-800">Historial de Pedidos</h1>
+        <button id="sidebarToggleDesktop" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
+          <i class="fas fa-bars text-lg"></i>
+        </button>
+        <h1 class="text-2xl font-bold text-gray-800">Historial de Pedidos</h1>
       </div>
+      
       <div class="flex items-center space-x-4">
-        <button class="text-gray-500 relative focus:outline-none">
-          <i class="fas fa-bell"></i>
-          <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
-        </button>
-        <button class="text-gray-500 relative focus:outline-none">
-          <i class="fas fa-envelope"></i>
-          <span class="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center">5</span>
-        </button>
-        <button class="flex items-center focus:outline-none">
-          <div class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center">
-            <i class="fas fa-user"></i>
-          </div>
-          <span class="ml-2 text-gray-700 hidden md:inline">Admin</span>
-        </button>
+        <div class="relative">
+          <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <i class="fas fa-bell text-lg"></i>
+            <span class="notification-badge">3</span>
+          </button>
+        </div>
+        <div class="relative">
+          <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <i class="fas fa-envelope text-lg"></i>
+            <span class="notification-badge bg-blue-500">5</span>
+          </button>
+        </div>
+        <div class="relative">
+          <button class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+              <i class="fas fa-user"></i>
+            </div>
+            <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
+            <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
+          </button>
+        </div>
       </div>
     </header>
 
-    <div class="container mx-auto px-4 py-8">
-      <!-- Filtros -->
-      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div class="relative flex-1">
-            <i class="fas fa-search absolute left-3 top-3 text-gray-400 pointer-events-none"></i>
-            <input type="text" id="searchInput"
-                   class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                   placeholder="Buscar por historial, pedido o cliente…">
-          </div>
-          <div class="flex flex-col sm:flex-row gap-2">
-            <div class="relative">
-              <select id="waiterFilter"
-                      class="appearance-none bg-white border rounded-lg pl-3 pr-8 py-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Todos los meseros</option>
-                <option>Juan Pérez</option>
-                <option>María García</option>
-                <option>Carlos López</option>
-                <option>Ana Martínez</option>
-              </select>
-              <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none"></i>
+    <div class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
+      <!-- Filters Section -->
+      <div class="pb-4">
+        <div class="stat-card p-6 hover-lift animate-fade-in">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div class="relative flex-1">
+              <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+              <input type="text" id="searchInput"
+                     class="modern-input w-full pl-12 pr-4 py-3 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                     placeholder="Buscar por historial, pedido o cliente…">
             </div>
-            <input type="date" id="dateFilter"
-                   class="bg-white border rounded-lg pl-3 pr-3 py-2 focus:ring-blue-500 focus:border-blue-500">
-            <div class="relative">
-              <select id="statusFilter"
-                      class="appearance-none bg-white border rounded-lg pl-3 pr-8 py-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Todos los estados</option>
-                <option>Entregado</option>
-                <option>Cancelado</option>
-                <option>En proceso</option>
-              </select>
-              <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none"></i>
+            
+            <div class="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
+              <div class="relative">
+                <select id="waiterFilter"
+                        class="modern-input appearance-none bg-white border rounded-lg pl-4 pr-10 py-3 focus:ring-blue-500 focus:border-blue-500 min-w-[160px]">
+                  <option value="">Todos los meseros</option>
+                  <option>Juan Pérez</option>
+                  <option>María García</option>
+                  <option>Carlos López</option>
+                  <option>Ana Martínez</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+              </div>
+              
+              <input type="date" id="dateFilter"
+                     class="modern-input bg-white border rounded-lg px-4 py-3 focus:ring-blue-500 focus:border-blue-500">
+              
+              <div class="relative">
+                <select id="statusFilter"
+                        class="modern-input appearance-none bg-white border rounded-lg pl-4 pr-10 py-3 focus:ring-blue-500 focus:border-blue-500 min-w-[160px]">
+                  <option value="">Todos los estados</option>
+                  <option>Entregado</option>
+                  <option>Cancelado</option>
+                  <option>En proceso</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Tabla -->
-      <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="table-container max-h-[600px] overflow-auto">
+      <!-- Table Card -->
+      <div class="stat-card overflow-hidden hover-lift">
+        <div class="table-container scrollbar-custom" style="max-height: 70vh; overflow-y: auto;">
           <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50 sticky top-0">
+            <thead class="gradient-bg sticky top-0 z-10">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"># Historial</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"># Pedido</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mesero</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mesa</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reserva</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Detalles</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider"># Historial</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider"># Pedido</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Cliente</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider hide-mobile">Mesero</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider hide-mobile">Mesa</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider hide-mobile">Fecha</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider hide-mobile">Reserva</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Estado</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Detalles</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody id="historial-tbody" class="bg-white divide-y divide-gray-200">
-              <!-- Filas generadas por JS -->
+              <!-- Rows generated by JS -->
             </tbody>
           </table>
         </div>
@@ -165,53 +773,73 @@
     </div>
   </div>
 
-  <!-- Modal Edición -->
-  <div id="edit-historial-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8">
-      <h2 class="text-2xl font-bold mb-6">Actualizar Pedido</h2>
-      <form id="edit-historial-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label class="block mb-1 font-medium"># Pedido</label>
-          <input type="text" id="edit-pedido-id" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+  <!-- Edit Modal -->
+  <div id="edit-historial-modal" class="modal-overlay hidden">
+    <div class="modal-content animate-fade-in">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center">
+          <div class="w-12 h-12 rounded-xl gradient-button flex items-center justify-center text-white mr-4">
+            <i class="fas fa-edit"></i>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">Actualizar Pedido</h2>
         </div>
-        <div>
-          <label class="block mb-1 font-medium">Cliente</label>
-          <input type="text" id="edit-cliente" class="w-full border rounded px-3 py-2" required>
-          <span class="text-red-500 text-xs hidden" id="edit-cliente-error"></span>
+        <button id="edit-cancelar-btn" class="text-gray-400 hover:text-gray-600 transition-colors">
+          <i class="fas fa-times text-2xl"></i>
+        </button>
+      </div>
+      
+      <form id="edit-historial-form" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700 mb-2"># Pedido</label>
+          <input type="text" id="edit-pedido-id" class="modern-input w-full px-4 py-3 border rounded-lg bg-gray-50" readonly>
         </div>
-        <div>
-          <label class="block mb-1 font-medium">Mesero</label>
-          <select id="edit-mesero" class="w-full border rounded px-3 py-2" required></select>
-          <span class="text-red-500 text-xs hidden" id="edit-mesero-error"></span>
+        
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Cliente</label>
+          <input type="text" id="edit-cliente" class="modern-input w-full px-4 py-3 border rounded-lg" required>
+          <span class="error-message hidden" id="edit-cliente-error"></span>
         </div>
-        <div>
-          <label class="block mb-1 font-medium">Mesa</label>
-          <select id="edit-mesa" class="w-full border rounded px-3 py-2" required></select>
-          <span class="text-red-500 text-xs hidden" id="edit-mesa-error"></span>
+        
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Mesero</label>
+          <select id="edit-mesero" class="modern-input w-full px-4 py-3 border rounded-lg" required></select>
+          <span class="error-message hidden" id="edit-mesero-error"></span>
         </div>
-        <div>
-          <label class="block mb-1 font-medium">Fecha</label>
-          <input type="text" id="edit-fecha" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+        
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Mesa</label>
+          <select id="edit-mesa" class="modern-input w-full px-4 py-3 border rounded-lg" required></select>
+          <span class="error-message hidden" id="edit-mesa-error"></span>
         </div>
-        <div>
-          <label class="block mb-1 font-medium">¿Reserva?</label>
-          <input type="text" id="edit-reserva" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+        
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Fecha</label>
+          <input type="text" id="edit-fecha" class="modern-input w-full px-4 py-3 border rounded-lg bg-gray-50" readonly>
         </div>
-        <div>
-          <label class="block mb-1 font-medium">Factura</label>
-          <input type="text" id="edit-factura" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+        
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">¿Reserva?</label>
+          <input type="text" id="edit-reserva" class="modern-input w-full px-4 py-3 border rounded-lg bg-gray-50" readonly>
         </div>
-        <div>
-          <label class="block mb-1 font-medium">Estado</label>
-          <input type="text" id="edit-estado" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+        
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Factura</label>
+          <input type="text" id="edit-factura" class="modern-input w-full px-4 py-3 border rounded-lg bg-gray-50" readonly>
         </div>
-        <div class="md:col-span-2">
-          <label class="block mb-1 font-medium">Productos (solo cantidad):</label>
-          <div id="edit-productos-list" class="space-y-2"></div>
+        
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Estado</label>
+          <input type="text" id="edit-estado" class="modern-input w-full px-4 py-3 border rounded-lg bg-gray-50" readonly>
         </div>
-        <div class="md:col-span-2">
-          <label class="block mb-1 font-medium">Descuento</label>
-          <select id="edit-descuento" class="w-full border rounded px-3 py-2">
+        
+        <div class="lg:col-span-2 space-y-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Productos (solo cantidad):</label>
+          <div id="edit-productos-list" class="space-y-3"></div>
+        </div>
+        
+        <div class="lg:col-span-2 space-y-2">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Descuento</label>
+          <select id="edit-descuento" class="modern-input w-full px-4 py-3 border rounded-lg">
             <option value="0">Sin descuento</option>
             <option value="0.05">5%</option>
             <option value="0.10">10%</option>
@@ -224,33 +852,498 @@
             <option value="0.75">75%</option>
           </select>
         </div>
-        <div class="md:col-span-2 grid grid-cols-2 gap-4 mt-4">
-          <div>
-            <label class="block mb-1 text-gray-500">Subtotal</label>
-            <div id="edit-subtotal" class="font-bold text-lg">$0.00</div>
+        
+        <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 p-6 bg-gray-50 rounded-xl">
+          <div class="text-center">
+            <label class="block text-sm text-gray-500 mb-1">Subtotal</label>
+            <div id="edit-subtotal" class="text-xl font-bold text-gray-800">$0.00</div>
           </div>
-          <div>
-            <label class="block mb-1 text-gray-500">Propina (10%)</label>
-            <div id="edit-propina" class="font-bold text-lg">$0.00</div>
+          <div class="text-center">
+            <label class="block text-sm text-gray-500 mb-1">Propina (10%)</label>
+            <div id="edit-propina" class="text-xl font-bold text-gray-800">$0.00</div>
+          </div>
+          <div class="text-center sm:col-span-2 lg:col-span-1">
+            <label class="block text-sm text-gray-500 mb-1">Total</label>
+            <div id="edit-total" class="text-2xl font-bold text-blue-600">$0.00</div>
           </div>
         </div>
-        <div class="md:col-span-2 mt-2">
-          <label class="block mb-1 text-gray-700 font-medium">Total</label>
-          <div id="edit-total" class="font-bold text-2xl text-blue-600">$0.00</div>
-        </div>
-        <div class="md:col-span-2 flex justify-end gap-3 mt-8">
-          <button type="button" id="edit-cancelar-btn" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+        
+        <div class="lg:col-span-2 flex flex-col sm:flex-row justify-end gap-4 mt-8">
+          <button type="button" id="edit-cancelar-btn-footer" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors">
             Cancelar
           </button>
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-            Guardar
+          <button type="submit" class="px-6 py-3 gradient-button text-white rounded-lg font-medium">
+            <i class="fas fa-save mr-2"></i>
+            Guardar Cambios
           </button>
         </div>
       </form>
     </div>
   </div>
 
-  <script src="js/script.js"></script>
-  <script src="js/historial.js"></script>
+  <script>
+    // JavaScript original con mejoras para responsive
+    
+    // ------- Menú usuario navbar: se inyecta automáticamente --------
+    document.addEventListener('DOMContentLoaded', function() {
+        // Encuentra el avatar del usuario
+        let userBtn = document.querySelector('.navbar-user-avatar');
+        if (userBtn) {
+            userBtn.style.position = 'relative';
+            
+            // Crea el menú solo si no existe aún
+            if (!document.getElementById('userDropdown')) {
+                // Contenedor de dropdown
+                const dropdown = document.createElement('div');
+                dropdown.className = 'user-dropdown';
+                dropdown.id = 'userDropdown';
+                dropdown.innerHTML = `
+                    <button class="user-dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
+                    </button>
+                `;
+                userBtn.parentNode.style.position = "relative";
+                userBtn.parentNode.appendChild(dropdown);
+
+                // Overlay para cerrar el menú al hacer click fuera
+                const overlay = document.createElement('div');
+                overlay.className = 'user-dropdown-overlay';
+                overlay.id = 'userDropdownOverlay';
+                document.body.appendChild(overlay);
+
+                // Mostrar/ocultar menú al hacer click en el avatar
+                userBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('show');
+                    overlay.classList.toggle('active');
+                });
+
+                // Cerrar si clic fuera
+                overlay.addEventListener('click', function() {
+                    dropdown.classList.remove('show');
+                    overlay.classList.remove('active');
+                });
+
+                // Cerrar con Esc
+                document.addEventListener('keydown', function(ev) {
+                    if (ev.key === "Escape") {
+                        dropdown.classList.remove('show');
+                        overlay.classList.remove('active');
+                    }
+                });
+
+                // Acción cerrar sesión
+                document.getElementById('logoutBtn').addEventListener('click', function() {
+                    dropdown.classList.remove('show');
+                    overlay.classList.remove('active');
+                    window.location.href = "inicioSesion.html";
+                });
+            }
+        }
+    });
+
+    // Toggle sidebar para móvil y desktop
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
+        const sidebar = document.getElementById('sidebar');
+        const mobileOverlay = document.getElementById('mobileOverlay');
+        
+        // Toggle móvil
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('mobile-open');
+                mobileOverlay.classList.toggle('active');
+            });
+        }
+        
+        // Toggle desktop (colapsar sidebar)
+        if (sidebarToggleDesktop && sidebar) {
+            sidebarToggleDesktop.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+            });
+        }
+        
+        // Cerrar sidebar móvil al hacer click en overlay
+        if (mobileOverlay) {
+            mobileOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('mobile-open');
+                mobileOverlay.classList.remove('active');
+            });
+        }
+        
+        // Cerrar sidebar móvil con Escape
+        document.addEventListener('keydown', function(ev) {
+            if (ev.key === "Escape") {
+                sidebar.classList.remove('mobile-open');
+                mobileOverlay.classList.remove('active');
+            }
+        });
+        
+        // Cerrar sidebar móvil al cambiar a desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 1024) {
+                sidebar.classList.remove('mobile-open');
+                mobileOverlay.classList.remove('active');
+            }
+        });
+    });
+
+    // ===== Datos simulados =====
+    let historial = [
+      {
+        id: "H001",
+        pedido: "P1001",
+        cliente: "Roberto Sánchez",
+        mesero: "Carlos López",
+        mesa: "5",
+        fecha: "2023-06-15",
+        reserva: true,
+        factura: "FAC-2023-1001",
+        estado: "Entregado",
+        productos: [
+          { nombre: "Pizza Margarita", cantidad: 2, precioUnit: 12.00 },
+          { nombre: "Ensalada César", cantidad: 1, precioUnit: 12.00 },
+          { nombre: "Refresco", cantidad: 3, precioUnit: 3.00 }
+        ],
+        descuento: 0
+      },
+      {
+        id: "H002",
+        pedido: "P1002",
+        cliente: "Laura Méndez",
+        mesero: "María García",
+        mesa: "8",
+        fecha: "2023-06-15",
+        reserva: false,
+        factura: "",
+        estado: "En proceso",
+        productos: [
+          { nombre: "Sopa del día", cantidad: 1, precioUnit: 8.00 },
+          { nombre: "Pasta Carbonara", cantidad: 1, precioUnit: 15.00 },
+          { nombre: "Agua mineral", cantidad: 2, precioUnit: 3.00 }
+        ],
+        descuento: 0
+      },
+      {
+        id: "H003",
+        pedido: "P1003",
+        cliente: "Carlos Ruiz",
+        mesero: "Carlos López",
+        mesa: "3",
+        fecha: "2023-06-14",
+        reserva: true,
+        factura: "",
+        estado: "Cancelado",
+        productos: [
+          { nombre: "Hamburguesa", cantidad: 1, precioUnit: 10.00 },
+          { nombre: "Papas fritas", cantidad: 1, precioUnit: 5.00 },
+          { nombre: "Cerveza", cantidad: 2, precioUnit: 6.00 }
+        ],
+        descuento: 0
+      }
+    ];
+    
+    const meseros = ["Juan Pérez","María García","Carlos López","Ana Martínez"];
+    const mesas   = ["1","2","3","4","5","6","7","8","9","10","11","12"];
+    let editIdx = null;
+
+    // Renderizar tabla
+    function renderHistorial() {
+      const tbody = document.getElementById("historial-tbody");
+      tbody.innerHTML = "";
+      
+      historial.forEach((h, i) => {
+        const estadoClass = h.estado === "Entregado"
+          ? "status-entregado"
+          : h.estado === "Cancelado"
+            ? "status-cancelado"
+            : "status-proceso-historial";
+            
+        const reservaIcon = h.reserva
+          ? `<i class="fas fa-check-circle text-green-500" title="Con reserva"></i>`
+          : `<i class="fas fa-times-circle text-red-500" title="Sin reserva"></i>`;
+          
+        const facturaTxt = h.factura
+          ? `<span class="font-medium text-green-600">${h.factura}</span>`
+          : `<span class="font-medium text-red-500">No generada</span>`;
+
+        // Mobile-friendly row structure
+        tbody.innerHTML += `
+          <tr class="table-row hover:bg-gray-50 transition-colors">
+            <td class="px-4 py-4 font-medium text-gray-900">${h.id}</td>
+            <td class="px-4 py-4 font-medium text-blue-600">${h.pedido}</td>
+            <td class="px-4 py-4">
+              <div class="font-medium text-gray-900">${h.cliente}</div>
+              <div class="md:hidden text-sm text-gray-500">
+                Mesa: ${h.mesa} | ${h.mesero} | ${h.fecha}
+              </div>
+            </td>
+            <td class="px-4 py-4 text-gray-700 hide-mobile">${h.mesero}</td>
+            <td class="px-4 py-4 text-gray-700 hide-mobile">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                Mesa ${h.mesa}
+              </span>
+            </td>
+            <td class="px-4 py-4 text-gray-700 hide-mobile">${h.fecha}</td>
+            <td class="px-4 py-4 hide-mobile">${reservaIcon}</td>
+            <td class="px-4 py-4">
+              <span class="status-badge ${estadoClass}">${h.estado}</span>
+            </td>
+            <td class="px-4 py-4">
+              <button class="text-blue-600 hover:text-blue-800 font-medium transition-colors toggle-details" data-target="details-${i}">
+                <i class="fas fa-eye mr-1"></i>
+                Ver detalles
+                <i class="fas fa-chevron-down ml-1 text-xs transition-transform"></i>
+              </button>
+            </td>
+            <td class="px-4 py-4">
+              <div class="flex items-center space-x-2">
+                <button class="p-2 rounded-lg hover:bg-green-100 edit-btn" data-idx="${i}" title="Editar">
+                  <i class="fas fa-edit text-green-500 text-lg"></i>
+                </button>
+                <button class="p-2 rounded-lg hover:bg-red-100 delete-btn" data-idx="${i}" title="Eliminar">
+                  <i class="fas fa-trash text-red-500 text-lg"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="10" class="p-0">
+              <div id="details-${i}" class="order-details">
+                <div class="space-y-4">
+                  <h4 class="font-semibold text-gray-800 text-lg mb-4">
+                    <i class="fas fa-list-ul mr-2 text-blue-500"></i>
+                    Detalles del Pedido
+                  </h4>
+                  
+                  <div class="bg-white rounded-lg p-4 shadow-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm mb-4 font-semibold text-gray-600 border-b pb-2">
+                      <div>Producto</div>
+                      <div class="text-right">Cantidad</div>
+                      <div class="text-right">Precio Unit.</div>
+                      <div class="text-right">Total</div>
+                    </div>
+                    ${h.productos.map(p => `
+                      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm py-2 border-b border-gray-100 hover:bg-gray-50 rounded">
+                        <div class="font-medium text-gray-800">${p.nombre}</div>
+                        <div class="text-right text-gray-600">${p.cantidad}</div>
+                        <div class="text-right text-gray-600">${p.precioUnit.toFixed(2)}</div>
+                        <div class="text-right font-semibold text-gray-800">${(p.cantidad * p.precioUnit).toFixed(2)}</div>
+                      </div>
+                    `).join("")}
+                  </div>
+                  
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
+                    <div class="text-center">
+                      <div class="text-sm text-gray-500 mb-1">Subtotal</div>
+                      <div class="text-lg font-bold text-gray-800">${getSubtotal(h).toFixed(2)}</div>
+                    </div>
+                    <div class="text-center">
+                      <div class="text-sm text-gray-500 mb-1">Propina (10%)</div>
+                      <div class="text-lg font-bold text-gray-800">${getPropina(h).toFixed(2)}</div>
+                    </div>
+                    <div class="text-center">
+                      <div class="text-sm text-gray-500 mb-1">Descuento</div>
+                      <div class="text-lg font-bold text-red-500">-${getDescuento(h).toFixed(2)}</div>
+                    </div>
+                    <div class="text-center">
+                      <div class="text-sm text-gray-500 mb-1">Total Final</div>
+                      <div class="text-xl font-bold text-blue-600">${getTotal(h).toFixed(2)}</div>
+                    </div>
+                  </div>
+                  
+                  <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="text-sm text-gray-500 mb-1">Estado de Factura:</div>
+                    <div>${facturaTxt}</div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      
+      attachTableEvents();
+    }
+
+    // Búsqueda
+    document.getElementById('searchInput').addEventListener('input', () => {
+      const term = document.getElementById('searchInput').value.toLowerCase();
+      document.querySelectorAll('#historial-tbody tr').forEach((row, idx) => {
+        if (idx % 2 === 0) {
+          const visible = row.textContent.toLowerCase().includes(term);
+          row.style.display = visible ? '' : 'none';
+          const det = row.nextElementSibling;
+          if (det) det.style.display = visible ? '' : 'none';
+        }
+      });
+    });
+
+    // Filtros
+    function applyFilters() {
+      const w = document.getElementById('waiterFilter').value.toLowerCase();
+      const d = document.getElementById('dateFilter').value;
+      const s = document.getElementById('statusFilter').value.toLowerCase();
+      
+      document.querySelectorAll('#historial-tbody tr').forEach((row, idx) => {
+        if (idx % 2 === 0) {
+          const cells = row.querySelectorAll('td');
+          const mw = cells[3] ? cells[3].textContent.toLowerCase() : '';
+          const dt = cells[5] ? cells[5].textContent : '';
+          const st = cells[7] ? cells[7].textContent.toLowerCase() : '';
+          
+          const ok = (!w || mw.includes(w)) && (!d || dt === d) && (!s || st.includes(s));
+          row.style.display = ok ? '' : 'none';
+          const det = row.nextElementSibling;
+          if (det) det.style.display = ok ? '' : 'none';
+        }
+      });
+    }
+
+    ['waiterFilter', 'dateFilter', 'statusFilter'].forEach(id => {
+      document.getElementById(id).addEventListener('change', applyFilters);
+    });
+
+    // Toggle detalles y CRUD
+    function attachTableEvents() {
+      document.querySelectorAll('.toggle-details').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const det = document.getElementById(btn.dataset.target);
+          const icon = btn.querySelector('.fa-chevron-down, .fa-chevron-up');
+          
+          det.classList.toggle('active');
+          if (icon) {
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+          }
+        });
+      });
+      
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          openEditHistorial(+btn.dataset.idx);
+        });
+      });
+      
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (confirm('¿Está seguro de que desea eliminar este registro del historial?')) {
+            historial.splice(+btn.dataset.idx, 1);
+            renderHistorial();
+          }
+        });
+      });
+    }
+
+    // Cálculos
+    const getSubtotal = h => h.productos.reduce((sum, p) => sum + p.cantidad * p.precioUnit, 0);
+    const getPropina = h => getSubtotal(h) * 0.10;
+    const getDescuento = h => getSubtotal(h) * (h.descuento || 0);
+    const getTotal = h => getSubtotal(h) - getDescuento(h) + getPropina(h);
+
+    // Abrir modal de edición
+    function openEditHistorial(idx) {
+      editIdx = idx;
+      const h = historial[idx];
+      
+      document.getElementById('edit-pedido-id').value = h.pedido;
+      document.getElementById('edit-cliente').value = h.cliente;
+      document.getElementById('edit-fecha').value = h.fecha;
+      document.getElementById('edit-reserva').value = h.reserva ? 'Sí' : 'No';
+      document.getElementById('edit-factura').value = h.factura || '';
+      document.getElementById('edit-estado').value = h.estado;
+
+      // Carga meseros y mesas
+      const selM = document.getElementById('edit-mesero');
+      selM.innerHTML = '';
+      meseros.forEach(m => {
+        selM.innerHTML += `<option ${m === h.mesero ? 'selected' : ''}>${m}</option>`;
+      });
+      
+      const selT = document.getElementById('edit-mesa');
+      selT.innerHTML = '';
+      mesas.forEach(m => {
+        selT.innerHTML += `<option ${m === h.mesa ? 'selected' : ''}>${m}</option>`;
+      });
+
+      // Productos (cantidad editable)
+      const prodDiv = document.getElementById('edit-productos-list');
+      prodDiv.innerHTML = '';
+      h.productos.forEach((p, i) => {
+        prodDiv.innerHTML += `
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-white rounded-lg border">
+            <div class="flex-1">
+              <input type="text" class="modern-input w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-700 font-medium" value="${p.nombre}" readonly>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-600 mr-2">Cant:</label>
+                <input type="number" min="1" max="9999" id="prod-cant-${i}" class="modern-input w-20 px-3 py-2 border rounded-lg prod-cant-input text-center font-semibold" value="${p.cantidad}">
+              </div>
+              <div class="text-gray-600 font-semibold whitespace-nowrap">× ${p.precioUnit.toFixed(2)}</div>
+            </div>
+            <span class="error-message hidden" id="prod-cant-${i}-error"></span>
+          </div>
+        `;
+      });
+
+      // Descuento
+      document.getElementById('edit-descuento').value = h.descuento || 0;
+      recalcularModal();
+
+      // Mostrar modal
+      document.getElementById('edit-historial-modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    // Cerrar modal
+    function closeModal() {
+      document.getElementById('edit-historial-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    // Recalcular totales en modal
+    document.addEventListener('input', e => {
+      if (e.target.classList.contains('prod-cant-input') || e.target.id === 'edit-descuento') {
+        recalcularModal();
+      }
+    });
+
+    function recalcularModal() {
+      if (editIdx === null) return;
+      
+      const h = historial[editIdx];
+      let sub = 0;
+      
+      h.productos.forEach((p, i) => {
+        const val = parseInt(document.getElementById('prod-cant-' + i).value) || 0;
+        sub += val * p.precioUnit;
+      });
+      
+      const desc = sub * (parseFloat(document.getElementById('edit-descuento').value) || 0);
+      const prop = sub * 0.10;
+      
+      document.getElementById('edit-subtotal').textContent = `$${sub.toFixed(2)}`;
+      document.getElementById('edit-propina').textContent = `$${prop.toFixed(2)}`;
+      document.getElementById('edit-total').textContent = `$${(sub - desc + prop).toFixed(2)}`;
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      renderHistorial();
+      
+      // Modal close events
+      document.getElementById('edit-cancelar-btn').addEventListener('click', closeModal);
+      document.getElementById('edit-cancelar-btn-footer').addEventListener('click', closeModal);
+
+      // Close modal on escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+        }
+      });
+    });
+  </script>
 </body>
 </html>
