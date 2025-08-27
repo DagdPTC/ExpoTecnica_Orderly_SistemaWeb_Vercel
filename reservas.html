@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Reservaciones</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/reservas.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-50">
+  <!-- Sidebar fijo -->
+  <div class="sidebar bg-white shadow-lg w-64 fixed h-full flex flex-col z-10">
+    <div class="p-4 flex items-center border-b border-gray-200">
+      <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+        <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo">
+      </div>
+      <span class="logo-text ml-3 text-xl font-semibold text-blue-500">Orderly</span>
+    </div>
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-4">
+        <div class="text-xs uppercase text-black font-semibold mb-2">Main</div>
+        <a href="index.html" class="nav-item flex items-center p-2 rounded-lg mb-1">
+          <i class="fas fa-tachometer-alt w-6 text-center"></i>
+          <span class="nav-text ml-3">Inicio</span>
+        </a>
+        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Operations</div>
+        <a href="mesas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-chair w-6 text-center"></i>
+          <span class="nav-text ml-3">Mesas</span>
+        </a>
+        <a href="menu.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-book w-6 text-center"></i>
+          <span class="nav-text ml-3">Menu</span>
+        </a>
+        <a href="reservas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-calendar-check w-6 text-center"></i>
+          <span class="nav-text ml-3">Reservaciones</span>
+        </a>
+        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Management</div>
+        <a href="empleados.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-users w-6 text-center"></i>
+          <span class="nav-text ml-3">Empleados</span>
+        </a>
+        <a href="facturas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-file-invoice-dollar w-6 text-center"></i>
+          <span class="nav-text ml-3">Facturas</span>
+        </a>
+        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Reports</div>
+        <a href="ofertas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-chart-line w-6 text-center"></i>
+          <span class="nav-text ml-3">Ofertas</span>
+        </a>
+        <a href="historial.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-history w-6 text-center"></i>
+          <span class="nav-text ml-3">Historial</span>
+        </a>
+      </div>
+    </div>
+    <div class="p-4 border-t border-gray-200">
+      <div class="flex items-center">
+        <div class="user-info-icon w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+          <i class="fas fa-user text-gray-600"></i>
+        </div>
+        <div class="user-info-text ml-3">
+          <div class="text-sm font-medium text-gray-800">Admin User</div>
+          <div class="text-xs text-gray-500">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content flex flex-col min-h-screen ml-64">
+    <!-- Header superior (navbar) -->
+    <header class="bg-white shadow-sm py-4 px-6 flex items-center justify-between">
+      <div class="flex items-center">
+        <button id="sidebarToggle" class="text-gray-500 focus:outline-none mr-4">
+          <i class="fas fa-bars"></i>
+        </button>
+        <h1 class="text-xl font-semibold text-gray-800">Reservaciones</h1>
+      </div>
+      <div class="flex items-center space-x-4">
+        <div class="relative">
+          <button class="text-gray-500 focus:outline-none">
+            <i class="fas fa-bell"></i>
+            <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
+          </button>
+        </div>
+        <div class="relative">
+          <button class="text-gray-500 focus:outline-none">
+            <i class="fas fa-envelope"></i>
+            <span class="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center">5</span>
+          </button>
+        </div>
+        <div class="relative">
+          <button id="navbarUserBtn" class="flex items-center focus:outline-none">
+            <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+              <i class="fas fa-user"></i>
+            </div>
+            <span class="ml-2 text-gray-700 hidden md:inline">Admin</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="px-4 py-8">
+        <header class="mb-8">
+          <h1 class="text-3xl font-bold text-gray-800">Sistema de Reservaciones</h1>
+          <p class="text-gray-600">Administra las reservaciones de tu restaurante</p>
+        </header>
+
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+          <div class="flex items-center gap-4">
+            <label for="filter-status" class="text-gray-700">Filtrar por:</label>
+            <select id="filter-status" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="all">Todos los estados</option>
+              <option value="pending">En espera</option>
+              <option value="in-progress">En proceso</option>
+              <option value="cancelled">Cancelado</option>
+              <option value="completed">Completado</option>
+            </select>
+          </div>
+          
+          <div class="relative flex-1 max-w-md">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-search text-gray-400"></i>
+            </div>
+            <input type="text" id="search-input" class="w-full border rounded-md px-3 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Buscar por nombre...">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
+            <h3 class="text-gray-500 text-sm font-medium">Total Reservaciones</h3>
+            <p id="total-reservations" class="text-2xl font-bold text-gray-800">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500">
+            <h3 class="text-gray-500 text-sm font-medium">En Espera</h3>
+            <p id="pending-reservations" class="text-2xl font-bold text-gray-800">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
+            <h3 class="text-gray-500 text-sm font-medium">En Proceso</h3>
+            <p id="in-progress-reservations" class="text-2xl font-bold text-gray-800">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-red-500">
+            <h3 class="text-gray-500 text-sm font-medium">Canceladas</h3>
+            <p id="cancelled-reservations" class="text-2xl font-bold text-gray-800">0</p>
+          </div>
+        </div>
+
+        <div id="reservations-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Las reservaciones se cargarán dinámicamente aquí -->
+        </div>
+
+        <!-- Modal de Reservación -->
+        <div id="reservation-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+          <div class="modal-overlay absolute inset-0 bg-black bg-opacity-50"></div>
+          <div class="bg-white rounded-lg shadow-xl z-50 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+              <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800" id="modal-title">Nueva Reservación</h2>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
+              <form id="reservation-form" class="space-y-4">
+                <input type="hidden" id="reservation-id" />
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label for="customer-name" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Cliente*</label>
+                    <input type="text" id="customer-name" required class="w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500" />
+                  </div>
+                  <div>
+                    <label for="customer-phone" class="block text-sm font-medium text-gray-700 mb-1">Teléfono*</label>
+                    <input type="tel" id="customer-phone" required class="w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500" placeholder="xxxx-xxxx" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label for="reservation-date" class="block text-sm font-medium text-gray-700 mb-1">Fecha*</label>
+                    <input type="date" id="reservation-date" required class="w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500" />
+                  </div>
+                  <div>
+                    <label for="reservation-time" class="block text-sm font-medium text-gray-700 mb-1">Hora Inicio*</label>
+                    <input type="time" id="reservation-time" required class="w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500" step="1800" min="09:00" max="22:00" />
+                  </div>
+                  <div>
+                    <label for="reservation-end-time" class="block text-sm font-medium text-gray-700 mb-1">Hora Fin*</label>
+                    <input type="time" id="reservation-end-time" required class="w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500" step="1800" min="09:30" max="23:00" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Platillos</label>
+                  <div class="border rounded-md p-3 bg-gray-50">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3" id="dishes-container">
+                      <!-- Platillos seleccionados aparecerán aquí -->
+                    </div>
+                    <button type="button" id="add-dish-btn" class="text-blue-600 text-sm flex items-center hover:text-blue-800">
+                      <i class="fas fa-plus-circle mr-1"></i> Añadir platillo
+                    </button>
+                    <div class="mt-2 text-sm text-gray-700 font-medium">
+                      Total: $<span id="dishes-total">0.00</span>
+                      <input type="hidden" id="selected-dishes" name="selected-dishes" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label for="guest-count" class="block text-sm font-medium text-gray-700 mb-1">Número de Personas*</label>
+                    <input type="number" id="guest-count" min="1" max="20" required class="w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500" />
+                  </div>
+                  <div>
+                    <label for="tables-count" class="block text-sm font-medium text-gray-700 mb-1">Mesas Asignadas</label>
+                    <input type="number" id="tables-count" min="1" max="10" class="w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500" readonly />
+                  </div>
+                </div>
+
+                <div>
+                  <label for="special-notes" class="block text-sm font-medium text-gray-700 mb-1">Comentarios</label>
+                  <textarea id="special-notes" rows="3" class="w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Alergias, preferencias, etc."></textarea>
+                </div>
+
+                <div id="reservation-message" class="text-sm text-red-500"></div>
+
+                <div class="flex justify-end space-x-3 pt-4">
+                  <button type="button" id="cancel-reservation" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">Cancelar</button>
+                  <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">Guardar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal de Confirmación -->
+        <div id="confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+          <div class="modal-overlay absolute inset-0 bg-black bg-opacity-50"></div>
+          <div class="bg-white rounded-lg shadow-xl z-50 w-full max-w-md">
+            <div class="p-6">
+              <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Confirmar acción</h2>
+                <button id="close-confirm-modal" class="text-gray-500 hover:text-gray-700">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <p id="confirm-message" class="text-gray-700 mb-6">¿Estás seguro que deseas eliminar esta reservación?</p>
+              <div id="confirm-error" class="text-sm text-red-500 mb-4"></div>
+              <div class="flex justify-end space-x-3">
+                <button type="button" id="cancel-action" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">Cancelar</button>
+                <button type="button" id="confirm-action" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500">Confirmar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal de Platillos -->
+        <div id="dishes-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+          <div class="modal-overlay absolute inset-0 bg-black bg-opacity-50"></div>
+          <div class="bg-white rounded-lg shadow-xl z-50 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+              <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Seleccionar Platillos</h2>
+                <button id="close-dishes-modal" class="text-gray-500 hover:text-gray-700">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="mb-4">
+                <div class="relative">
+                  <input type="text" id="dish-search" class="w-full border rounded-md px-4 py-2 pl-10 focus:ring-blue-500 focus:border-blue-500" placeholder="Buscar platillos...">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="all-dishes-container">
+                <!-- Todos los platillos disponibles se cargarán aquí -->
+              </div>
+
+              <div class="flex justify-end space-x-3 pt-6">
+                <button type="button" id="cancel-dishes-selection" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">Cancelar</button>
+                <button type="button" id="save-dishes-selection" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">Guardar Selección</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Botón flotante para nueva reservación -->
+  <button id="add-reservation-btn" class="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-all">
+    <i class="fas fa-plus"></i>
+  </button>
+
+  <script src="js/reservas.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>

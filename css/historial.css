@@ -1,0 +1,64 @@
+/* Detalles colapsables */
+.order-details {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+.order-details.active {
+  max-height: 1000px;
+  transition: max-height 0.5s ease-in;
+}
+
+/* Scrollbar custom */
+.table-container {
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 #e5e7eb;
+}
+.table-container::-webkit-scrollbar {
+  width: 8px; height: 8px;
+}
+.table-container::-webkit-scrollbar-track {
+  background: #e5e7eb; border-radius: 10px;
+}
+.table-container::-webkit-scrollbar-thumb {
+  background-color: #4b5563; border-radius: 10px;
+}
+
+/* Animación estado “En proceso” */
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+.status-processing {
+  animation: pulse 2s infinite;
+}
+
+/* Modal genérico */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 999; display: flex; align-items: center; justify-content: center;
+}
+.modal {
+  background: #fff; border-radius: 1rem; max-width: 95vw; width: 420px;
+  padding: 2rem; box-shadow: 0 8px 32px rgba(30,41,59,0.25);
+  animation: fadeIn 0.18s;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(.98); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Validaciones */
+input.invalid, select.invalid {
+  border-color: #dc2626 !important; background: #fef2f2;
+}
+.error-text {
+  color: #dc2626; font-size: .9rem; margin-top: 2px; min-height: 18px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .table-container { overflow-x: auto; }
+  table { min-width: 900px; }
+}

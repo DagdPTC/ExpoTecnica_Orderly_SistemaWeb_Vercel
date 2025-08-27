@@ -1,0 +1,36 @@
+/* css/factura.css */
+
+/* Scrollbar */
+.scrollbar-custom::-webkit-scrollbar { width: 8px; }
+.scrollbar-custom::-webkit-scrollbar-track { background: #f1f1f1; border-radius:10px; }
+.scrollbar-custom::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius:10px; }
+
+/* Botones y animación */
+.btn-animate { transition: all 0.2s ease-in-out; }
+.btn-animate:hover { transform: translateY(-1px); }
+
+/* Inputs y errores */
+.error-message { color:#ef4444; font-size:.875rem; margin-top:.25rem; display:none; }
+.invalid-input { background: #f3f4f6 !important; }
+
+/* Modals */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; }
+.modal-content { background:#fff; padding:2rem; border-radius:.5rem; width:95%; max-width:500px; max-height:95vh; overflow-y:auto; }
+
+/* Animación */
+.animate-fade-in { animation: fadeIn 0.25s ease-out; }
+@keyframes fadeIn { from{opacity:0;transform:scale(.95);} to{opacity:1;transform:scale(1);} }
+
+/* Detalles colapsables */
+.order-details { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background:#f9fafb; }
+.order-details.active { max-height: 600px; transition: max-height 0.6s ease-in; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); position:fixed; z-index:999; }
+  .sidebar.collapsed { transform: translateX(0); width:16rem; }
+  .main-content { margin-left:0 !important; }
+  .main-content.collapsed { margin-left:16rem !important; }
+  .table-container { overflow-x:auto; }
+  table { min-width:800px; }
+}

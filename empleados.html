@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Empleados</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/empleados.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="bg-gray-50 font-sans">
+
+    <!-- Sidebar fijo -->
+   <div class="sidebar bg-white shadow-lg w-64 fixed h-full flex flex-col z-10">
+    <div class="p-4 flex items-center border-b border-gray-200">
+      <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+        <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo">
+      </div>
+      <span class="logo-text ml-3 text-xl font-semibold text-blue-500">Orderly</span>
+    </div>
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-4">
+        <div class="text-xs uppercase text-black font-semibold mb-2">Main</div>
+        <a href="index.html" class="nav-item flex items-center p-2 rounded-lg mb-1">
+          <i class="fas fa-tachometer-alt w-6 text-center"></i>
+          <span class="nav-text ml-3">Inicio</span>
+        </a>
+        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Operations</div>
+        <a href="mesas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-chair w-6 text-center"></i>
+          <span class="nav-text ml-3">Mesas</span>
+        </a>
+        <a href="menu.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-book w-6 text-center"></i>
+          <span class="nav-text ml-3">Menu</span>
+        </a>
+        <a href="reservas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-calendar-check w-6 text-center"></i>
+          <span class="nav-text ml-3">Reservaciones</span>
+        </a>
+        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Management</div>
+        <a href="empleados.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-users w-6 text-center"></i>
+          <span class="nav-text ml-3">Empleados</span>
+        </a>
+        <a href="facturas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-file-invoice-dollar w-6 text-center"></i>
+          <span class="nav-text ml-3">Facturas</span>
+        </a>
+        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Reports</div>
+        <a href="ofertas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-chart-line w-6 text-center"></i>
+          <span class="nav-text ml-3">Ofertas</span>
+        </a>
+        <a href="historial.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
+          <i class="fas fa-history w-6 text-center"></i>
+          <span class="nav-text ml-3">Historial</span>
+        </a>
+      </div>
+    </div>
+    <div class="p-4 border-t border-gray-200">
+      <div class="flex items-center">
+        <div class="user-info-icon w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+          <i class="fas fa-user text-gray-600"></i>
+        </div>
+        <div class="user-info-text ml-3">
+          <div class="text-sm font-medium text-gray-800">Admin User</div>
+          <div class="text-xs text-gray-500">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Contenido principal -->
+  <div class="main-content flex flex-col min-h-screen transition-all ml-64" id="mainContent">
+    <!-- Header superior (navbar) -->
+    <header class="bg-white shadow-sm py-4 px-6 flex items-center justify-between">
+      <div class="flex items-center">
+        <button id="sidebarToggle" class="text-gray-500 focus:outline-none mr-4 transition hover:text-blue-600">
+          <i class="fas fa-bars"></i>
+        </button>
+        <h1 class="text-xl font-semibold text-gray-800">Empleados</h1>
+      </div>
+      <div class="flex items-center space-x-4">
+        <div class="relative">
+          <button class="text-gray-500 focus:outline-none">
+            <i class="fas fa-bell"></i>
+            <span
+              class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
+          </button>
+        </div>
+        <div class="relative">
+          <button class="text-gray-500 focus:outline-none">
+            <i class="fas fa-envelope"></i>
+            <span
+              class="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center">5</span>
+          </button>
+        </div>
+        <div class="relative">
+          <button id="navbarUserBtn" class="navbar-user-avatar flex items-center focus:outline-none">
+            <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+              <i class="fas fa-user"></i>
+            </div>
+            <span class="ml-2 text-gray-700 hidden md:inline">Admin</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Filtros y botón agregar -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between p-6 pb-0">
+      <div class="flex flex-1 gap-2 md:gap-4">
+        <input type="text" id="searchInput"
+          class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 transition"
+          placeholder="Buscar empleados..." />
+        <button id="roleFilterButton"
+          class="flex items-center border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-700 hover:bg-gray-50 transition">
+          <span>Filtrar por rol</span>
+          <i class="fas fa-chevron-down ml-2"></i>
+        </button>
+        <div id="roleFilterDropdown"
+          class="hidden absolute z-10 mt-12 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 max-h-60 overflow-y-auto scrollbar-custom">
+          <div class="px-4 py-2 border-b border-gray-100">
+            <label class="flex items-center gap-2">
+              <input type="checkbox" class="role-filter" value="all" checked>
+              <span>Todos los roles</span>
+            </label>
+          </div>
+          <div class="px-4 py-2 hover:bg-gray-50">
+            <label class="flex items-center gap-2">
+              <input type="checkbox" class="role-filter" value="Administrador">
+              <span>Administrador</span>
+            </label>
+          </div>
+          <div class="px-4 py-2 hover:bg-gray-50">
+            <label class="flex items-center gap-2">
+              <input type="checkbox" class="role-filter" value="Mesero">
+              <span>Mesero</span>
+            </label>
+          </div>
+          <div class="px-4 py-2 hover:bg-gray-50">
+            <label class="flex items-center gap-2">
+              <input type="checkbox" class="role-filter" value="Cocinero">
+              <span>Cocinero</span>
+            </label>
+          </div>
+          <div class="px-4 py-2 hover:bg-gray-50">
+            <label class="flex items-center gap-2">
+              <input type="checkbox" class="role-filter" value="Cajero">
+              <span>Cajero</span>
+            </label>
+          </div>
+          <div class="px-4 py-2 hover:bg-gray-50">
+            <label class="flex items-center gap-2">
+              <input type="checkbox" class="role-filter" value="Limpieza">
+              <span>Limpieza</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <button id="addEmployeeBtn"
+        class="mt-4 md:mt-0 px-6 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition-all flex items-center gap-2">
+        <i class="fas fa-user-plus"></i> Nuevo Empleado
+      </button>
+    </div>
+
+    <!-- Tabla empleados -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mt-6 mx-6">
+      <div class="table-container overflow-x-auto max-h-[600px]">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50 sticky top-0">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Correo</th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalles</th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200" id="employees-tbody">
+            <!-- Filas renderizadas por JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Agregar/Editar Empleado -->
+  <div id="employeeModal"
+    class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 modal-bg">
+    <div class="modal bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+      <h2 id="modalTitle" class="text-2xl font-bold text-gray-800 mb-4">Nuevo Empleado</h2>
+      <form id="employeeForm" class="space-y-4">
+        <input type="hidden" id="id">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="firstName" class="block text-sm font-medium text-gray-700">Primer Nombre *</label>
+            <input type="text" id="firstName"
+              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              required oninput="validateNameInput(this)">
+            <div id="firstNameError" class="error-message">Solo letras y espacios permitidos</div>
+          </div>
+          <div>
+            <label for="secondName" class="block text-sm font-medium text-gray-700">Segundo Nombre</label>
+            <input type="text" id="secondName"
+              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              oninput="validateNameInput(this)">
+            <div id="secondNameError" class="error-message">Solo letras y espacios permitidos</div>
+          </div>
+          <div>
+            <label for="lastNameP" class="block text-sm font-medium text-gray-700">Apellido Paterno *</label>
+            <input type="text" id="lastNameP"
+              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              required oninput="validateNameInput(this)">
+            <div id="lastNamePError" class="error-message">Solo letras y espacios permitidos</div>
+          </div>
+          <div>
+            <label for="lastNameM" class="block text-sm font-medium text-gray-700">Apellido Materno</label>
+            <input type="text" id="lastNameM"
+              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              oninput="validateNameInput(this)">
+            <div id="lastNameMError" class="error-message">Solo letras y espacios permitidos</div>
+          </div>
+          <div>
+            <label for="birthDate" class="block text-sm font-medium text-gray-700">Fecha de Nacimiento *</label>
+            <input type="date" id="birthDate"
+              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              required onchange="validateBirthDate()">
+            <div id="birthDateError" class="error-message">El empleado debe tener entre 18 y 70 años</div>
+          </div>
+          <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700">Teléfono *</label>
+            <div class="mt-1 flex rounded-md shadow-sm">
+              <span
+                class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">+503</span>
+              <input type="text" id="phone"
+                class="focus:ring-blue-500 focus:border-blue-500 flex-1 block w-full rounded-none rounded-r-md border-gray-300 py-2 px-3"
+                maxlength="9" oninput="formatPhone(this)" required placeholder="xxxx-xxxx">
+            </div>
+            <div id="phoneError" class="error-message">Formato: xxxx-xxxx</div>
+          </div>
+          <div>
+            <label for="docType" class="block text-sm font-medium text-gray-700">Tipo de Documento *</label>
+            <select id="docType"
+              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              required onchange="updateDocNumberPattern()">
+              <option value="DUI">DUI</option>
+              <option value="Licencia">Licencia</option>
+            </select>
+          </div>
+          <div>
+            <label for="docNumber" class="block text-sm font-medium text-gray-700">Número de Documento
+              *</label>
+            <input type="text" id="docNumber"
+              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              required oninput="formatDUI(this)">
+            <div id="docNumberError" class="error-message">Formato inválido</div>
+          </div>
+          <div>
+            <label for="role" class="block text-sm font-medium text-gray-700">Rol *</label>
+            <select id="role"
+              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              required>
+              <option value="">Seleccione un rol</option>
+              <option value="Administrador">Administrador</option>
+              <option value="Mesero">Mesero</option>
+              <option value="Cocinero">Cocinero</option>
+              <option value="Cajero">Cajero</option>
+              <option value="Limpieza">Limpieza</option>
+            </select>
+            <div id="roleError" class="error-message">Seleccione un rol</div>
+          </div>
+          <div>
+            <label for="username" class="block text-sm font-medium text-gray-700">Usuario *</label>
+            <input type="text" id="username"
+              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              required oninput="validateUsername(this)">
+            <div id="usernameError" class="error-message">Solo letras y números</div>
+          </div>
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700">Contraseña *</label>
+            <div class="mt-1 relative">
+              <input type="password" id="password"
+                class="block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 pr-10"
+                required>
+              <button type="button" id="togglePassword"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <div id="passwordError" class="error-message">Requisitos no cumplidos</div>
+          </div>
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+            <input type="text" id="email"
+              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              readonly>
+          </div>
+          <div>
+            <label for="hireDate" class="block text-sm font-medium text-gray-700">Fecha de Contratación *</label>
+            <input type="date" id="hireDate"
+              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              required onchange="validateHireDate()">
+            <div id="hireDateError" class="error-message">Fecha inválida</div>
+          </div>
+          <div class="md:col-span-2">
+            <label for="address" class="block text-sm font-medium text-gray-700">Dirección *</label>
+            <textarea id="address" rows="2"
+              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              maxlength="160" required oninput="validateAddress(this)"></textarea>
+            <div id="addressError" class="error-message">Dirección inválida</div>
+          </div>
+        </div>
+        <div class="flex justify-end space-x-3 pt-4">
+          <button type="button" id="cancelBtn"
+            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Cancelar</button>
+          <button type="submit"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2 transition">
+            <i class="fas fa-save"></i> Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/empleados.js"></script>
+  <script src="js/script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperación de Contraseña</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/recuperacion.css">
+    
+</head>
+<body>
+    <div class="container">
+        <div class="container-form">
+            <form class="sign-in" id="emailForm">
+                <h2>Buscar tu correo</h2>
+                <span>Ingrese su correo de recuperación</span>
+                
+                <div class="container-input">
+                    <div class="input-wrapper" id="emailWrapper">
+                        <ion-icon name="mail-outline"></ion-icon>
+                        <input type="email" placeholder="Correo Electrónico" id="txtCorreo">
+                    </div>
+                    <div class="error-message" id="emailError"></div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="container-form">
+            <form class="sign-up" id="pinForm">
+                <h2>Ingrese el PIN</h2>
+                <span>Ingrese el PIN que se le ha enviado a su correo</span>
+                
+                <div class="container-input">
+                    <div class="input-wrapper" id="pinWrapper">
+                        <ion-icon name="lock-closed-outline"></ion-icon>
+                        <input type="text" placeholder="PIN de 6 dígitos" id="txtPin" class="pin-input" maxlength="6">
+                    </div>
+                    <div class="error-message" id="pinError"></div>
+                </div>
+                
+                <button type="submit" class="button" id="checkPinBtn">
+                    <span class="btn-text">Comprobar</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="container-welcome">
+            <div class="welcome-sign-up welcome">
+                <h3>¿Olvidaste?</h3>
+                <p>No te preocupes, ingresa tu correo y se te enviará un PIN de seguridad con el cual podrás recuperar tu contraseña.</p>
+                <button class="button" id="btn-sign-up">Enviar</button>
+            </div>
+            <div class="welcome-sign-in welcome">
+                <h3>Revisa el PIN</h3>
+                <p>Una vez se haya enviado el correo, ingresa el PIN tal cual se te envió</p>
+                <button class="button" id="btn-sign-in">Ingresar correo</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="js/recuperacion.js"></script>
+
+   
+</body>
+</html>
