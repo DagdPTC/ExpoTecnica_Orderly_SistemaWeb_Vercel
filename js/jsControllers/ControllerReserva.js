@@ -1,10 +1,8 @@
-// js/jsControllers/ControllerReserva.js
 import {
   getReservas, createReserva, updateReserva, deleteReserva,
   getMesas, getTiposMesa, getTiposReserva, getEstadosReserva,
 } from "../jsService/ServiceReservas.js";
 
-/* ========= Helpers ========= */
 const $ = (s) => document.querySelector(s);
 const pad2 = (n) => String(n).padStart(2, "0");
 const pick = (obj, keys) => { for (const k of keys) if (obj?.[k] !== undefined && obj?.[k] !== null) return obj[k]; return null; };
@@ -26,21 +24,19 @@ const formatDate = (v) => { const iso = toInputDate(v); if (!iso) return ""; con
 const formatTime = (v) => toInputTime(v) || "--:--";
 const makeDT = (iso, hhmm) => new Date(`${iso}T${hhmm}:00`);
 
-/* ========= Estado ========= */
 let currentPage = 0;
 let pageSize = 10;
 let rawPage = null;
 let reservas = [];
 
-let mesas = [];                 // { id, nomMesa, idTipoMesa }
-let tipoMesaCap = new Map();    // idTipoMesa -> capacidad
+let mesas = [];
+let tipoMesaCap = new Map();
 let tiposReserva = [];
-let estados = new Map();        // nombre lower -> id
+let estados = new Map();
 
 let selectedMesaId = null;
 let editingId = null;
 
-/* ========= Init ========= */
 document.addEventListener("DOMContentLoaded", async () => {
   $("#items-per-page")?.addEventListener("change", async (e) => {
     pageSize = parseInt(e.target.value, 10) || 10;
@@ -61,7 +57,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadAndRender();
 });
 
-/* ========= Catálogos ========= */
 async function bootstrapCatalogs() {
   tipoMesaCap.clear();
   estados.clear();
@@ -70,7 +65,6 @@ async function bootstrapCatalogs() {
       getTiposMesa(), getMesas(), getTiposReserva(), getEstadosReserva(),
     ]);
 
-    // Tipos de mesa -> capacidad
     if (pTiposMesa.status === "fulfilled") {
       const list = pTiposMesa.value?.content ?? pTiposMesa.value ?? [];
       list.forEach(t => {
@@ -80,7 +74,6 @@ async function bootstrapCatalogs() {
       });
     }
 
-    // Mesas
     {
       const list = pMesas.status === "fulfilled"
         ? (pMesas.value?.content ?? pMesas.value ?? [])
@@ -92,7 +85,6 @@ async function bootstrapCatalogs() {
       })).filter(x => x.id !== null);
     }
 
-    // Tipos de reserva (select)
     tiposReserva = pTiposRes.status === "fulfilled"
       ? (pTiposRes.value?.content ?? pTiposRes.value ?? [])
       : [];
@@ -103,8 +95,7 @@ async function bootstrapCatalogs() {
         `<option value="${t.id}">${t.nomTipo || t.nombre || ("Tipo " + t.id)}</option>`));
     }
 
-    // Estados (map nombre -> id)
-    await refreshEstados(); // carga inicial
+    await refreshEstados();
     renderMesasGrid();
   } catch (err) {
     console.error("Error cargando catálogos:", err);
@@ -112,7 +103,6 @@ async function bootstrapCatalogs() {
   }
 }
 
-// ✅ Refresca solo EstadoReserva (para evitar tener que recargar la página)
 async function refreshEstados() {
   try {
     const resp = await getEstadosReserva();
@@ -128,9 +118,8 @@ async function refreshEstados() {
   }
 }
 
-/* ========= Carga & render ========= */
 async function loadAndRender() {
-  rawPage = await getReservas(currentPage, pageSize); // paginación real
+  rawPage = await getReservas(currentPage, pageSize);
   reservas = rawPage?.content ?? [];
   renderTable();
   renderPagination();
@@ -219,7 +208,6 @@ window.__delRes = async (id) => {
   try { await deleteReserva(id); await loadAndRender(); } catch (e) { console.error(e); alert("No se pudo eliminar."); }
 };
 
-/* ========= Paginación ========= */
 function renderPagination() {
   const totalPages = rawPage?.totalPages ?? 1;
   const number = rawPage?.number ?? 0;
@@ -257,7 +245,6 @@ function renderPagination() {
   cont.style.display = totalPages > 1 ? "flex" : "none";
 }
 
-/* ========= Modal ========= */
 function openCreateModal() {
   editingId = null;
   $("#reservation-modal-title").textContent = "Nueva Reservación";
@@ -297,7 +284,6 @@ function showModal(show) {
 }
 function closeModal() { showModal(false); }
 
-/* ========= Grid de mesas ========= */
 function renderMesasGrid() {
   const grid = $("#tables-container");
   if (!grid) return;
@@ -327,7 +313,6 @@ function renderMesasGrid() {
   if (totalCap) totalCap.textContent = total;
 }
 
-/* ========= Estado (auto) ========= */
 function computeStatusKey(fReserva, horaI, horaF) {
   if (!fReserva || !horaI || !horaF) return "pending";
   const start = makeDT(toInputDate(fReserva), toInputTime(horaI));
@@ -361,7 +346,6 @@ function estadoIdDesdeClave(key) {
   return it && !it.done ? it.value : null;
 }
 
-/* ========= Submit (POST/PUT) ========= */
 async function submitForm(e) {
   e.preventDefault();
   hideMsg();
@@ -373,7 +357,7 @@ async function submitForm(e) {
   const tipoSel = $("#tipo-reserva-select").value;
   if (!tipoSel) return showMsg("Seleccione un tipo de reserva.");
 
-  const f = $("#reservation-date").value;                 // "yyyy-MM-dd"
+  const f = $("#reservation-date").value;
   const hi = ($("#reservation-time").value || "").slice(0, 5);
   const hf = ($("#reservation-end-time").value || "").slice(0, 5);
 
@@ -382,7 +366,6 @@ async function submitForm(e) {
   if (!hf) return showMsg("La hora fin es obligatoria.");
   if (!validateTimes()) return;
 
-  // ✅ Refresca estados aquí para evitar tener que recargar
   await refreshEstados();
 
   const estadoKey = computeStatusKey(f, hi, hf);
@@ -411,7 +394,6 @@ async function submitForm(e) {
   }
 }
 
-/* ========= Validaciones ========= */
 function setupLiveValidation() {
   const name = $("#customer-name");
   const phone = $("#customer-phone");
@@ -486,7 +468,6 @@ function hideMsg() {
   m.className = "hidden"; m.textContent = "";
 }
 
-/* ========= Estadísticas ========= */
 function updateStats() {
   const total = reservas.length;
   const pending = reservas.filter(r => computeStatusKey(getFecha(r), getHoraI(r), getHoraF(r)) === "pending").length;

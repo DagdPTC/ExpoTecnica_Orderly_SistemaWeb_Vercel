@@ -1,7 +1,5 @@
-// js/jsService/ServiceReservas.js
 const BASE = "http://localhost:8080";
 
-/* Helper fetch con manejo de errores */
 async function jfetch(url, opts = {}) {
   const res = await fetch(url, opts);
   if (!res.ok) {
@@ -12,8 +10,6 @@ async function jfetch(url, opts = {}) {
   return ct.includes("application/json") ? res.json() : null;
 }
 
-/* ================== RESERVAS ================== */
-// ✅ Paginación real
 export async function getReservas(page = 0, size = 10) {
   return jfetch(`${BASE}/apiReserva/getDataReserva?page=${page}&size=${size}`);
 }
@@ -38,8 +34,6 @@ export async function deleteReserva(id) {
   return jfetch(`${BASE}/apiReserva/eliminarReserva/${id}`, { method: "DELETE" });
 }
 
-/* ================== CATÁLOGOS ================== */
-// ❗ Sin page/size para no romper nada en estos endpoints
 export async function getMesas() {
   return jfetch(`${BASE}/apiMesa/getDataMesa`);
 }

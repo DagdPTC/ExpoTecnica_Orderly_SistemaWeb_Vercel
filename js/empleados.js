@@ -1,15 +1,9 @@
-// JavaScript original con mejoras para responsive
-
-// ------- Menú usuario navbar: se inyecta automáticamente --------
 document.addEventListener('DOMContentLoaded', function () {
-  // Encuentra el avatar del usuario
   let userBtn = document.querySelector('.navbar-user-avatar');
   if (userBtn) {
     userBtn.style.position = 'relative';
 
-    // Crea el menú solo si no existe aún
     if (!document.getElementById('userDropdown')) {
-      // Contenedor de dropdown
       const dropdown = document.createElement('div');
       dropdown.className = 'user-dropdown';
       dropdown.id = 'userDropdown';
@@ -21,26 +15,22 @@ document.addEventListener('DOMContentLoaded', function () {
       userBtn.parentNode.style.position = "relative";
       userBtn.parentNode.appendChild(dropdown);
 
-      // Overlay para cerrar el menú al hacer click fuera
       const overlay = document.createElement('div');
       overlay.className = 'user-dropdown-overlay';
       overlay.id = 'userDropdownOverlay';
       document.body.appendChild(overlay);
 
-      // Mostrar/ocultar menú al hacer click en el avatar
       userBtn.addEventListener('click', function (e) {
         e.stopPropagation();
         dropdown.classList.toggle('show');
         overlay.classList.toggle('active');
       });
 
-      // Cerrar si clic fuera
       overlay.addEventListener('click', function () {
         dropdown.classList.remove('show');
         overlay.classList.remove('active');
       });
 
-      // Cerrar con Esc
       document.addEventListener('keydown', function (ev) {
         if (ev.key === "Escape") {
           dropdown.classList.remove('show');
@@ -48,7 +38,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
 
-      // Acción cerrar sesión
       document.getElementById('logoutBtn').addEventListener('click', function () {
         dropdown.classList.remove('show');
         overlay.classList.remove('active');
@@ -58,14 +47,12 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
-// Toggle sidebar para móvil y desktop
 document.addEventListener('DOMContentLoaded', function () {
   const sidebarToggle = document.getElementById('sidebarToggle');
   const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
   const sidebar = document.getElementById('sidebar');
   const mobileOverlay = document.getElementById('mobileOverlay');
 
-  // Toggle móvil
   if (sidebarToggle && sidebar) {
     sidebarToggle.addEventListener('click', function () {
       sidebar.classList.toggle('mobile-open');
@@ -73,14 +60,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Toggle desktop (colapsar sidebar)
   if (sidebarToggleDesktop && sidebar) {
     sidebarToggleDesktop.addEventListener('click', function () {
       sidebar.classList.toggle('collapsed');
     });
   }
 
-  // Cerrar sidebar móvil al hacer click en overlay
   if (mobileOverlay) {
     mobileOverlay.addEventListener('click', function () {
       sidebar.classList.remove('mobile-open');
@@ -88,7 +73,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Cerrar sidebar móvil con Escape
   document.addEventListener('keydown', function (ev) {
     if (ev.key === "Escape") {
       sidebar.classList.remove('mobile-open');
@@ -96,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // Cerrar sidebar móvil al cambiar a desktop
   window.addEventListener('resize', function () {
     if (window.innerWidth >= 1024) {
       sidebar.classList.remove('mobile-open');
@@ -105,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-// Animaciones de entrada escalonada para las cards
 document.addEventListener('DOMContentLoaded', function () {
   const observerOptions = {
     threshold: 0.1,
@@ -121,7 +103,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }, observerOptions);
 
-  // Observar elementos con animación
   document.querySelectorAll('.animate-fade-in').forEach(el => {
     el.style.opacity = '0';
     el.style.transform = 'translateY(20px)';
@@ -130,7 +111,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-// Efectos hover mejorados para las mesas
 document.addEventListener('DOMContentLoaded', function () {
   const tableStatus = document.querySelectorAll('.table-status');
 
@@ -144,7 +124,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     table.addEventListener('click', function () {
-      // Efecto de click
       this.style.transform = 'scale(0.95)';
       setTimeout(() => {
         this.style.transform = 'scale(1.05) rotate(2deg)';
@@ -153,7 +132,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-// Smooth scroll para enlaces internos
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -169,7 +147,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-// ======= EMPLEADOS (datos + lógica) =======
 const employees = [
   { id: 1, firstName: "Juan", secondName: "Carlos", lastNameP: "Pérez", lastNameM: "Gómez", birthDate: "1985-05-15", phone: "+503 7890-1234", docType: "DUI", docNumber: "12345678-9", role: "Administrador", username: "jperez", password: "Admin123#", email: "juan_perez@orderly.com", hireDate: "2020-01-10", address: "Calle Principal #123, Colonia Centro" },
   { id: 2, firstName: "María", secondName: "Isabel", lastNameP: "Rodríguez", lastNameM: "Martínez", birthDate: "1990-08-22", phone: "+503 6789-4321", docType: "DUI", docNumber: "98765432-1", role: "Mesero", username: "mrodriguez", password: "Mesero123#", email: "maria_rodriguez@orderly.com", hireDate: "2021-03-15", address: "Avenida Norte #456, Colonia Escalón" },
@@ -242,7 +219,6 @@ function renderTable() {
 }
 renderTable();
 
-/* ===== Modal / CRUD ===== */
 const addEmployeeBtn = document.getElementById('addEmployeeBtn');
 const modalWrap = document.getElementById('employeeModal');
 const modalTitle = document.getElementById('modalTitle');
@@ -298,7 +274,6 @@ function submitForm(e) {
   closeForm(); renderTable();
 }
 
-/* Validaciones */
 function val(id) { return document.getElementById(id).value.trim(); }
 function validateNameInput(el) { const re = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/; const ok = re.test(el.value); if (!ok) el.value = el.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, ''); el.classList.toggle('invalid', !ok && el.value); const e = document.getElementById(el.id + 'Error'); if (e) e.style.display = (!ok && el.value) ? 'block' : 'none'; }
 function validateUsername(el) { const re = /^[A-Za-z0-9]*$/; const ok = re.test(el.value); if (!ok) el.value = el.value.replace(/[^A-Za-z0-9]/g, ''); el.classList.toggle('invalid', !ok && el.value); document.getElementById('usernameError').style.display = (!ok && el.value) ? 'block' : 'none'; }

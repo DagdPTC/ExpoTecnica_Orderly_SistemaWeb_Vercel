@@ -1,4 +1,3 @@
-// Datos iniciales
 let categorias = [
     { id: 1, nombre: "Entradas" },
     { id: 2, nombre: "Platos Fuertes" },
@@ -41,23 +40,19 @@ let platillos = [
     }
 ];
 
-// Variables de estado
 let editingPlatilloId = null;
 let currentAction = 'add';
 let selectedPlatilloId = null;
 
-// Elementos del DOM
 const menuContainer = document.getElementById('menuContainer');
 const noResults = document.getElementById('noResults');
 const searchInput = document.getElementById('searchInput');
 const categoryFilter = document.getElementById('categoryFilter');
 
-// Modales
 const platilloModal = document.getElementById('platilloModal');
 const categoriaModal = document.getElementById('categoriaModal');
 const confirmModal = document.getElementById('confirmModal');
 
-// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
 });
@@ -72,7 +67,6 @@ function initializeApp() {
 }
 
 function setupEventListeners() {
-    // Búsqueda y filtros
     let searchTimeout;
     searchInput.addEventListener('input', () => {
         clearTimeout(searchTimeout);
@@ -80,7 +74,6 @@ function setupEventListeners() {
     });
     categoryFilter.addEventListener('change', filterPlatillos);
 
-    // Botones de categoría
     document.getElementById('addCategoryBtn').addEventListener('click', () => {
         currentAction = 'add';
         openCategoriaModal();
@@ -104,14 +97,11 @@ function setupEventListeners() {
         openCategoriaModal();
     });
 
-    // Event delegation para botones dinámicos
     document.addEventListener('click', handleClick);
 
-    // Formularios
     document.getElementById('platilloForm').addEventListener('submit', handlePlatilloSubmit);
     document.getElementById('categoriaForm').addEventListener('submit', handleCategoriaSubmit);
 
-    // Cerrar modales
     document.getElementById('closePlatilloModal').addEventListener('click', closePlatilloModal);
     document.getElementById('cancelPlatilloBtn').addEventListener('click', closePlatilloModal);
     document.getElementById('closeCategoriaModal').addEventListener('click', closeCategoriaModal);
@@ -119,18 +109,14 @@ function setupEventListeners() {
     document.getElementById('cancelConfirmBtn').addEventListener('click', closeConfirmModal);
     document.getElementById('acceptConfirmBtn').addEventListener('click', handleConfirmAction);
 
-    // Previsualización de imágenes
     document.getElementById('platilloImagen').addEventListener('change', previewImage);
     document.getElementById('platilloImagenUrl').addEventListener('input', previewImageUrl);
 
-    // Formateo de precio
     document.getElementById('platilloPrecio').addEventListener('input', (e) => formatPrice(e.target));
 
-    // Validación de nombres
     document.getElementById('platilloNombre').addEventListener('input', (e) => validateName(e.target));
     document.getElementById('categoriaNombre').addEventListener('input', (e) => validateCategoryName(e.target));
 
-    // Cerrar modales con ESC
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closePlatilloModal();
@@ -140,7 +126,6 @@ function setupEventListeners() {
         }
     });
 
-    // Cerrar modales clickeando fuera
     [platilloModal, categoriaModal, confirmModal].forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -167,7 +152,6 @@ function setupMobileMenu() {
         mobileOverlay.classList.remove('active');
     });
 
-    // Cerrar menú al hacer click en enlaces
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', () => {
             if (window.innerWidth < 1024) {
@@ -258,26 +242,21 @@ function closeFABMenu() {
 }
 
 function renderCategorias() {
-    // Limpiar selects
     categoryFilter.innerHTML = '<option value="all">Todas las categorías</option>';
     document.getElementById('platilloCategoria').innerHTML = '<option value="">Seleccione una categoría</option>';
     document.getElementById('categoriaSelect').innerHTML = '<option value="">Seleccione una categoría</option>';
 
-    // Llenar selects con categorías
     categorias.forEach(categoria => {
-        // Filter select
         const option1 = document.createElement('option');
         option1.value = categoria.id;
         option1.textContent = categoria.nombre;
         categoryFilter.appendChild(option1);
 
-        // Platillo category select
         const option2 = document.createElement('option');
         option2.value = categoria.id;
         option2.textContent = categoria.nombre;
         document.getElementById('platilloCategoria').appendChild(option2);
 
-        // Category management select
         const option3 = document.createElement('option');
         option3.value = categoria.id;
         option3.textContent = categoria.nombre;
@@ -295,7 +274,6 @@ function renderPlatillos(platillosToRender = platillos) {
 
     noResults.classList.add('hidden');
 
-    // Render existing dishes
     platillosToRender.forEach((platillo, index) => {
         const categoria = categorias.find(c => c.id === platillo.categoriaId)?.nombre || 'Sin categoría';
 
@@ -342,7 +320,6 @@ function renderPlatillos(platillosToRender = platillos) {
         menuContainer.appendChild(card);
     });
 
-    // Add "Add New Dish" card
     const addCard = document.createElement('div');
     addCard.className = 'glass card hover:scale-105 transition-all duration-300 cursor-pointer animate-fade-in';
     addCard.style.animationDelay = `${platillosToRender.length * 0.1}s`;
@@ -379,7 +356,6 @@ function filterPlatillos() {
     renderPlatillos(filtered);
 }
 
-// Modal Functions
 function openPlatilloModal(id = null) {
     resetPlatilloForm();
 
@@ -417,14 +393,12 @@ function closePlatilloModal() {
 }
 
 function openEditPlatilloModal() {
-    // Crear modal de selección para editar
     openConfirmModal(
         'Seleccionar Platillo',
         'Selecciona el platillo que deseas editar:',
         'selectPlatilloForEdit'
     );
 
-    // Crear lista de platillos
     const messageElement = document.getElementById('confirmModalMessage');
     messageElement.innerHTML = `
                 <p class="text-gray-600 mb-4">Selecciona el platillo que deseas editar:</p>
@@ -444,7 +418,6 @@ function openEditPlatilloModal() {
                 </div>
             `;
 
-    // Agregar event listeners a los items
     setTimeout(() => {
         document.querySelectorAll('.platillo-select-item').forEach(item => {
             item.addEventListener('click', function () {
@@ -457,14 +430,12 @@ function openEditPlatilloModal() {
 }
 
 function openDeletePlatilloModal() {
-    // Crear modal de selección para eliminar
     openConfirmModal(
         'Seleccionar Platillo',
         'Selecciona el platillo que deseas eliminar:',
         'selectPlatilloForDelete'
     );
 
-    // Crear lista de platillos
     const messageElement = document.getElementById('confirmModalMessage');
     messageElement.innerHTML = `
                 <p class="text-gray-600 mb-4">Selecciona el platillo que deseas eliminar:</p>
@@ -484,7 +455,6 @@ function openDeletePlatilloModal() {
                 </div>
             `;
 
-    // Agregar event listeners a los items
     setTimeout(() => {
         document.querySelectorAll('.platillo-select-item').forEach(item => {
             item.addEventListener('click', function () {
@@ -492,7 +462,6 @@ function openDeletePlatilloModal() {
                 const platillo = platillos.find(p => p.id === id);
                 closeConfirmModal();
 
-                // Mostrar confirmación de eliminación
                 openConfirmModal(
                     'Eliminar Platillo',
                     `¿Estás seguro que deseas eliminar "${platillo.nombre}"? Esta acción no se puede deshacer.`,
@@ -562,7 +531,6 @@ function closeConfirmModal() {
     document.body.style.overflow = '';
 }
 
-// Form Handlers
 function handlePlatilloSubmit(e) {
     e.preventDefault();
 
@@ -574,22 +542,18 @@ function handlePlatilloSubmit(e) {
 
     let isValid = true;
 
-    // Validate name
     if (!validateField(nombre, 'platilloNombreError', nombre.value.trim() !== '')) {
         isValid = false;
     }
 
-    // Validate category
     if (!validateField(categoria, 'platilloCategoriaError', categoria.value !== '')) {
         isValid = false;
     }
 
-    // Validate price
     if (!validateField(precio, 'platilloPrecioError', /^\d+(\.\d{1,2})?$/.test(precio.value))) {
         isValid = false;
     }
 
-    // Validate image
     const hasImage = imagenUrl.value.trim() !== '' || imagenFile.files.length > 0 ||
         document.getElementById('platilloImagenPreview').querySelector('img') !== null;
     if (!validateField(imagenUrl, 'platilloImagenError', hasImage)) {
@@ -606,7 +570,6 @@ function handlePlatilloSubmit(e) {
         precio: parseFloat(precio.value)
     };
 
-    // Handle image
     if (imagenFile.files.length > 0) {
         getBase64(imagenFile.files[0]).then(base64 => {
             platilloData.imagen = base64;
@@ -663,7 +626,6 @@ function handleCategoriaSubmit(e) {
     }
 }
 
-// CRUD Operations
 function savePlatillo(platilloData) {
     if (editingPlatilloId) {
         const index = platillos.findIndex(p => p.id === editingPlatilloId);
@@ -722,7 +684,6 @@ function deleteCategoria() {
 
     if (!categoria) return;
 
-    // Check if category is in use
     const platillosEnUso = platillos.filter(p => p.categoriaId === id);
 
     if (platillosEnUso.length > 0) {
@@ -748,7 +709,6 @@ function executeDeleteCategoria(id) {
     showToast(`Categoría "${categoria.nombre}" eliminada correctamente`, 'success');
 }
 
-// Utility Functions
 function resetPlatilloForm() {
     document.getElementById('platilloForm').reset();
     document.getElementById('platilloId').value = '';
@@ -760,8 +720,6 @@ function resetCategoriaForm() {
     document.getElementById('categoriaForm').reset();
     document.getElementById('categoriaAction').value = currentAction;
     hideAllErrors();
-
-    // Remove any existing error containers
     const errorContainer = document.getElementById('categoriaErrorContainer');
     if (errorContainer) {
         errorContainer.remove();
@@ -847,18 +805,13 @@ function previewImageUrl() {
 
 function formatPrice(input) {
     let value = input.value.replace(/[^0-9.]/g, '');
-
-    // Ensure only one decimal point
     const parts = value.split('.');
     if (parts.length > 2) {
         value = parts[0] + '.' + parts.slice(1).join('');
     }
-
-    // Limit to 2 decimal places
     if (parts[1] && parts[1].length > 2) {
         value = parts[0] + '.' + parts[1].substring(0, 2);
     }
-
     input.value = value;
 }
 
@@ -892,12 +845,10 @@ function showToast(message, type = 'info') {
 
     document.body.appendChild(toast);
 
-    // Show toast
     setTimeout(() => {
         toast.classList.add('show');
     }, 100);
 
-    // Hide and remove toast
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => {
@@ -908,9 +859,7 @@ function showToast(message, type = 'info') {
     }, 4000);
 }
 
-// Handle click events for dynamic elements
 function handleClick(e) {
-    // Edit platillo button
     if (e.target.closest('.edit-platillo-btn')) {
         const card = e.target.closest('.platillo-card');
         if (card) {
@@ -919,7 +868,6 @@ function handleClick(e) {
         }
     }
 
-    // Delete platillo button
     if (e.target.closest('.delete-platillo-btn')) {
         const card = e.target.closest('.platillo-card');
         if (card) {
@@ -936,7 +884,6 @@ function handleClick(e) {
     }
 }
 
-// Handle confirm action
 function handleConfirmAction() {
     const action = this.dataset.action;
     const id = this.dataset.id ? parseInt(this.dataset.id) : null;
@@ -950,7 +897,6 @@ function handleConfirmAction() {
     closeConfirmModal();
 }
 
-// Category select change handler for edit mode
 document.getElementById('categoriaSelect').addEventListener('change', function () {
     if (currentAction === 'edit' && this.value) {
         const categoria = categorias.find(c => c.id === parseInt(this.value));
@@ -960,7 +906,6 @@ document.getElementById('categoriaSelect').addEventListener('change', function (
     }
 });
 
-// Window resize handler
 window.addEventListener('resize', () => {
     const sidebar = document.getElementById('sidebar');
     const mobileOverlay = document.getElementById('mobileOverlay');
@@ -969,13 +914,11 @@ window.addEventListener('resize', () => {
         sidebar.classList.remove('hidden');
         mobileOverlay.classList.remove('active');
     } else if (window.innerWidth < 1024 && !sidebar.classList.contains('hidden')) {
-        // Keep sidebar hidden on smaller screens unless explicitly opened
         sidebar.classList.add('hidden');
         mobileOverlay.classList.remove('active');
     }
 });
 
-// Initialize sidebar state based on screen size
 window.addEventListener('load', () => {
     const sidebar = document.getElementById('sidebar');
     if (window.innerWidth < 1024) {

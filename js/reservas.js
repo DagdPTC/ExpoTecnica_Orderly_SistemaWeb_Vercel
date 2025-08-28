@@ -1,6 +1,4 @@
-// controllers/uiShell.js
 document.addEventListener("DOMContentLoaded", () => {
-  /* ===== Navbar: usuario (dropdown) ===== */
   const userBtn = document.querySelector(".navbar-user-avatar");
   if (userBtn && !document.getElementById("userDropdown")) {
     const dropdown = document.createElement("div");
@@ -45,7 +43,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ===== Sidebar toggles (móvil/desktop) ===== */
   const sidebarToggle = document.getElementById("sidebarToggle");
   const sidebarToggleDesktop = document.getElementById("sidebarToggleDesktop");
   const sidebar = document.getElementById("sidebar");
@@ -79,7 +76,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* ===== Animaciones de entrada ===== */
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -99,7 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
     observer.observe(el);
   });
 
-  /* ===== Smooth scroll (si usas anchors internos) ===== */
   document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
     anchor.addEventListener("click", function (e) {
       const href = this.getAttribute("href");

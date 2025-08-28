@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', function () {
   let userBtn = document.querySelector('.navbar-user-avatar');
   if (userBtn) {
@@ -54,7 +53,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const sidebar = document.getElementById('sidebar');
   const mobileOverlay = document.getElementById('mobileOverlay');
 
-  // Toggle móvil
   if (sidebarToggle && sidebar) {
     sidebarToggle.addEventListener('click', function () {
       sidebar.classList.toggle('mobile-open');
@@ -62,14 +60,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Toggle desktop (colapsar sidebar)
   if (sidebarToggleDesktop && sidebar) {
     sidebarToggleDesktop.addEventListener('click', function () {
       sidebar.classList.toggle('collapsed');
     });
   }
 
-  // Cerrar sidebar móvil al hacer click en overlay
   if (mobileOverlay) {
     mobileOverlay.addEventListener('click', function () {
       sidebar.classList.remove('mobile-open');
@@ -77,7 +73,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Cerrar sidebar móvil con Escape
   document.addEventListener('keydown', function (ev) {
     if (ev.key === "Escape") {
       sidebar.classList.remove('mobile-open');
@@ -85,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // Cerrar sidebar móvil al cambiar a desktop
   window.addEventListener('resize', function () {
     if (window.innerWidth >= 1024) {
       sidebar.classList.remove('mobile-open');
@@ -94,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-// Animaciones de entrada escalonada para las cards
 document.addEventListener('DOMContentLoaded', function () {
   const observerOptions = {
     threshold: 0.1,
@@ -110,7 +103,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }, observerOptions);
 
-  // Observar elementos con animación
   document.querySelectorAll('.animate-fade-in').forEach(el => {
     el.style.opacity = '0';
     el.style.transform = 'translateY(20px)';
@@ -119,7 +111,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-// Efectos hover mejorados para las mesas
 document.addEventListener('DOMContentLoaded', function () {
   const tableStatus = document.querySelectorAll('.table-status');
 
@@ -133,7 +124,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     table.addEventListener('click', function () {
-      // Efecto de click
       this.style.transform = 'scale(0.95)';
       setTimeout(() => {
         this.style.transform = 'scale(1.05) rotate(2deg)';
@@ -142,7 +132,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-// Smooth scroll para enlaces internos
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -414,12 +403,10 @@ function saveInvoice() {
   const cliInp = document.getElementById('editClientName');
   const waiInp = document.getElementById('editWaiterName');
 
-  // Clear previous error states
   [invNumInp, ordNumInp, dateInp, cliInp, waiInp].forEach(inp => {
     inp.classList.remove('error-input');
   });
 
-  // Validate readonly fields
   if (invNumInp.value !== inv.invoiceNumber) {
     invNumInp.classList.add('invalid-input');
     const e = document.getElementById('editInvoiceNumberError');
@@ -442,7 +429,6 @@ function saveInvoice() {
     ok = false;
   }
 
-  // Validate required fields
   if (!cliInp.value.trim()) {
     cliInp.classList.add('invalid-input');
     document.getElementById('editClientNameError').textContent = 'El nombre del cliente es requerido';
@@ -458,13 +444,11 @@ function saveInvoice() {
 
   if (!ok) return;
 
-  // Save changes
   inv.clientName = cliInp.value.trim();
   inv.waiterName = waiInp.value;
   filterInvoices();
   document.getElementById('editModal').classList.add('hidden');
 
-  // Show success notification (you can enhance this with a toast notification)
   console.log('Factura actualizada exitosamente');
 }
 
@@ -478,12 +462,9 @@ function doDelete() {
   invoicesData = invoicesData.filter(i => i.id !== id);
   filterInvoices();
   document.getElementById('confirmModal').classList.add('hidden');
-
-  // Show success notification
   console.log('Factura eliminada exitosamente');
 }
 
-// Sidebar toggle functionality
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const mainContent = document.getElementById('mainContent');
@@ -492,25 +473,21 @@ function toggleSidebar() {
   mainContent.classList.toggle('collapsed');
 }
 
-// Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
   filteredInvoices = [...invoicesData];
   renderInvoicesTable(filteredInvoices);
 
-  // Event listeners
   document.getElementById('searchInput').oninput = filterInvoices;
   document.getElementById('waiterFilter').onchange = filterInvoices;
   document.getElementById('dateFilter').onchange = filterInvoices;
   document.getElementById('sidebarToggle').onclick = toggleSidebar;
 
-  // Modal event listeners
   document.getElementById('cancelEditBtn').onclick = () => document.getElementById('editModal').classList.add('hidden');
   document.getElementById('saveInvoiceBtn').onclick = saveInvoice;
   document.getElementById('closeModalBtn').onclick = () => document.getElementById('detailsModal').classList.add('hidden');
   document.getElementById('confirmDeleteBtn').onclick = doDelete;
   document.getElementById('cancelDeleteBtn').onclick = () => document.getElementById('confirmModal').classList.add('hidden');
 
-  // Close modals when clicking outside
   document.querySelectorAll('.modal-overlay').forEach(modal => {
     modal.onclick = (e) => {
       if (e.target === modal) {
@@ -519,7 +496,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   });
 
-  // ESC key to close modals
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       document.querySelectorAll('.modal-overlay').forEach(modal => {
@@ -529,7 +505,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// Add some loading animation when filtering
 let filterTimeout;
 const originalFilter = filterInvoices;
 filterInvoices = function () {

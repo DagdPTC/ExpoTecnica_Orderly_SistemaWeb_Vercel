@@ -1,6 +1,3 @@
-// ==========================================
-// DATOS INICIALES
-// ==========================================
 let mesas = [
     { id: 1, numero: 1, capacidad: 4, estado: 'libre', responsable: '', cliente: '' },
     { id: 2, numero: 2, capacidad: 2, estado: 'ocupada', responsable: 'Juan Pérez', cliente: '' },
@@ -15,9 +12,6 @@ let mesas = [
 let currentMesaId = null;
 let currentFilter = 'all';
 
-// ==========================================
-// INICIALIZACIÓN
-// ==========================================
 document.addEventListener('DOMContentLoaded', function () {
     initializeApp();
 });
@@ -30,16 +24,12 @@ function initializeApp() {
     updateCounters();
 }
 
-// ==========================================
-// CONFIGURACIÓN DEL SIDEBAR
-// ==========================================
 function setupSidebar() {
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
     const mobileOverlay = document.getElementById('mobileOverlay');
 
-    // Toggle móvil
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', function () {
             sidebar.classList.toggle('mobile-open');
@@ -47,14 +37,12 @@ function setupSidebar() {
         });
     }
 
-    // Toggle desktop (colapsar sidebar)
     if (sidebarToggleDesktop && sidebar) {
         sidebarToggleDesktop.addEventListener('click', function () {
             sidebar.classList.toggle('collapsed');
         });
     }
 
-    // Cerrar sidebar móvil al hacer click en overlay
     if (mobileOverlay) {
         mobileOverlay.addEventListener('click', function () {
             sidebar.classList.remove('mobile-open');
@@ -62,7 +50,6 @@ function setupSidebar() {
         });
     }
 
-    // Cerrar sidebar móvil con Escape
     document.addEventListener('keydown', function (ev) {
         if (ev.key === "Escape") {
             sidebar.classList.remove('mobile-open');
@@ -70,7 +57,6 @@ function setupSidebar() {
         }
     });
 
-    // Cerrar sidebar móvil al cambiar a desktop
     window.addEventListener('resize', function () {
         if (window.innerWidth >= 1024) {
             sidebar.classList.remove('mobile-open');
@@ -79,9 +65,6 @@ function setupSidebar() {
     });
 }
 
-// ==========================================
-// CONFIGURACIÓN DEL FAB
-// ==========================================
 function setupFAB() {
     const fabMain = document.getElementById('fab-main');
     const fabMenu = document.getElementById('fab-menu');
@@ -126,18 +109,13 @@ function closeFABMenu() {
     icon.classList.add('fa-plus');
 }
 
-// ==========================================
-// CONFIGURACIÓN DE MODALES
-// ==========================================
 function setupModals() {
-    // Close modals when clicking outside
     document.addEventListener('click', function (e) {
         if (e.target.classList.contains('modal')) {
             hideModal(e.target.id);
         }
     });
 
-    // Close modals with Escape key
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             hideAllModals();
@@ -177,9 +155,6 @@ function hideAllModals() {
     });
 }
 
-// ==========================================
-// RENDERIZADO DE MESAS
-// ==========================================
 function renderMesas(filter = 'all') {
     const container = document.getElementById('mesas-container');
     const emptyState = document.getElementById('empty-state');
@@ -282,16 +257,12 @@ function createMesaCard(mesa, index) {
     return card;
 }
 
-// ==========================================
-// ACTUALIZACIÓN DE CONTADORES
-// ==========================================
 function updateCounters() {
     const estados = ['libre', 'ocupada', 'reservada', 'limpieza'];
     estados.forEach(estado => {
         const count = mesas.filter(mesa => mesa.estado === estado).length;
         const element = document.getElementById(`count-${estado}`);
         if (element) {
-            // Animación del contador
             element.style.transform = 'scale(1.2)';
             setTimeout(() => {
                 element.textContent = count;
@@ -301,11 +272,7 @@ function updateCounters() {
     });
 }
 
-// ==========================================
-// FILTROS
-// ==========================================
 function filterTables(status) {
-    // Update active button
     document.querySelectorAll('.btn-modern').forEach(btn => {
         btn.classList.remove('active-filter', 'ring-4', 'ring-opacity-50');
     });
@@ -315,9 +282,6 @@ function filterTables(status) {
     renderMesas(status);
 }
 
-// ==========================================
-// FUNCIONES CRUD
-// ==========================================
 function closeAdd() {
     hideModal('add-modal');
     clearForm('add');
@@ -360,21 +324,17 @@ function showMessage(elementId, message, type = 'info') {
         success: 'text-emerald-600 bg-emerald-50 border border-emerald-200',
         error: 'text-red-600 bg-red-50 border border-red-200',
         warning: 'text-amber-600 bg-amber-50 border border-amber-200',
-        info: 'text-blue-600 bg-blue-50 border border-blue-200'
+        info: 'text-blue-600 bg-blue-50 border blue-200'
     };
 
     element.textContent = message;
     element.className = `text-center text-sm p-3 rounded-lg ${colors[type]}`;
 }
 
-// ==========================================
-// AGREGAR MESA
-// ==========================================
 function addMesa() {
     const numero = parseInt(document.getElementById('add-numero').value);
     const capacidad = parseInt(document.getElementById('add-capacidad').value);
 
-    // Validaciones
     if (isNaN(numero) || numero < 1 || numero > 99) {
         showMessage('add-message', 'El número de mesa debe ser entre 1 y 99', 'error');
         return;
@@ -390,7 +350,6 @@ function addMesa() {
         return;
     }
 
-    // Crear nueva mesa
     const newId = Math.max(...mesas.map(mesa => mesa.id), 0) + 1;
     const newMesa = {
         id: newId,
@@ -404,19 +363,14 @@ function addMesa() {
     mesas.push(newMesa);
     showMessage('add-message', '¡Mesa creada exitosamente!', 'success');
 
-    // Update UI
     renderMesas(currentFilter);
     updateCounters();
 
-    // Close modal after delay
     setTimeout(() => {
         closeAdd();
     }, 1500);
 }
 
-// ==========================================
-// BUSCAR Y ACTUALIZAR MESA
-// ==========================================
 function nextUpdate() {
     const numero = parseInt(document.getElementById('update-search-numero').value);
 
@@ -436,12 +390,10 @@ function nextUpdate() {
         return;
     }
 
-    // Preparar segundo modal
     currentMesaId = mesa.id;
     document.getElementById('update-numero').value = mesa.numero;
     document.getElementById('update-capacidad').value = mesa.capacidad;
 
-    // Switch modals
     hideModal('update-modal-step1');
     setTimeout(() => {
         showModal('update-modal-step2');
@@ -452,7 +404,6 @@ function updateMesa() {
     const numero = parseInt(document.getElementById('update-numero').value);
     const capacidad = parseInt(document.getElementById('update-capacidad').value);
 
-    // Validaciones
     if (isNaN(numero) || numero < 1 || numero > 99) {
         showMessage('update-message-step2', 'El número debe ser entre 1 и 99', 'error');
         return;
@@ -468,7 +419,6 @@ function updateMesa() {
         return;
     }
 
-    // Actualizar mesa
     const mesa = mesas.find(m => m.id === currentMesaId);
     if (mesa) {
         mesa.numero = numero;
@@ -476,20 +426,15 @@ function updateMesa() {
 
         showMessage('update-message-step2', '¡Mesa actualizada correctamente!', 'success');
 
-        // Update UI
         renderMesas(currentFilter);
         updateCounters();
 
-        // Close modal
         setTimeout(() => {
             closeUpdate();
         }, 1500);
     }
 }
 
-// ==========================================
-// ELIMINAR MESA
-// ==========================================
 function deleteMesa() {
     const numero = parseInt(document.getElementById('delete-numero').value);
 
@@ -510,23 +455,17 @@ function deleteMesa() {
         return;
     }
 
-    // Eliminar mesa
     mesas.splice(index, 1);
     showMessage('delete-message', '¡Mesa eliminada correctamente!', 'success');
 
-    // Update UI
     renderMesas(currentFilter);
     updateCounters();
 
-    // Close modal
     setTimeout(() => {
         closeDelete();
     }, 1500);
 }
 
-// ==========================================
-// CAMBIAR ESTADO DE MESA
-// ==========================================
 function cambiarEstadoMesa(mesaId) {
     const mesa = mesas.find(m => m.id === mesaId);
     if (!mesa) return;
@@ -537,7 +476,6 @@ function cambiarEstadoMesa(mesaId) {
 
     mesa.estado = estados[nextIndex];
 
-    // Simulate responsable/cliente data
     if (mesa.estado === 'ocupada') {
         const meseros = ['Juan Pérez', 'Ana López', 'Carlos Ruiz', 'María González'];
         mesa.responsable = meseros[Math.floor(Math.random() * meseros.length)];
@@ -555,16 +493,12 @@ function cambiarEstadoMesa(mesaId) {
     updateCounters();
 }
 
-// ------- Menú usuario navbar: se inyecta automáticamente --------
 document.addEventListener('DOMContentLoaded', function () {
-    // Encuentra el avatar del usuario
     let userBtn = document.querySelector('.navbar-user-avatar');
     if (userBtn) {
         userBtn.style.position = 'relative';
 
-        // Crea el menú solo si no existe aún
         if (!document.getElementById('userDropdown')) {
-            // Contenedor de dropdown
             const dropdown = document.createElement('div');
             dropdown.className = 'user-dropdown';
             dropdown.id = 'userDropdown';
@@ -576,26 +510,22 @@ document.addEventListener('DOMContentLoaded', function () {
             userBtn.parentNode.style.position = "relative";
             userBtn.parentNode.appendChild(dropdown);
 
-            // Overlay para cerrar el menú al hacer click fuera
             const overlay = document.createElement('div');
             overlay.className = 'user-dropdown-overlay';
             overlay.id = 'userDropdownOverlay';
             document.body.appendChild(overlay);
 
-            // Mostrar/ocultar menú al hacer click en el avatar
             userBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
                 dropdown.classList.toggle('show');
                 overlay.classList.toggle('active');
             });
 
-            // Cerrar si clic fuera
             overlay.addEventListener('click', function () {
                 dropdown.classList.remove('show');
                 overlay.classList.remove('active');
             });
 
-            // Cerrar con Esc
             document.addEventListener('keydown', function (ev) {
                 if (ev.key === "Escape") {
                     dropdown.classList.remove('show');
@@ -603,7 +533,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            // Acción cerrar sesión
             document.getElementById('logoutBtn').addEventListener('click', function () {
                 dropdown.classList.remove('show');
                 overlay.classList.remove('active');
@@ -613,7 +542,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-// Animaciones de entrada escalonada para las cards
 document.addEventListener('DOMContentLoaded', function () {
     const observerOptions = {
         threshold: 0.1,
@@ -629,7 +557,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }, observerOptions);
 
-    // Observar elementos con animación
     document.querySelectorAll('.animate-fade-in').forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(20px)';
@@ -638,7 +565,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Efectos hover mejorados para las mesas
 document.addEventListener('DOMContentLoaded', function () {
     const tableStatus = document.querySelectorAll('.mesa-card');
 
@@ -652,7 +578,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         table.addEventListener('click', function () {
-            // Efecto de click
             this.style.transform = 'scale(0.95)';
             setTimeout(() => {
                 this.style.transform = 'scale(1.05) rotate(2deg)';

@@ -1,13 +1,9 @@
-// ------- Menú usuario navbar: se inyecta automáticamente --------
 document.addEventListener('DOMContentLoaded', function () {
-  // Encuentra el avatar del usuario
   let userBtn = document.querySelector('.navbar-user-avatar');
   if (userBtn) {
     userBtn.style.position = 'relative';
 
-    // Crea el menú solo si no existe aún
     if (!document.getElementById('userDropdown')) {
-      // Contenedor de dropdown
       const dropdown = document.createElement('div');
       dropdown.className = 'user-dropdown';
       dropdown.id = 'userDropdown';
@@ -19,26 +15,22 @@ document.addEventListener('DOMContentLoaded', function () {
       userBtn.parentNode.style.position = "relative";
       userBtn.parentNode.appendChild(dropdown);
 
-      // Overlay para cerrar el menú al hacer click fuera
       const overlay = document.createElement('div');
       overlay.className = 'user-dropdown-overlay';
       overlay.id = 'userDropdownOverlay';
       document.body.appendChild(overlay);
 
-      // Mostrar/ocultar menú al hacer click en el avatar
       userBtn.addEventListener('click', function (e) {
         e.stopPropagation();
         dropdown.classList.toggle('show');
         overlay.classList.toggle('active');
       });
 
-      // Cerrar si clic fuera
       overlay.addEventListener('click', function () {
         dropdown.classList.remove('show');
         overlay.classList.remove('active');
       });
 
-      // Cerrar con Esc
       document.addEventListener('keydown', function (ev) {
         if (ev.key === "Escape") {
           dropdown.classList.remove('show');
@@ -46,7 +38,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
 
-      // Acción cerrar sesión
       document.getElementById('logoutBtn').addEventListener('click', function () {
         dropdown.classList.remove('show');
         overlay.classList.remove('active');
@@ -56,14 +47,12 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
-// Toggle sidebar para móvil y desktop
 document.addEventListener('DOMContentLoaded', function () {
   const sidebarToggle = document.getElementById('sidebarToggle');
   const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
   const sidebar = document.getElementById('sidebar');
   const mobileOverlay = document.getElementById('mobileOverlay');
 
-  // Toggle móvil
   if (sidebarToggle && sidebar) {
     sidebarToggle.addEventListener('click', function () {
       sidebar.classList.toggle('mobile-open');
@@ -71,14 +60,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Toggle desktop (colapsar sidebar)
   if (sidebarToggleDesktop && sidebar) {
     sidebarToggleDesktop.addEventListener('click', function () {
       sidebar.classList.toggle('collapsed');
     });
   }
 
-  // Cerrar sidebar móvil al hacer click en overlay
   if (mobileOverlay) {
     mobileOverlay.addEventListener('click', function () {
       sidebar.classList.remove('mobile-open');
@@ -86,7 +73,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Cerrar sidebar móvil con Escape
   document.addEventListener('keydown', function (ev) {
     if (ev.key === "Escape") {
       sidebar.classList.remove('mobile-open');
@@ -94,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // Cerrar sidebar móvil al cambiar a desktop
   window.addEventListener('resize', function () {
     if (window.innerWidth >= 1024) {
       sidebar.classList.remove('mobile-open');
@@ -103,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-// ===== Datos simulados =====
 let historial = [
   {
     id: "H001",
@@ -162,7 +146,6 @@ const meseros = ["Juan Pérez", "María García", "Carlos López", "Ana Martíne
 const mesas = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 let editIdx = null;
 
-// Renderizar tabla
 function renderHistorial() {
   const tbody = document.getElementById("historial-tbody");
   tbody.innerHTML = "";
@@ -182,7 +165,6 @@ function renderHistorial() {
       ? `<span class="font-medium text-green-600">${h.factura}</span>`
       : `<span class="font-medium text-red-500">No generada</span>`;
 
-    // Mobile-friendly row structure
     tbody.innerHTML += `
           <tr class="table-row hover:bg-gray-50 transition-colors">
             <td class="px-4 py-4 font-medium text-gray-900">${h.id}</td>
@@ -281,7 +263,6 @@ function renderHistorial() {
   attachTableEvents();
 }
 
-// Búsqueda
 document.getElementById('searchInput').addEventListener('input', () => {
   const term = document.getElementById('searchInput').value.toLowerCase();
   document.querySelectorAll('#historial-tbody tr').forEach((row, idx) => {
@@ -294,7 +275,6 @@ document.getElementById('searchInput').addEventListener('input', () => {
   });
 });
 
-// Filtros
 function applyFilters() {
   const w = document.getElementById('waiterFilter').value.toLowerCase();
   const d = document.getElementById('dateFilter').value;
@@ -319,7 +299,6 @@ function applyFilters() {
   document.getElementById(id).addEventListener('change', applyFilters);
 });
 
-// Toggle detalles y CRUD
 function attachTableEvents() {
   document.querySelectorAll('.toggle-details').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -350,13 +329,11 @@ function attachTableEvents() {
   });
 }
 
-// Cálculos
 const getSubtotal = h => h.productos.reduce((sum, p) => sum + p.cantidad * p.precioUnit, 0);
 const getPropina = h => getSubtotal(h) * 0.10;
 const getDescuento = h => getSubtotal(h) * (h.descuento || 0);
 const getTotal = h => getSubtotal(h) - getDescuento(h) + getPropina(h);
 
-// Abrir modal de edición
 function openEditHistorial(idx) {
   editIdx = idx;
   const h = historial[idx];
@@ -368,7 +345,6 @@ function openEditHistorial(idx) {
   document.getElementById('edit-factura').value = h.factura || '';
   document.getElementById('edit-estado').value = h.estado;
 
-  // Carga meseros y mesas
   const selM = document.getElementById('edit-mesero');
   selM.innerHTML = '';
   meseros.forEach(m => {
@@ -381,7 +357,6 @@ function openEditHistorial(idx) {
     selT.innerHTML += `<option ${m === h.mesa ? 'selected' : ''}>${m}</option>`;
   });
 
-  // Productos (cantidad editable)
   const prodDiv = document.getElementById('edit-productos-list');
   prodDiv.innerHTML = '';
   h.productos.forEach((p, i) => {
@@ -402,22 +377,18 @@ function openEditHistorial(idx) {
         `;
   });
 
-  // Descuento
   document.getElementById('edit-descuento').value = h.descuento || 0;
   recalcularModal();
 
-  // Mostrar modal
   document.getElementById('edit-historial-modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
 
-// Cerrar modal
 function closeModal() {
   document.getElementById('edit-historial-modal').classList.add('hidden');
   document.body.style.overflow = '';
 }
 
-// Recalcular totales en modal
 document.addEventListener('input', e => {
   if (e.target.classList.contains('prod-cant-input') || e.target.id === 'edit-descuento') {
     recalcularModal();
@@ -443,15 +414,12 @@ function recalcularModal() {
   document.getElementById('edit-total').textContent = `$${(sub - desc + prop).toFixed(2)}`;
 }
 
-// Init
 document.addEventListener('DOMContentLoaded', () => {
   renderHistorial();
 
-  // Modal close events
   document.getElementById('edit-cancelar-btn').addEventListener('click', closeModal);
   document.getElementById('edit-cancelar-btn-footer').addEventListener('click', closeModal);
 
-  // Close modal on escape key
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeModal();
