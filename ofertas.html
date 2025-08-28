@@ -1,199 +1,238 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ofertas Especiales</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="css/ofertas.css">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/ofertas.css">
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ofertas Especiales</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/ofertas.css">
 </head>
+<body class="bg-gray-50 font-sans overflow-x-hidden">
+  <!-- Overlay para mobile -->
+  <div class="mobile-overlay" id="mobileOverlay"></div>
 
-<body class="bg-gray-100 min-h-screen">
-     <!-- Sidebar fijo -->
-     <div class="sidebar bg-white shadow-lg w-64 fixed h-full flex flex-col z-10">
-    <div class="p-4 flex items-center border-b border-gray-200">
-      <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-        <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo">
-      </div>
-      <span class="logo-text ml-3 text-xl font-semibold text-blue-500">Orderly</span>
-    </div>
-    <div class="flex-1 overflow-y-auto">
-      <div class="p-4">
-        <div class="text-xs uppercase text-black font-semibold mb-2">Main</div>
-        <a href="index.html" class="nav-item flex items-center p-2 rounded-lg mb-1">
-          <i class="fas fa-tachometer-alt w-6 text-center"></i>
-          <span class="nav-text ml-3">Inicio</span>
-        </a>
-        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Operations</div>
-        <a href="mesas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-chair w-6 text-center"></i>
-          <span class="nav-text ml-3">Mesas</span>
-        </a>
-        <a href="menu.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-book w-6 text-center"></i>
-          <span class="nav-text ml-3">Menu</span>
-        </a>
-        <a href="reservas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-calendar-check w-6 text-center"></i>
-          <span class="nav-text ml-3">Reservaciones</span>
-        </a>
-        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Management</div>
-        <a href="empleados.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-users w-6 text-center"></i>
-          <span class="nav-text ml-3">Empleados</span>
-        </a>
-        <a href="facturas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-file-invoice-dollar w-6 text-center"></i>
-          <span class="nav-text ml-3">Facturas</span>
-        </a>
-        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Reports</div>
-        <a href="ofertas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-chart-line w-6 text-center"></i>
-          <span class="nav-text ml-3">Ofertas</span>
-        </a>
-        <a href="historial.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-history w-6 text-center"></i>
-          <span class="nav-text ml-3">Historial</span>
-        </a>
+  <!-- Sidebar (idéntico patrón al index) -->
+  <aside class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
+    <div class="logo-container animate-fade-in">
+      <div class="flex items-center justify-center">
+        <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
+          <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo w-10 h-10">
+        </div>
+        <span class="logo-text ml-3 text-xl font-bold text-white">Orderly</span>
       </div>
     </div>
-    <div class="p-4 border-t border-gray-200">
-      <div class="flex items-center">
-        <div class="user-info-icon w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-          <i class="fas fa-user text-gray-600"></i>
+
+    <div class="flex-1 overflow-y-auto px-4">
+      <div class="section-title">MAIN</div>
+      <a href="index.html" class="nav-item flex items-center p-3 rounded-xl mb-2 text-white hover:text-white">
+        <i class="fas fa-tachometer-alt w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Inicio</span>
+      </a>
+
+      <div class="section-title">OPERATIONS</div>
+      <a href="mesas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-chair w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Mesas</span>
+      </a>
+      <a href="menu.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-book w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Menú</span>
+      </a>
+      <a href="reservas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-calendar-check w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Reservaciones</span>
+      </a>
+
+      <div class="section-title">MANAGEMENT</div>
+      <a href="empleados.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-users w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Empleados</span>
+      </a>
+      <a href="facturas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-file-invoice-dollar w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Facturas</span>
+      </a>
+
+      <div class="section-title">REPORTS</div>
+      <a href="ofertas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2 active bg-gradient-to-r from-blue-500 to-blue-600">
+        <i class="fas fa-tags w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Ofertas</span>
+      </a>
+      <a href="historial.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-history w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Historial</span>
+      </a>
+    </div>
+
+    <div class="p-4 border-t border-white/20">
+      <div class="flex items-center glass-effect rounded-xl p-3">
+        <div class="user-info-icon w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+          <i class="fas fa-user text-white"></i>
         </div>
         <div class="user-info-text ml-3">
-          <div class="text-sm font-medium text-gray-800">Admin User</div>
-          <div class="text-xs text-gray-500">Administrator</div>
+          <div class="text-sm font-semibold text-white">Admin User</div>
+          <div class="text-xs text-white/70">Administrator</div>
         </div>
       </div>
+    </div>
+  </aside>
+
+  <!-- Contenido principal -->
+  <div class="main-content flex flex-col min-h-screen">
+    <!-- Barra superior -->
+    <header class="main-header flex items-center justify-between px-6 animate-fade-in">
+      <div class="flex items-center">
+        <button id="sidebarToggle" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
+          <i class="fas fa-bars text-lg"></i>
+        </button>
+        <button id="sidebarToggleDesktop" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
+          <i class="fas fa-bars text-lg"></i>
+        </button>
+        <h1 class="text-2xl font-bold text-gray-800">Ofertas Especiales</h1>
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors relative">
+          <i class="fas fa-bell text-lg"></i>
+          <span class="notification-badge">3</span>
+        </button>
+        <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors relative">
+          <i class="fas fa-envelope text-lg"></i>
+          <span class="notification-badge bg-blue-500">5</span>
+        </button>
+        <button class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+            <i class="fas fa-user"></i>
+          </div>
+          <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
+          <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="flex-1 p-6">
+      <div class="max-w-7xl mx-auto">
+        <!-- Page Header -->
+        <header class="page-header text-center">
+          <h1>Ofertas Únicas del Restaurante</h1>
+          <p>Descubre nuestras increíbles promociones y ahorra en tus platillos favoritos</p>
+        </header>
+
+        <!-- Search and Filter -->
+        <section class="search-container">
+          <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1 search-input-wrapper">
+              <input type="text" id="searchInput" placeholder="Buscar ofertas..." class="search-input w-full">
+              <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="select-wrapper">
+              <select id="statusFilter" class="filter-select">
+                <option value="all">Todos los estados</option>
+                <option value="active">Activas</option>
+                <option value="upcoming">Próximas</option>
+                <option value="expired">Vencidas</option>
+              </select>
+              <i class="fas fa-chevron-down select-icon"></i>
+            </div>
+          </div>
+        </section>
+
+        <!-- Offers Grid -->
+        <section id="offersContainer" class="offers-grid"></section>
+        
+        <!-- Empty State -->
+        <section id="emptyState" class="empty-state hidden">
+          <i class="fas fa-search"></i>
+          <h3>No se encontraron ofertas</h3>
+          <p>Intenta con otros términos de búsqueda o ajusta los filtros</p>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- FAB Button -->
+  <button id="fab" class="fab">
+    <i class="fas fa-plus"></i>
+  </button>
+
+  <!-- Modal -->
+  <div id="offer-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="modal-title" class="modal-title">Agregar Oferta</h2>
+      <form id="offerForm" autocomplete="off" novalidate>
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-image mr-2"></i>
+            Imagen
+          </label>
+          <input id="offer-image" type="file" accept="image/*" class="form-input">
+          <div id="img-preview" class="img-preview"></div>
+          <div id="offer-image-err" class="error-text"></div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-tag mr-2"></i>
+            Título de la Promoción
+          </label>
+          <input id="offer-title" type="text" maxlength="80" class="form-input" placeholder="Ej: Pizza Familiar 2x1">
+          <div id="offer-title-err" class="error-text"></div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-align-left mr-2"></i>
+            Descripción
+          </label>
+          <textarea id="offer-description" rows="3" maxlength="200" class="form-input form-textarea" placeholder="Describe los detalles de tu oferta..."></textarea>
+          <div id="offer-description-err" class="error-text"></div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-percent mr-2"></i>
+            Descuento / Promoción breve
+          </label>
+          <input id="offer-discount" type="text" maxlength="40" class="form-input" placeholder="Ej: 2x1, 20% dcto, etc.">
+          <div id="offer-discount-err" class="error-text"></div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-calendar-plus mr-2"></i>
+            Fecha de Inicio
+          </label>
+          <input id="offer-start" type="date" class="form-input">
+          <div id="offer-start-err" class="error-text"></div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-calendar-times mr-2"></i>
+            Fecha de Fin
+          </label>
+          <input id="offer-end" type="date" class="form-input">
+          <div id="offer-end-err" class="error-text"></div>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" id="offer-cancel-btn" class="btn-cancel">
+            <i class="fas fa-times mr-2"></i>
+            Cancelar
+          </button>
+          <button id="offer-save-btn" type="submit" class="btn-save">
+            <i class="fas fa-save mr-2"></i>
+            Guardar
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
-    <!-- Contenido principal -->
-    <div class="main-content flex flex-col min-h-screen">
-        <!-- Header superior (navbar) -->
-        <header class="bg-white shadow-sm py-4 px-6 flex items-center justify-between">
-            <div class="flex items-center">
-                <button id="sidebarToggle" class="text-gray-500 focus:outline-none mr-4">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <h1 class="text-xl font-semibold text-gray-800">Dashboard</h1>
-            </div>
-            <div class="flex items-center space-x-4">
-                <div class="relative">
-                    <button class="text-gray-500 focus:outline-none">
-                        <i class="fas fa-bell"></i>
-                        <span
-                            class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
-                    </button>
-                </div>
-                <div class="relative">
-                    <button class="text-gray-500 focus:outline-none">
-                        <i class="fas fa-envelope"></i>
-                        <span
-                            class="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center">5</span>
-                    </button>
-                </div>
-                <div class="relative">
-                    <button class="flex items-center focus:outline-none">
-                        <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <span class="ml-2 text-gray-700 hidden md:inline">Admin</span>
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <div class="container mx-auto px-4 py-8">
-            <header class="mb-10 text-center">
-                <h1 class="text-4xl font-bold text-indigo-800 mb-2">Ofertas Únicas del Restaurante</h1>
-                <p class="text-gray-600 max-w-2xl mx-auto">Descubre nuestras increíbles promociones y ahorra en tus platillos favoritos</p>
-            </header>
-
-            <div class="mb-8 bg-white rounded-xl shadow-md p-6">
-                <div class="flex flex-col md:flex-row gap-4">
-                    <div class="flex-1 relative">
-                        <input type="text" id="searchInput" placeholder="Buscar ofertas..." class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
-                    </div>
-                    <div class="relative">
-                        <select id="statusFilter" class="appearance-none w-full pl-4 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                            <option value="all">Todos los estados</option>
-                            <option value="active">Activas</option>
-                            <option value="upcoming">Próximas</option>
-                            <option value="expired">Vencidas</option>
-                        </select>
-                        <i class="fas fa-chevron-down absolute right-3 top-3.5 text-gray-400 pointer-events-none"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div id="offersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-            <div id="emptyState" class="hidden text-center py-20">
-                <i class="fas fa-search fa-3x text-gray-300 mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron ofertas</h3>
-                <p class="text-gray-500">Intenta con otros términos de búsqueda o ajusta los filtros</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Botón flotante solo para agregar -->
-    <div class="fixed bottom-6 right-6 flex flex-col items-end z-50">
-        <button id="fab" class="bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700">+</button>
-    </div>
-
-    <!-- Modal Agregar/Editar Oferta -->
-    <div id="offer-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded shadow w-full max-w-md relative animate-fadeIn">
-            <h2 id="modal-title" class="text-xl font-bold mb-4 text-center">Agregar Oferta</h2>
-            <form id="offerForm" autocomplete="off" novalidate>
-                <div class="mb-3">
-                    <label class="block font-medium mb-1">Imagen</label>
-                    <input id="offer-image" type="file" accept="image/*" class="w-full border p-2 rounded">
-                    <div id="img-preview" class="my-2"></div>
-                    <div id="offer-image-err" class="error-text"></div>
-                </div>
-                <div class="mb-3">
-                    <label class="block font-medium mb-1">Título de la Promoción</label>
-                    <input id="offer-title" type="text" maxlength="80" class="w-full border p-2 rounded">
-                    <div id="offer-title-err" class="error-text"></div>
-                </div>
-                <div class="mb-3">
-                    <label class="block font-medium mb-1">Descripción</label>
-                    <textarea id="offer-description" rows="2" maxlength="200" class="w-full border p-2 rounded"></textarea>
-                    <div id="offer-description-err" class="error-text"></div>
-                </div>
-                <div class="mb-3">
-                    <label class="block font-medium mb-1">Descuento / Promoción breve</label>
-                    <input id="offer-discount" type="text" maxlength="40" class="w-full border p-2 rounded" placeholder="Ej: 2x1, 20% dcto, etc.">
-                    <div id="offer-discount-err" class="error-text"></div>
-                </div>
-                <div class="mb-3">
-                    <label class="block font-medium mb-1">Fecha de Inicio</label>
-                    <input id="offer-start" type="date" class="w-full border p-2 rounded">
-                    <div id="offer-start-err" class="error-text"></div>
-                </div>
-                <div class="mb-3">
-                    <label class="block font-medium mb-1">Fecha de Fin</label>
-                    <input id="offer-end" type="date" class="w-full border p-2 rounded">
-                    <div id="offer-end-err" class="error-text"></div>
-                </div>
-                <div class="flex justify-end gap-2 mt-4">
-                    <button type="button" onclick="closeOfferModal()" class="px-4 py-2 bg-gray-300 rounded">Cancelar</button>
-                    <button id="offer-save-btn" type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script src="js/ofertas.js"></script>
-    <script src="js/script.js"></script>
+  <!-- JS -->
+  <script src="js/ofertas.js"></script>
+  <script type="module" src="js/jsControllers/ControllerOfertas.js"></script>
 </body>
 </html>
