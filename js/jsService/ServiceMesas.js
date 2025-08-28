@@ -1,3 +1,4 @@
+// services/mesaService.js
 const API_BASE = "http://localhost:8080";
 const BASE = `${API_BASE}/apiMesa`;
 
@@ -43,6 +44,7 @@ export async function deleteMesa(id) {
 }
 
 export async function patchEstadoMesa(id, partialDto) {
+  // Intento PATCH; si el backend no lo soporta, reintenta con PUT
   let res = await fetch(`${BASE}/modificarMesa/${encodeURIComponent(id)}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
