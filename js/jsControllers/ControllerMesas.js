@@ -425,6 +425,8 @@ function setupFAB() {
       icon.classList.remove('fa-plus'); icon.classList.add('fa-times');
     }
   });
+  
+
 
   addBtn?.addEventListener('click', function() { showModal('add-modal'); closeFABMenu(); });
   editBtn?.addEventListener('click', function() { showModal('update-modal-step1'); closeFABMenu(); });
