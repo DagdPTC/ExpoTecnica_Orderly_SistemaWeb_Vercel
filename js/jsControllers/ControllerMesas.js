@@ -1,4 +1,3 @@
-// controllers/mesasController.js
 import {
   getMesas,
   createMesa,
@@ -60,7 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.cambiarEstadoMesa = cambiarEstadoMesa;
 });
 
-/* ===== GET (Read) ===== */
 async function cargarMesas() {
   if (grid) grid.innerHTML = `<div class="col-span-full text-center py-6 text-slate-500">Cargando mesas...</div>`;
   try {
@@ -234,7 +232,6 @@ function applyCardState(card, state) {
   card.querySelector(".cambiar-estado").addEventListener("click", () => cambiarEstadoMesa(card.dataset.mesaId));
 }
 
-/* ===== PATCH Estado (ciclo) ===== */
 async function cambiarEstadoMesa(mesaId) {
   const card = grid?.querySelector(`[data-mesa-id="${mesaId}"]`);
   if (!card || card.dataset.busy === "1") return;
@@ -270,7 +267,6 @@ async function cambiarEstadoMesa(mesaId) {
   }
 }
 
-/* ===== POST (Create) ===== */
 async function addMesa() {
   const numero = parseInt(document.getElementById('add-numero').value, 10);
   const capacidad = parseInt(document.getElementById('add-capacidad').value, 10);
@@ -301,7 +297,6 @@ async function addMesa() {
   }
 }
 
-/* ===== PUT (Update) ===== */
 function nextUpdate() {
   const numero = parseInt(document.getElementById('update-search-numero').value, 10);
   const msg1 = document.getElementById('update-message-step1');
@@ -353,7 +348,6 @@ async function updateMesaUI() {
   }
 }
 
-/* ===== DELETE (Delete) ===== */
 async function deleteMesaUI() {
   const numero = parseInt(document.getElementById('delete-numero').value, 10);
   const msg = document.getElementById('delete-message');
@@ -378,7 +372,6 @@ async function deleteMesaUI() {
   }
 }
 
-/* ===== Utilidades UI ===== */
 function showMessage(element, message, type = 'info') {
   if (!element) return;
   const classes = {
