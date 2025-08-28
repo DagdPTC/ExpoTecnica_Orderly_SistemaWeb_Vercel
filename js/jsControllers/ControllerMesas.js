@@ -7,38 +7,60 @@ import {
   patchEstadoMesa
 } from "../services/mesaService.js";
 
-/* === Estados y ciclo === */
+/** =========================
+ *  Config de estados (fallback si el backend no trae catálogo)
+ *  ========================= */
 const STATE_BY_ID = {
   1:  { id: 1,  key: "libre",     label: "Disponible", classes: "bg-emerald-100 text-emerald-600" },
   3:  { id: 3,  key: "ocupada",   label: "Ocupada",    classes: "bg-red-100 text-red-600" },
   2:  { id: 2,  key: "reservada", label: "Reservada",  classes: "bg-blue-100 text-blue-600" },
   21: { id: 21, key: "limpieza",  label: "Limpieza",   classes: "bg-amber-100 text-amber-600" },
 };
+// Orden cíclico por id (libre → ocupada → reservada → limpieza → libre)
 const NEXT_ID = { 1: 3, 3: 2, 2: 21, 21: 1 };
 const VALID_IDS = new Set([1, 2, 3, 21]);
 
-/* === Helpers === */
+/** =========================
+ *  Utilidades
+ *  ========================= */
 const toInt = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
-function extractNumberFromName(name){ const m = String(name||"").match(/(\d+)/); return m ? parseInt(m[1],10) : 0; }
+
+function extractNumberFromName(name){
+  const m = String(name||"").match(/(\d+)/);
+  return m ? parseInt(m[1],10) : 0;
+}
 function resolveMesaNumber(dto){
-  // Deriva el número desde NomMesa "Mesa 12" o usa Id
+  // 1) Intenta extraer número de "Mesa 12"
   const n2 = extractNumberFromName(dto.NomMesa ?? dto.nomMesa);
   if (n2 > 0) return n2;
+  // 2) Si no, usa el Id como número visible
   const id = toInt(dto.Id ?? dto.id ?? dto.idMesa);
   return id > 0 ? id : 1;
 }
 function stateFromId(id){ return STATE_BY_ID[id] ?? STATE_BY_ID[1]; }
-function getTypeByNumber(n){ if(n>=1&&n<=4)return "dos"; if(n>=5&&n<=8)return "cuatro"; return "familiar"; }
-function typeLabel(t){ return t==="dos" ? "2 personas" : (t==="cuatro" ? "4 personas" : "Familiar"); }
+function getTypeByNumber(n){
+  if(n>=1&&n<=4) return "dos";
+  if(n>=5&&n<=8) return "cuatro";
+  return "familiar";
+}
+function typeLabel(t){
+  return t==="dos" ? "2 personas" : (t==="cuatro" ? "4 personas" : "Familiar");
+}
 
-/* === Cache y refs DOM === */
-const mesasCache = new Map(); // id -> dto
+/** =========================
+ *  Estado UI
+ *  ========================= */
+const mesasCache = new Map(); // idMesa -> dto
 let currentFilter = "all";
 
 let grid, emptyState;
 let countLibre, countOcupada, countReservada, countLimpieza;
 
+/** =========================
+ *  Inicio
+ *  ========================= */
 document.addEventListener("DOMContentLoaded", () => {
+  // Elementos del HTML (coinciden con los de tu layout)
   grid = document.getElementById("mesas-container");
   emptyState = document.getElementById("empty-state");
   countLibre = document.getElementById("count-libre");
@@ -53,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   cargarMesas();
 
-  // Exponer funciones globales para los onclick del HTML:
+  // Exponer funciones usadas por los botones inline del HTML
   window.filterTables   = filterTables;
   window.addMesa        = addMesa;
   window.closeAdd       = () => hideModal('add-modal');
@@ -65,7 +87,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.cambiarEstadoMesa = cambiarEstadoMesa;
 });
 
-/* === Carga inicial desde API === */
+/** =========================
+ *  Carga y render
+ *  ========================= */
 async function cargarMesas() {
   if (grid) grid.innerHTML = `<div class="col-span-full text-center py-6 text-slate-500">Cargando mesas...</div>`;
   try {
@@ -83,7 +107,6 @@ async function cargarMesas() {
   }
 }
 
-/* === Render y contadores === */
 function filterTables(status) {
   document.querySelectorAll('.btn-modern').forEach(btn => {
     btn.classList.remove('active-filter', 'ring-4', 'ring-opacity-50');
@@ -139,7 +162,9 @@ function animateCounter(el, val) {
   }, 150);
 }
 
-/* === Cards === */
+/** =========================
+ *  Cards
+ *  ========================= */
 function createMesaCard(dto, index) {
   const id = dto.Id ?? dto.id ?? dto.idMesa;
   const number = resolveMesaNumber(dto);
@@ -199,45 +224,6 @@ function createMesaCard(dto, index) {
   return card;
 }
 
-/* === Cambiar estado === */
-async function cambiarEstadoMesa(mesaId) {
-  const card = grid?.querySelector(`[data-mesa-id="${mesaId}"]`);
-  if (!card || card.dataset.busy === "1") return;
-  card.dataset.busy = "1";
-
-  const dto = mesasCache.get(String(mesaId));
-  if (!dto) { card.dataset.busy = "0"; return; }
-
-  const beforeId = toInt(dto.IdEstadoMesa ?? dto.idEstadoMesa) || 1;
-  const nextId   = NEXT_ID[VALID_IDS.has(beforeId) ? beforeId : 1];
-  const nextSt   = stateFromId(nextId);
-
-  // Optimista
-  applyCardState(card, nextSt);
-
-  try {
-    const body = {
-      NomMesa: dto.NomMesa ?? dto.nomMesa ?? `Mesa ${resolveMesaNumber(dto)}`,
-      IdTipoMesa: toInt(dto.IdTipoMesa ?? dto.idTipoMesa) || 1,
-      IdEstadoMesa: nextId,
-    };
-    const resp = await patchEstadoMesa(mesaId, body);
-
-    const real = resp || {};
-    const realId = toInt(real.IdEstadoMesa ?? real.idEstadoMesa) || nextId;
-
-    dto.IdEstadoMesa = realId;
-    mesasCache.set(String(mesaId), { ...dto, ...real });
-    applyCardState(card, stateFromId(realId));
-  } catch (err) {
-    console.error("Cambio de estado falló:", err);
-    applyCardState(card, stateFromId(beforeId));
-  } finally {
-    card.dataset.busy = "0";
-    renderMesas(currentFilter); // recontar + re-filtrar
-  }
-}
-
 function applyCardState(card, state) {
   const number = card.dataset.mesaNum;
   card.className = `mesa-card mesa-${state.key} bg-white rounded-2xl shadow-lg p-6 border border-slate-100`;
@@ -280,7 +266,180 @@ function applyCardState(card, state) {
   card.querySelector(".cambiar-estado").addEventListener("click", () => cambiarEstadoMesa(card.dataset.mesaId));
 }
 
-/* === FAB/Modales/Sidebar/Animaciones (misma UX de tu HTML) === */
+/** =========================
+ *  Acciones (Cambiar estado / CRUD)
+ *  ========================= */
+async function cambiarEstadoMesa(mesaId) {
+  const card = grid?.querySelector(`[data-mesa-id="${mesaId}"]`);
+  if (!card || card.dataset.busy === "1") return;
+  card.dataset.busy = "1";
+
+  const dto = mesasCache.get(String(mesaId));
+  if (!dto) { card.dataset.busy = "0"; return; }
+
+  const beforeId = toInt(dto.IdEstadoMesa ?? dto.idEstadoMesa) || 1;
+  const nextId   = NEXT_ID[VALID_IDS.has(beforeId) ? beforeId : 1];
+  const nextSt   = stateFromId(nextId);
+
+  // Optimistic UI
+  applyCardState(card, nextSt);
+
+  try {
+    const body = {
+      NomMesa: dto.NomMesa ?? dto.nomMesa ?? `Mesa ${resolveMesaNumber(dto)}`,
+      IdTipoMesa: toInt(dto.IdTipoMesa ?? dto.idTipoMesa) || 1,
+      IdEstadoMesa: nextId,
+    };
+    const resp = await patchEstadoMesa(mesaId, body);
+
+    // Confirmar con lo que regresa la API
+    const real = resp || {};
+    const realId = toInt(real.IdEstadoMesa ?? real.idEstadoMesa) || nextId;
+
+    dto.IdEstadoMesa = realId;
+    mesasCache.set(String(mesaId), { ...dto, ...real });
+    applyCardState(card, stateFromId(realId));
+  } catch (err) {
+    console.error("Cambio de estado falló:", err);
+    applyCardState(card, stateFromId(beforeId));
+  } finally {
+    card.dataset.busy = "0";
+    renderMesas(currentFilter);
+  }
+}
+
+async function addMesa() {
+  const numero = parseInt(document.getElementById('add-numero').value, 10);
+  const capacidad = parseInt(document.getElementById('add-capacidad').value, 10);
+  const msg = document.getElementById('add-message');
+
+  if (!Number.isFinite(numero) || numero < 1 || numero > 99) {
+    return showMessage(msg, 'El número de mesa debe ser entre 1 y 99', 'error');
+  }
+  if (!Number.isFinite(capacidad) || capacidad < 1 || capacidad > 20) {
+    return showMessage(msg, 'La capacidad debe ser entre 1 y 20 personas', 'error');
+  }
+
+  const body = {
+    NomMesa: `Mesa ${numero}`,
+    IdTipoMesa: (numero <= 4 ? 1 : (numero <= 8 ? 2 : 3)),
+    IdEstadoMesa: 1,
+  };
+
+  try {
+    const resp = await createMesa(body);
+    if (!resp) return showMessage(msg, 'No se pudo crear la mesa', 'error');
+
+    showMessage(msg, '¡Mesa creada exitosamente!', 'success');
+    setTimeout(() => {
+      hideModal('add-modal');
+      document.getElementById('add-numero').value = '';
+      document.getElementById('add-capacidad').value = '';
+      cargarMesas();
+    }, 900);
+  } catch (e) {
+    console.error(e);
+    showMessage(msg, 'Error al crear la mesa', 'error');
+  }
+}
+
+function nextUpdate() {
+  const numero = parseInt(document.getElementById('update-search-numero').value, 10);
+  const msg1 = document.getElementById('update-message-step1');
+  const msg2 = document.getElementById('update-message-step2');
+
+  if (!Number.isFinite(numero)) return showMessage(msg1, 'Ingresa un número válido', 'error');
+
+  const pair = Array.from(mesasCache.entries()).find(([,dto]) => resolveMesaNumber(dto) === numero);
+  if (!pair) return showMessage(msg1, 'No se encontró ninguna mesa con ese número', 'error');
+
+  const [, dto] = pair;
+  const estadoId = toInt(dto.IdEstadoMesa ?? dto.idEstadoMesa);
+  if (estadoId !== 1) return showMessage(msg1, 'Solo se pueden editar mesas disponibles', 'warning');
+
+  document.getElementById('update-numero').value = numero;
+  document.getElementById('update-capacidad').value = 4;
+  msg1.textContent = ""; msg2.textContent = "";
+
+  hideModal('update-modal-step1');
+  setTimeout(()=> showModal('update-modal-step2'), 300);
+}
+
+async function updateMesaUI() {
+  const num = parseInt(document.getElementById('update-numero').value, 10);
+  const cap = parseInt(document.getElementById('update-capacidad').value, 10);
+  const msg = document.getElementById('update-message-step2');
+
+  if (!Number.isFinite(num) || num < 1 || num > 99) {
+    return showMessage(msg, 'El número debe ser entre 1 y 99', 'error');
+  }
+  if (!Number.isFinite(cap) || cap < 1 || cap > 20) {
+    return showMessage(msg, 'La capacidad debe ser entre 1 y 20', 'error');
+  }
+
+  const pair = Array.from(mesasCache.entries()).find(([,dto]) => resolveMesaNumber(dto) === num);
+  if (!pair) return showMessage(msg, 'No se encontró la mesa', 'error');
+
+  const [idStr, dto] = pair;
+  const body = {
+    NomMesa: `Mesa ${num}`,
+    IdTipoMesa: (num <= 4 ? 1 : (num <= 8 ? 2 : 3)),
+    IdEstadoMesa: toInt(dto.IdEstadoMesa ?? dto.idEstadoMesa) || 1,
+  };
+
+  try {
+    const resp = await updateMesaApi(idStr, body);
+    if (!resp) return showMessage(msg, 'No se pudo actualizar', 'error');
+
+    showMessage(msg, '¡Mesa actualizada correctamente!', 'success');
+    setTimeout(() => { hideModal('update-modal-step2'); cargarMesas(); }, 900);
+  } catch (e) {
+    console.error(e);
+    showMessage(msg, 'Error al actualizar la mesa', 'error');
+  }
+}
+
+async function deleteMesaUI() {
+  const numero = parseInt(document.getElementById('delete-numero').value, 10);
+  const msg = document.getElementById('delete-message');
+
+  if (!Number.isFinite(numero)) return showMessage(msg, 'Ingresa un número válido', 'error');
+
+  const pair = Array.from(mesasCache.entries()).find(([,dto]) => resolveMesaNumber(dto) === numero);
+  if (!pair) return showMessage(msg, 'No se encontró la mesa', 'error');
+
+  const [idStr, dto] = pair;
+  const estadoId = toInt(dto.IdEstadoMesa ?? dto.idEstadoMesa);
+  if (estadoId !== 1) return showMessage(msg, 'Solo se pueden eliminar mesas disponibles', 'warning');
+
+  try {
+    const ok = await deleteMesaApi(idStr);
+    if (!ok) return showMessage(msg, 'No se pudo eliminar', 'error');
+
+    showMessage(msg, '¡Mesa eliminada correctamente!', 'success');
+    setTimeout(() => { hideModal('delete-modal'); cargarMesas(); }, 900);
+  } catch (e) {
+    console.error(e);
+    showMessage(msg, 'Error al eliminar la mesa', 'error');
+  }
+}
+
+/** =========================
+ *  UI helpers (modales, sidebar, animaciones, mensajes)
+ *  ========================= */
+function showMessage(element, message, type = 'info') {
+  if (!element) return;
+  const classes = {
+    success: 'text-emerald-600 bg-emerald-50 border border-emerald-200',
+    error:   'text-red-600 bg-red-50 border border-red-200',
+    warning: 'text-amber-600 bg-amber-50 border-amber-200 border',
+    info:    'text-blue-600 bg-blue-50 border-blue-200 border'
+  }[type] || 'text-blue-600 bg-blue-50 border-blue-200 border';
+
+  element.textContent = message;
+  element.className = `text-center text-sm p-3 rounded-lg ${classes}`;
+}
+
 function setupFAB() {
   const fabMain = document.getElementById('fab-main');
   const fabMenu = document.getElementById('fab-menu');
@@ -380,125 +539,4 @@ function setupAnimations() {
     el.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
     observer.observe(el);
   });
-}
-
-/* === CRUD via modales (usa API real) === */
-
-// ADD
-async function addMesa() {
-  const numero = parseInt(document.getElementById('add-numero').value, 10);
-  const capacidad = parseInt(document.getElementById('add-capacidad').value, 10); // UI-only
-  const msg = document.getElementById('add-message');
-
-  if (!Number.isFinite(numero) || numero < 1 || numero > 99) {
-    return showMessage(msg, 'El número de mesa debe ser entre 1 y 99', 'error');
-  }
-  if (!Number.isFinite(capacidad) || capacidad < 1 || capacidad > 20) {
-    return showMessage(msg, 'La capacidad debe ser entre 1 y 20 personas', 'error');
-  }
-
-  const body = {
-    NomMesa: `Mesa ${numero}`,
-    IdTipoMesa: (numero <= 4 ? 1 : (numero <= 8 ? 2 : 3)),
-    IdEstadoMesa: 1, // libre
-  };
-
-  const resp = await createMesa(body);
-  if (!resp) return showMessage(msg, 'No se pudo crear la mesa', 'error');
-
-  showMessage(msg, '¡Mesa creada exitosamente!', 'success');
-  setTimeout(() => {
-    hideModal('add-modal');
-    document.getElementById('add-numero').value = '';
-    document.getElementById('add-capacidad').value = '';
-    cargarMesas();
-  }, 900);
-}
-
-// UPDATE paso 1: buscar por número
-function nextUpdate() {
-  const numero = parseInt(document.getElementById('update-search-numero').value, 10);
-  const msg1 = document.getElementById('update-message-step1');
-  const msg2 = document.getElementById('update-message-step2');
-
-  if (!Number.isFinite(numero)) return showMessage(msg1, 'Ingresa un número válido', 'error');
-
-  const pair = Array.from(mesasCache.entries()).find(([,dto]) => resolveMesaNumber(dto) === numero);
-  if (!pair) return showMessage(msg1, 'No se encontró ninguna mesa con ese número', 'error');
-
-  const [, dto] = pair;
-  const estadoId = toInt(dto.IdEstadoMesa ?? dto.idEstadoMesa);
-  if (estadoId !== 1) return showMessage(msg1, 'Solo se pueden editar mesas disponibles', 'warning');
-
-  document.getElementById('update-numero').value = numero;
-  document.getElementById('update-capacidad').value = 4; // UI-only
-  msg1.textContent = ""; msg2.textContent = "";
-
-  hideModal('update-modal-step1');
-  setTimeout(()=> showModal('update-modal-step2'), 300);
-}
-
-// UPDATE paso 2: enviar
-async function updateMesaUI() {
-  const num = parseInt(document.getElementById('update-numero').value, 10);
-  const cap = parseInt(document.getElementById('update-capacidad').value, 10); // UI-only
-  const msg = document.getElementById('update-message-step2');
-
-  if (!Number.isFinite(num) || num < 1 || num > 99) {
-    return showMessage(msg, 'El número debe ser entre 1 y 99', 'error');
-  }
-  if (!Number.isFinite(cap) || cap < 1 || cap > 20) {
-    return showMessage(msg, 'La capacidad debe ser entre 1 y 20', 'error');
-  }
-
-  const pair = Array.from(mesasCache.entries()).find(([,dto]) => resolveMesaNumber(dto) === num);
-  if (!pair) return showMessage(msg, 'No se encontró la mesa', 'error');
-
-  const [idStr, dto] = pair;
-  const body = {
-    NomMesa: `Mesa ${num}`,
-    IdTipoMesa: (num <= 4 ? 1 : (num <= 8 ? 2 : 3)),
-    IdEstadoMesa: toInt(dto.IdEstadoMesa ?? dto.idEstadoMesa) || 1,
-  };
-
-  const resp = await updateMesaApi(idStr, body);
-  if (!resp) return showMessage(msg, 'No se pudo actualizar', 'error');
-
-  showMessage(msg, '¡Mesa actualizada correctamente!', 'success');
-  setTimeout(() => { hideModal('update-modal-step2'); cargarMesas(); }, 900);
-}
-
-// DELETE por número (solo si está libre)
-async function deleteMesaUI() {
-  const numero = parseInt(document.getElementById('delete-numero').value, 10);
-  const msg = document.getElementById('delete-message');
-
-  if (!Number.isFinite(numero)) return showMessage(msg, 'Ingresa un número válido', 'error');
-
-  const pair = Array.from(mesasCache.entries()).find(([,dto]) => resolveMesaNumber(dto) === numero);
-  if (!pair) return showMessage(msg, 'No se encontró la mesa', 'error');
-
-  const [idStr, dto] = pair;
-  const estadoId = toInt(dto.IdEstadoMesa ?? dto.idEstadoMesa);
-  if (estadoId !== 1) return showMessage(msg, 'Solo se pueden eliminar mesas disponibles', 'warning');
-
-  const ok = await deleteMesaApi(idStr);
-  if (!ok) return showMessage(msg, 'No se pudo eliminar', 'error');
-
-  showMessage(msg, '¡Mesa eliminada correctamente!', 'success');
-  setTimeout(() => { hideModal('delete-modal'); cargarMesas(); }, 900);
-}
-
-/* === Mensajes en modales === */
-function showMessage(element, message, type = 'info') {
-  if (!element) return;
-  const classes = {
-    success: 'text-emerald-600 bg-emerald-50 border border-emerald-200',
-    error:   'text-red-600 bg-red-50 border border-red-200',
-    warning: 'text-amber-600 bg-amber-50 border-amber-200 border',
-    info:    'text-blue-600 bg-blue-50 border-blue-200 border'
-  }[type] || 'text-blue-600 bg-blue-50 border-blue-200 border';
-
-  element.textContent = message;
-  element.className = `text-center text-sm p-3 rounded-lg ${classes}`;
 }
