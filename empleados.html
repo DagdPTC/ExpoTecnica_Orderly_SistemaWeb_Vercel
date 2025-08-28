@@ -1,339 +1,526 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gestión de Empleados</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/empleados.css">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- ===== MENÚ: estilos calcados al index del screenshot ===== -->
+  <style>
+
+     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+
+    :root{ --sbw:260px; --sbw-min:84px; }
+    :root {
+            --primary-color: #0ea5e9;
+            --primary-dark: #0284c7;
+            --secondary-color: #19426E;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 80px;
+            --header-height: 70px;
+            --shadow-light: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-medium: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-large: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --gradient-primary: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            --gradient-secondary: linear-gradient(135deg, #19426E 0%, #1e3a5f 100%);
+        }
+
+    /* Overlay móvil */
+    .mobile-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.45); backdrop-filter: blur(2px); display:none; z-index:40; }
+    .mobile-overlay.show{ display:block; }
+
+    /* ===== Sidebar ===== */
+
+    .sidebar{
+      position:fixed; inset:0 auto 0 0; width:var(--sbw); height:100vh;
+      display:flex; flex-direction:column;
+      background: var(--gradient-secondary); /* navy → azul oscuro */
+      color:#e5e7eb; z-index:50;
+      box-shadow: var(--shadow-xl);
+      transition: width .25s ease, transform .25s ease;
+    }
+
+    
+
+
+    
+    @media (max-width:1023px){ .sidebar{ transform: translateX(-100%);} .sidebar.open{ transform: translateX(0);} }
+    .sidebar.collapsed{ width:var(--sbw-min); }
+
+    /* Brand card (panelito del logo) */
+    .brand-card{
+      margin:16px;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:16px; padding:14px 16px;
+      display:flex; align-items:center; gap:12px;
+    }
+    .brand-icon{
+      width:44px; height:44px; border-radius:12px; background:#ffffff; display:flex; align-items:center; justify-content:center;
+      box-shadow: 0 10px 20px rgba(0,0,0,.15);
+    }
+    .brand-title{ font-weight:800; font-size:1.15rem; color:#fff; letter-spacing:.2px; }
+
+    /* Section titles + subrayado fino */
+    .section-title{
+      margin:18px 20px 8px 20px; font-size:.70rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#9fb4c6;
+      position:relative;
+    }
+    .section-title::after{
+      content:""; position:absolute; left:0; bottom:-8px; width:30px; height:3px; border-radius:999px;
+      background: linear-gradient(90deg, #3b82f6, #22d3ee);
+      opacity:.65;
+    }
+
+    /* Links */
+    .nav-link{
+      display:flex; align-items:center; gap:12px; margin:8px 12px; padding:12px 14px;
+      color:#dbe5ee; border-radius:12px; font-weight:600;
+      transition: background .18s ease, transform .18s ease, color .18s ease;
+    }
+    .nav-link:hover{ background: rgba(255,255,255,.10); color:#fff; transform: translateX(4px); }
+    .nav-link i{ width:20px; text-align:center; font-size:1rem; opacity:.95; }
+    .nav-link.active{ color:#fff; background: linear-gradient(180deg, rgba(59,130,246,.25), rgba(59,130,246,.22)); border:1px solid rgba(255,255,255,.16); box-shadow: 0 10px 26px rgba(37,99,235,.25); }
+
+    /* Footer user card */
+    .user-card{
+      margin:16px; padding:12px; border-radius:14px;
+      background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+      display:flex; align-items:center; gap:12px; color:#e5e7eb;
+    }
+
+    /* Colapsado (desktop) */
+    .sidebar.collapsed .brand-title,
+    .sidebar.collapsed .nav-text,
+    .sidebar.collapsed .section-title,
+    .sidebar.collapsed .user-info { display:none; }
+    .sidebar.collapsed .brand-card,
+    .sidebar.collapsed .user-card{ justify-content:center; }
+    .sidebar.collapsed .nav-link{ justify-content:center; }
+
+    /* ===== Main (empujado como en index) ===== */
+    .main{ min-height:100vh; transition: margin-left .25s ease; }
+    @media (min-width:1024px){ .main{ margin-left:var(--sbw);} .main.collapsed{ margin-left:var(--sbw-min);} }
+
+    /* ===== Topbar (igual a index) ===== */
+    .topbar{
+      position:sticky; top:0; z-index:30; height:64px;
+      display:flex; align-items:center; justify-content:space-between; padding:0 22px;
+      background:#ffffff; border-bottom:1px solid rgba(226,232,240,.75);
+      box-shadow: 0 6px 28px rgba(2,6,23,.06);
+    }
+    .burger{ width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+    .burger:hover{ background:#f1f5f9; }
+    .title{ font-weight:800; font-size:1.35rem; color:#1f2937; }
+
+    /* Badges ROJOS (como pediste y como se ve en screenshot) */
+    .badge{
+      position:absolute; right:-6px; top:-6px; min-width:20px; height:20px; padding:0 6px;
+      display:flex; align-items:center; justify-content:center;
+      border-radius:999px; color:#fff; font-size:11px; font-weight:800;
+      background:linear-gradient(135deg,#ef4444,#dc2626);
+      box-shadow: 0 0 0 2px #fff;
+    }
+
+    /* Utilidades varias de la vista */
+    .btn{ display:inline-flex; align-items:center; gap:8px; font-weight:700; border-radius:12px; }
+    .btn-primary{ background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:#fff; padding:12px 18px; box-shadow:0 10px 24px rgba(37,99,235,.25); }
+    .input{ border:2px solid #e5e7eb; border-radius:12px; padding:12px 14px; }
+    .input:focus{ outline:none; border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,.12); }
+    .chip{ display:inline-flex; padding:6px 12px; border-radius:999px; font-weight:800; font-size:.75rem; }
+    .chip.admin{ background:#f3e8ff; color:#6b21a8; } .chip.mesero{ background:#dbeafe; color:#1e40af; }
+    .chip.cocinero{ background:#dcfce7; color:#166534; } .chip.cajero{ background:#fef9c3; color:#854d0e; }
+    .chip.limpieza{ background:#f3f4f6; color:#374151; }
+    .card{ background:#fff; border:1px solid rgba(226,232,240,.6); border-radius:16px; box-shadow:0 8px 28px rgba(2,6,23,.06); }
+    .table th{ background:linear-gradient(135deg,#f8fafc,#e2e8f0); text-transform:uppercase; letter-spacing:.05em; font-size:.74rem; color:#1f2937; padding:14px 16px; }
+    .table td{ padding:14px 16px; border-top:1px solid rgba(226,232,240,.6); color:#475569; }
+
+    /* Modal */
+    .modal-wrap{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.55); backdrop-filter: blur(6px); z-index:70; padding:16px; }
+    .modal-wrap.show{ display:flex; }
+    .modal{ width:100%; max-width:980px; max-height:95vh; overflow:auto; background:#fff; border-radius:20px; box-shadow:0 30px 70px rgba(2,6,23,.25); }
+    .err{ display:none; color:#ef4444; font-size:.8rem; margin-top:4px; }
+    .invalid{ border-color:#ef4444 !important; background:rgba(239,68,68,.05)!important; }
+  </style>
 </head>
+<body class="bg-slate-50 font-sans overflow-x-hidden">
 
-<body class="bg-gray-50 font-sans">
+  <!-- ===== Overlay móvil ===== -->
+  <div id="mobileOverlay" class="mobile-overlay"></div>
 
-    <!-- Sidebar fijo -->
-   <div class="sidebar bg-white shadow-lg w-64 fixed h-full flex flex-col z-10">
-    <div class="p-4 flex items-center border-b border-gray-200">
-      <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-        <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo">
+  <!-- ===== SIDEBAR (idéntico al index del screenshot) ===== -->
+  <aside id="sidebar" class="sidebar">
+    <!-- Brand -->
+    <div class="brand-card">
+      <div class="brand-icon">
+        <img src="img/Logo Orderly.jpg" alt="Orderly" class="w-9 h-9 rounded-md object-cover"/>
       </div>
-      <span class="logo-text ml-3 text-xl font-semibold text-blue-500">Orderly</span>
+      <div class="brand-title">Orderly</div>
     </div>
-    <div class="flex-1 overflow-y-auto">
-      <div class="p-4">
-        <div class="text-xs uppercase text-black font-semibold mb-2">Main</div>
-        <a href="index.html" class="nav-item flex items-center p-2 rounded-lg mb-1">
-          <i class="fas fa-tachometer-alt w-6 text-center"></i>
-          <span class="nav-text ml-3">Inicio</span>
-        </a>
-        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Operations</div>
-        <a href="mesas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-chair w-6 text-center"></i>
-          <span class="nav-text ml-3">Mesas</span>
-        </a>
-        <a href="menu.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-book w-6 text-center"></i>
-          <span class="nav-text ml-3">Menu</span>
-        </a>
-        <a href="reservas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-calendar-check w-6 text-center"></i>
-          <span class="nav-text ml-3">Reservaciones</span>
-        </a>
-        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Management</div>
-        <a href="empleados.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-users w-6 text-center"></i>
-          <span class="nav-text ml-3">Empleados</span>
-        </a>
-        <a href="facturas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-file-invoice-dollar w-6 text-center"></i>
-          <span class="nav-text ml-3">Facturas</span>
-        </a>
-        <div class="text-xs uppercase text-black font-semibold mt-6 mb-2">Reports</div>
-        <a href="ofertas.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-chart-line w-6 text-center"></i>
-          <span class="nav-text ml-3">Ofertas</span>
-        </a>
-        <a href="historial.html" class="nav-item flex items-center p-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 mb-1">
-          <i class="fas fa-history w-6 text-center"></i>
-          <span class="nav-text ml-3">Historial</span>
-        </a>
+
+    <!-- Nav -->
+    <nav class="flex-1 overflow-y-auto">
+      <div class="section-title">MAIN</div>
+      <a href="index.html" class="nav-link">
+        <i class="fa-solid fa-house"></i>
+        <span class="nav-text">Inicio</span>
+      </a>
+
+      <div class="section-title">OPERATIONS</div>
+      <a href="mesas.html" class="nav-link">
+        <i class="fa-solid fa-chair"></i>
+        <span class="nav-text">Mesas</span>
+      </a>
+      <a href="menu.html" class="nav-link">
+        <i class="fa-solid fa-book"></i>
+        <span class="nav-text">Menú</span>
+      </a>
+      <a href="reservas.html" class="nav-link">
+        <i class="fa-solid fa-calendar-check"></i>
+        <span class="nav-text">Reservaciones</span>
+      </a>
+
+      <div class="section-title">MANAGEMENT</div>
+      <!-- ACTIVO AQUÍ -->
+      <a href="empleados.html" class="nav-link active">
+        <i class="fa-solid fa-users"></i>
+        <span class="nav-text">Empleados</span>
+      </a>
+      <a href="facturas.html" class="nav-link">
+        <i class="fa-solid fa-file-invoice-dollar"></i>
+        <span class="nav-text">Facturas</span>
+      </a>
+
+      <div class="section-title">REPORTS</div>
+      <a href="ofertas.html" class="nav-link">
+        <i class="fa-solid fa-chart-line"></i>
+        <span class="nav-text">Ofertas</span>
+      </a>
+      <a href="historial.html" class="nav-link">
+        <i class="fa-solid fa-rotate-left"></i>
+        <span class="nav-text">Historial</span>
+      </a>
+    </nav>
+
+    <!-- Footer user -->
+    <div class="user-card">
+      <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white">
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <div class="user-info">
+        <div class="text-sm font-semibold text-white">Admin User</div>
+        <div class="text-xs text-white/70">Administrator</div>
       </div>
     </div>
-    <div class="p-4 border-t border-gray-200">
-      <div class="flex items-center">
-        <div class="user-info-icon w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-          <i class="fas fa-user text-gray-600"></i>
-        </div>
-        <div class="user-info-text ml-3">
-          <div class="text-sm font-medium text-gray-800">Admin User</div>
-          <div class="text-xs text-gray-500">Administrator</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- Contenido principal -->
-  <div class="main-content flex flex-col min-h-screen transition-all ml-64" id="mainContent">
-    <!-- Header superior (navbar) -->
-    <header class="bg-white shadow-sm py-4 px-6 flex items-center justify-between">
-      <div class="flex items-center">
-        <button id="sidebarToggle" class="text-gray-500 focus:outline-none mr-4 transition hover:text-blue-600">
-          <i class="fas fa-bars"></i>
+  </aside>
+
+  <!-- ===== MAIN (empujado como el index) ===== -->
+  <div id="main" class="main">
+
+    <!-- ===== TOPBAR (idéntico) ===== -->
+    <header class="topbar">
+      <div class="flex items-center gap-3">
+        <!-- Desktop collapse + Mobile open con el mismo botón -->
+        <button id="toggleSidebar" class="burger text-slate-700">
+          <i class="fa-solid fa-bars text-lg"></i>
         </button>
-        <h1 class="text-xl font-semibold text-gray-800">Empleados</h1>
+        <h1 class="title">Gestión de Empleados</h1>
       </div>
-      <div class="flex items-center space-x-4">
+
+      <div class="flex items-center gap-4">
         <div class="relative">
-          <button class="text-gray-500 focus:outline-none">
-            <i class="fas fa-bell"></i>
-            <span
-              class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
+          <button class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-bell text-lg"></i>
           </button>
+          <span class="badge">3</span>
         </div>
+
         <div class="relative">
-          <button class="text-gray-500 focus:outline-none">
-            <i class="fas fa-envelope"></i>
-            <span
-              class="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center">5</span>
+          <button class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-envelope text-lg"></i>
           </button>
+          <span class="badge">5</span>
         </div>
+
         <div class="relative">
-          <button id="navbarUserBtn" class="navbar-user-avatar flex items-center focus:outline-none">
-            <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-              <i class="fas fa-user"></i>
+          <button id="userBtn" class="p-1.5 rounded-xl hover:bg-slate-100 flex items-center gap-2">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center shadow">
+              <i class="fa-solid fa-user"></i>
             </div>
-            <span class="ml-2 text-gray-700 hidden md:inline">Admin</span>
+            <span class="hidden md:inline font-semibold text-slate-700">Admin</span>
+            <i class="fa-solid fa-chevron-down text-slate-500 text-xs"></i>
           </button>
+          <!-- dropdown -->
+          <div id="userMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
+            <button id="logout" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-50">
+              <i class="fa-solid fa-right-from-bracket mr-2"></i> Cerrar sesión
+            </button>
+          </div>
         </div>
       </div>
     </header>
 
-    <!-- Filtros y botón agregar -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between p-6 pb-0">
-      <div class="flex flex-1 gap-2 md:gap-4">
-        <input type="text" id="searchInput"
-          class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 transition"
-          placeholder="Buscar empleados..." />
-        <button id="roleFilterButton"
-          class="flex items-center border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-700 hover:bg-gray-50 transition">
-          <span>Filtrar por rol</span>
-          <i class="fas fa-chevron-down ml-2"></i>
-        </button>
-        <div id="roleFilterDropdown"
-          class="hidden absolute z-10 mt-12 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 max-h-60 overflow-y-auto scrollbar-custom">
-          <div class="px-4 py-2 border-b border-gray-100">
-            <label class="flex items-center gap-2">
-              <input type="checkbox" class="role-filter" value="all" checked>
-              <span>Todos los roles</span>
-            </label>
+    <!-- ===== CONTENIDO: Empleados ===== -->
+    <main class="p-6">
+      <!-- Filtros -->
+      <div class="mb-5 flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+        <div class="flex flex-1 gap-3">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input id="searchInput" class="input w-full pl-10" placeholder="Buscar empleados...">
           </div>
-          <div class="px-4 py-2 hover:bg-gray-50">
-            <label class="flex items-center gap-2">
-              <input type="checkbox" class="role-filter" value="Administrador">
-              <span>Administrador</span>
-            </label>
-          </div>
-          <div class="px-4 py-2 hover:bg-gray-50">
-            <label class="flex items-center gap-2">
-              <input type="checkbox" class="role-filter" value="Mesero">
-              <span>Mesero</span>
-            </label>
-          </div>
-          <div class="px-4 py-2 hover:bg-gray-50">
-            <label class="flex items-center gap-2">
-              <input type="checkbox" class="role-filter" value="Cocinero">
-              <span>Cocinero</span>
-            </label>
-          </div>
-          <div class="px-4 py-2 hover:bg-gray-50">
-            <label class="flex items-center gap-2">
-              <input type="checkbox" class="role-filter" value="Cajero">
-              <span>Cajero</span>
-            </label>
-          </div>
-          <div class="px-4 py-2 hover:bg-gray-50">
-            <label class="flex items-center gap-2">
-              <input type="checkbox" class="role-filter" value="Limpieza">
-              <span>Limpieza</span>
-            </label>
+
+          <div class="relative">
+            <button id="roleBtn" class="btn px-4 py-3 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-700">
+              <i class="fa-solid fa-filter"></i> <span class="hidden sm:inline">Filtrar por rol</span><span class="sm:hidden">Filtros</span> <i class="fa-solid fa-chevron-down text-xs ml-1"></i>
+            </button>
+            <div id="roleMenu" class="hidden absolute right-0 top-full mt-2 w-56 bg-white rounded-xl border border-slate-200 shadow-xl">
+              <div class="px-4 py-3 border-b border-slate-100">
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" class="role-filter w-4 h-4 text-blue-600" value="all" checked>
+                  <span class="font-medium text-slate-700">Todos los roles</span>
+                </label>
+              </div>
+              <div class="px-4 py-2 hover:bg-slate-50"><label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" class="role-filter w-4 h-4 text-blue-600" value="Administrador"><span>Administrador</span></label></div>
+              <div class="px-4 py-2 hover:bg-slate-50"><label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" class="role-filter w-4 h-4 text-blue-600" value="Mesero"><span>Mesero</span></label></div>
+              <div class="px-4 py-2 hover:bg-slate-50"><label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" class="role-filter w-4 h-4 text-blue-600" value="Cocinero"><span>Cocinero</span></label></div>
+              <div class="px-4 py-2 hover:bg-slate-50"><label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" class="role-filter w-4 h-4 text-blue-600" value="Cajero"><span>Cajero</span></label></div>
+              <div class="px-4 py-2 hover:bg-slate-50"><label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" class="role-filter w-4 h-4 text-blue-600" value="Limpieza"><span>Limpieza</span></label></div>
+            </div>
           </div>
         </div>
-      </div>
-      <button id="addEmployeeBtn"
-        class="mt-4 md:mt-0 px-6 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition-all flex items-center gap-2">
-        <i class="fas fa-user-plus"></i> Nuevo Empleado
-      </button>
-    </div>
 
-    <!-- Tabla empleados -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden mt-6 mx-6">
-      <div class="table-container overflow-x-auto max-h-[600px]">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50 sticky top-0">
-            <tr>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Correo</th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalles</th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200" id="employees-tbody">
-            <!-- Filas renderizadas por JS -->
-          </tbody>
-        </table>
+        <button id="addEmployeeBtn" class="btn btn-primary px-4">
+          <i class="fa-solid fa-user-plus"></i> Nuevo Empleado
+        </button>
       </div>
-    </div>
+
+      <!-- Tabla -->
+      <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="table w-full">
+            <thead>
+              <tr>
+                <th class="text-left">Nombre</th>
+                <th class="text-left">Usuario</th>
+                <th class="text-left hidden sm:table-cell">Correo</th>
+                <th class="text-left">Rol</th>
+                <th class="text-left hidden lg:table-cell">Detalles</th>
+                <th class="text-left">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="employees-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
   </div>
 
-  <!-- Modal Agregar/Editar Empleado -->
-  <div id="employeeModal"
-    class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 modal-bg">
-    <div class="modal bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-      <h2 id="modalTitle" class="text-2xl font-bold text-gray-800 mb-4">Nuevo Empleado</h2>
-      <form id="employeeForm" class="space-y-4">
+  <!-- ===== MODAL ===== -->
+  <div id="employeeModal" class="modal-wrap">
+    <div class="modal">
+      <div class="p-6 border-b border-slate-100">
+        <h2 id="modalTitle" class="text-2xl font-extrabold text-slate-800">Nuevo Empleado</h2>
+      </div>
+      <form id="employeeForm" class="p-6">
         <input type="hidden" id="id">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="firstName" class="block text-sm font-medium text-gray-700">Primer Nombre *</label>
-            <input type="text" id="firstName"
-              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required oninput="validateNameInput(this)">
-            <div id="firstNameError" class="error-message">Solo letras y espacios permitidos</div>
-          </div>
-          <div>
-            <label for="secondName" class="block text-sm font-medium text-gray-700">Segundo Nombre</label>
-            <input type="text" id="secondName"
-              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              oninput="validateNameInput(this)">
-            <div id="secondNameError" class="error-message">Solo letras y espacios permitidos</div>
-          </div>
-          <div>
-            <label for="lastNameP" class="block text-sm font-medium text-gray-700">Apellido Paterno *</label>
-            <input type="text" id="lastNameP"
-              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required oninput="validateNameInput(this)">
-            <div id="lastNamePError" class="error-message">Solo letras y espacios permitidos</div>
-          </div>
-          <div>
-            <label for="lastNameM" class="block text-sm font-medium text-gray-700">Apellido Materno</label>
-            <input type="text" id="lastNameM"
-              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              oninput="validateNameInput(this)">
-            <div id="lastNameMError" class="error-message">Solo letras y espacios permitidos</div>
-          </div>
-          <div>
-            <label for="birthDate" class="block text-sm font-medium text-gray-700">Fecha de Nacimiento *</label>
-            <input type="date" id="birthDate"
-              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required onchange="validateBirthDate()">
-            <div id="birthDateError" class="error-message">El empleado debe tener entre 18 y 70 años</div>
-          </div>
-          <div>
-            <label for="phone" class="block text-sm font-medium text-gray-700">Teléfono *</label>
-            <div class="mt-1 flex rounded-md shadow-sm">
-              <span
-                class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">+503</span>
-              <input type="text" id="phone"
-                class="focus:ring-blue-500 focus:border-blue-500 flex-1 block w-full rounded-none rounded-r-md border-gray-300 py-2 px-3"
-                maxlength="9" oninput="formatPhone(this)" required placeholder="xxxx-xxxx">
-            </div>
-            <div id="phoneError" class="error-message">Formato: xxxx-xxxx</div>
-          </div>
-          <div>
-            <label for="docType" class="block text-sm font-medium text-gray-700">Tipo de Documento *</label>
-            <select id="docType"
-              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required onchange="updateDocNumberPattern()">
-              <option value="DUI">DUI</option>
-              <option value="Licencia">Licencia</option>
-            </select>
-          </div>
-          <div>
-            <label for="docNumber" class="block text-sm font-medium text-gray-700">Número de Documento
-              *</label>
-            <input type="text" id="docNumber"
-              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required oninput="formatDUI(this)">
-            <div id="docNumberError" class="error-message">Formato inválido</div>
-          </div>
-          <div>
-            <label for="role" class="block text-sm font-medium text-gray-700">Rol *</label>
-            <select id="role"
-              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required>
-              <option value="">Seleccione un rol</option>
-              <option value="Administrador">Administrador</option>
-              <option value="Mesero">Mesero</option>
-              <option value="Cocinero">Cocinero</option>
-              <option value="Cajero">Cajero</option>
-              <option value="Limpieza">Limpieza</option>
-            </select>
-            <div id="roleError" class="error-message">Seleccione un rol</div>
-          </div>
-          <div>
-            <label for="username" class="block text-sm font-medium text-gray-700">Usuario *</label>
-            <input type="text" id="username"
-              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required oninput="validateUsername(this)">
-            <div id="usernameError" class="error-message">Solo letras y números</div>
-          </div>
-          <div>
-            <label for="password" class="block text-sm font-medium text-gray-700">Contraseña *</label>
-            <div class="mt-1 relative">
-              <input type="password" id="password"
-                class="block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 pr-10"
-                required>
-              <button type="button" id="togglePassword"
-                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600">
-                <i class="fas fa-eye"></i>
-              </button>
-            </div>
-            <div id="passwordError" class="error-message">Requisitos no cumplidos</div>
-          </div>
-          <div>
-            <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
-            <input type="text" id="email"
-              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              readonly>
-          </div>
-          <div>
-            <label for="hireDate" class="block text-sm font-medium text-gray-700">Fecha de Contratación *</label>
-            <input type="date" id="hireDate"
-              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required onchange="validateHireDate()">
-            <div id="hireDateError" class="error-message">Fecha inválida</div>
-          </div>
-          <div class="md:col-span-2">
-            <label for="address" class="block text-sm font-medium text-gray-700">Dirección *</label>
-            <textarea id="address" rows="2"
-              class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              maxlength="160" required oninput="validateAddress(this)"></textarea>
-            <div id="addressError" class="error-message">Dirección inválida</div>
-          </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div><label class="block text-sm font-semibold mb-2" for="firstName">Primer Nombre *</label><input id="firstName" class="input w-full" required oninput="validateNameInput(this)"/><div id="firstNameError" class="err">Solo letras y espacios permitidos</div></div>
+          <div><label class="block text-sm font-semibold mb-2" for="secondName">Segundo Nombre</label><input id="secondName" class="input w-full" oninput="validateNameInput(this)"/><div id="secondNameError" class="err">Solo letras y espacios permitidos</div></div>
+          <div><label class="block text-sm font-semibold mb-2" for="lastNameP">Apellido Paterno *</label><input id="lastNameP" class="input w-full" required oninput="validateNameInput(this)"/><div id="lastNamePError" class="err">Solo letras y espacios permitidos</div></div>
+          <div><label class="block text-sm font-semibold mb-2" for="lastNameM">Apellido Materno</label><input id="lastNameM" class="input w-full" oninput="validateNameInput(this)"/><div id="lastNameMError" class="err">Solo letras y espacios permitidos</div></div>
+          <div><label class="block text-sm font-semibold mb-2" for="birthDate">Fecha de Nacimiento *</label><input type="date" id="birthDate" class="input w-full" required onchange="validateBirthDate()"/><div id="birthDateError" class="err">El empleado debe tener entre 18 y 85 años</div></div>
+          <div><label class="block text-sm font-semibold mb-2" for="phone">Teléfono *</label><div class="flex"><span class="inline-flex items-center px-4 rounded-l-xl border border-r-0 border-slate-300 bg-slate-50 text-slate-500 font-medium">+503</span><input id="phone" maxlength="9" class="input flex-1 rounded-l-none" placeholder="xxxx-xxxx" oninput="formatPhone(this)" required/></div><div id="phoneError" class="err">Formato: xxxx-xxxx</div></div>
+          <div><label class="block text-sm font-semibold mb-2" for="docType">Tipo de Documento *</label><select id="docType" class="input w-full" required onchange="updateDocNumberPattern()"><option value="DUI">DUI</option><option value="Licencia">Licencia</option></select></div>
+          <div><label class="block text-sm font-semibold mb-2" for="docNumber">Número de Documento *</label><input id="docNumber" class="input w-full" required oninput="formatDocNumber(this)"/><div id="docNumberError" class="err">Formato inválido</div></div>
+          <div><label class="block text-sm font-semibold mb-2" for="role">Rol *</label><select id="role" class="input w-full" required><option value="">Seleccione un rol</option><option>Administrador</option><option>Mesero</option><option>Cocinero</option><option>Cajero</option><option>Limpieza</option></select><div id="roleError" class="err">Seleccione un rol</div></div>
+          <div><label class="block text-sm font-semibold mb-2" for="username">Usuario *</label><input id="username" class="input w-full" required oninput="validateUsername(this)"/><div id="usernameError" class="err">Solo letras y números</div></div>
+          <div><label class="block text-sm font-semibold mb-2" for="password">Contraseña *</label><div class="relative"><input type="password" id="password" class="input w-full pr-12" required/><button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-4 text-slate-500 hover:text-slate-700"><i class="fa-solid fa-eye"></i></button></div><div id="passwordError" class="err">Requisitos no cumplidos</div></div>
+          <div><label class="block text-sm font-semibold mb-2" for="email">Correo</label><input id="email" class="input w-full bg-slate-50" readonly/></div>
+          <div><label class="block text-sm font-semibold mb-2" for="hireDate">Fecha de Contratación *</label><input type="date" id="hireDate" class="input w-full" required onchange="validateHireDate()"/><div id="hireDateError" class="err">Fecha inválida</div></div>
+          <div class="md:col-span-2"><label class="block text-sm font-semibold mb-2" for="address">Dirección *</label><textarea id="address" rows="3" class="input w-full resize-none" maxlength="160" required oninput="validateAddress(this)" placeholder="Ingrese la dirección completa..."></textarea><div id="addressError" class="err">Dirección inválida</div></div>
         </div>
-        <div class="flex justify-end space-x-3 pt-4">
-          <button type="button" id="cancelBtn"
-            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition">Cancelar</button>
-          <button type="submit"
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2 transition">
-            <i class="fas fa-save"></i> Guardar
-          </button>
+        <div class="p-6 flex justify-end gap-3">
+          <button type="button" id="cancelBtn" class="px-4 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 font-semibold text-slate-700">Cancelar</button>
+          <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-save"></i> Guardar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <script src="js/empleados.js"></script>
-  <script src="js/script.js"></script>
-</body>
+  <!-- ===== JS (menú + empleados) ===== -->
+  <script>
+    /* ======= Menú idéntico ======= */
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('main');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+    const toggleSidebar = document.getElementById('toggleSidebar');
 
+    function openMobile(){ sidebar.classList.add('open'); mobileOverlay.classList.add('show'); document.body.style.overflow='hidden'; }
+    function closeMobile(){ sidebar.classList.remove('open'); mobileOverlay.classList.remove('show'); document.body.style.overflow=''; }
+
+    toggleSidebar.addEventListener('click', ()=>{
+      if (window.innerWidth < 1024) openMobile();
+      else { sidebar.classList.toggle('collapsed'); main.classList.toggle('collapsed'); }
+    });
+    mobileOverlay.addEventListener('click', closeMobile);
+    window.addEventListener('resize', ()=>{ if (window.innerWidth >= 1024) closeMobile(); });
+
+    const userBtn = document.getElementById('userBtn');
+    const userMenu = document.getElementById('userMenu');
+    userBtn.addEventListener('click', (e)=>{ e.stopPropagation(); userMenu.classList.toggle('hidden'); });
+    document.addEventListener('click', ()=> userMenu.classList.add('hidden'));
+    document.getElementById('logout').addEventListener('click', ()=> location.href='inicioSesion.html');
+
+    /* ======= Empleados (datos + lógica) ======= */
+    const employees = [
+      { id:1, firstName:"Juan",  secondName:"Carlos", lastNameP:"Pérez", lastNameM:"Gómez", birthDate:"1985-05-15", phone:"+503 7890-1234", docType:"DUI", docNumber:"12345678-9", role:"Administrador", username:"jperez",    password:"Admin123#",   email:"juan_perez@orderly.com",  hireDate:"2020-01-10", address:"Calle Principal #123, Colonia Centro" },
+      { id:2, firstName:"María", secondName:"Isabel", lastNameP:"Rodríguez", lastNameM:"Martínez", birthDate:"1990-08-22", phone:"+503 6789-4321", docType:"DUI", docNumber:"98765432-1", role:"Mesero",       username:"mrodriguez", password:"Mesero123#", email:"maria_rodriguez@orderly.com", hireDate:"2021-03-15", address:"Avenida Norte #456, Colonia Escalón" },
+      { id:3, firstName:"Pedro", secondName:"Antonio", lastNameP:"González", lastNameM:"", birthDate:"1995-11-30", phone:"+503 7654-9876", docType:"Licencia", docNumber:"1234-567890-123-4", role:"Cocinero", username:"pgonzalez", password:"Cocinero123#", email:"pedro_gonzalez@orderly.com", hireDate:"2022-05-20", address:"Calle Oriente #789, Colonia San Benito" }
+    ];
+
+    const searchInput = document.getElementById('searchInput');
+    const tbody = document.getElementById('employees-tbody');
+    const roleBtn = document.getElementById('roleBtn');
+    const roleMenu = document.getElementById('roleMenu');
+    roleBtn.addEventListener('click', (e)=>{ e.stopPropagation(); roleMenu.classList.toggle('hidden'); });
+    document.addEventListener('click', ()=> roleMenu.classList.add('hidden'));
+    roleMenu.querySelectorAll('input.role-filter').forEach(cb=> cb.addEventListener('change', renderTable));
+    searchInput.addEventListener('input', renderTable);
+
+    function chipClass(role){ return role==='Administrador'?'admin':role==='Mesero'?'mesero':role==='Cocinero'?'cocinero':role==='Cajero'?'cajero':role==='Limpieza'?'limpieza':''; }
+    function formatDate(s){ return new Date(s).toLocaleDateString('es-ES'); }
+
+    function renderTable(){
+      const term = (searchInput.value||'').toLowerCase();
+      const roles = Array.from(document.querySelectorAll('.role-filter:checked')).map(x=>x.value);
+      const filtered = employees.filter(e=>{
+        const t=[e.firstName,e.lastNameP,e.username,e.email].join(' ').toLowerCase();
+        const okText = t.includes(term);
+        const okRole = roles.includes('all') || roles.includes(e.role);
+        return okText && okRole;
+      });
+
+      tbody.innerHTML='';
+      filtered.forEach(emp=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><div class="font-semibold text-slate-800">${emp.firstName} ${emp.lastNameP}</div></td>
+          <td>${emp.username}</td>
+          <td class="hidden sm:table-cell">${emp.email}</td>
+          <td><span class="chip ${chipClass(emp.role)}">${emp.role}</span></td>
+          <td class="hidden lg:table-cell"><button class="text-blue-600 hover:text-blue-800 text-sm toggle-details" data-target="d-${emp.id}">Detalles <i class="fa-solid fa-chevron-down text-xs ml-1"></i></button></td>
+          <td>
+            <div class="flex gap-2">
+              <button class="px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50" onclick='openForm(${JSON.stringify(emp)})' title="Editar"><i class="fa-solid fa-pen"></i></button>
+              <button class="px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50" onclick="deleteEmployee(${emp.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </td>`;
+        const tr2 = document.createElement('tr');
+        tr2.innerHTML = `
+          <td colspan="6" class="p-0">
+            <div id="d-${emp.id}" class="hidden border-t border-slate-200 bg-slate-50/50">
+              <div class="px-6 py-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <div><div class="font-semibold">Segundo Nombre</div><div>${emp.secondName||'N/A'}</div></div>
+                <div><div class="font-semibold">Apellido Materno</div><div>${emp.lastNameM||'N/A'}</div></div>
+                <div><div class="font-semibold">Fecha de Nacimiento</div><div>${formatDate(emp.birthDate)}</div></div>
+                <div><div class="font-semibold">Teléfono</div><div>${emp.phone}</div></div>
+                <div><div class="font-semibold">Documento</div><div>${emp.docType} ${emp.docNumber}</div></div>
+                <div><div class="font-semibold">Fecha Contratación</div><div>${formatDate(emp.hireDate)}</div></div>
+                <div class="lg:col-span-3"><div class="font-semibold">Dirección</div><div>${emp.address}</div></div>
+              </div>
+            </div>
+          </td>`;
+        tbody.appendChild(tr); tbody.appendChild(tr2);
+      });
+
+      document.querySelectorAll('.toggle-details').forEach(btn=>{
+        btn.onclick = ()=>{
+          const tgt = document.getElementById(btn.dataset.target);
+          tgt.classList.toggle('hidden');
+          const icon = btn.querySelector('i');
+          icon.style.transform = tgt.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        };
+      });
+    }
+    renderTable();
+
+    /* ===== Modal / CRUD ===== */
+    const addEmployeeBtn = document.getElementById('addEmployeeBtn');
+    const modalWrap = document.getElementById('employeeModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const employeeForm = document.getElementById('employeeForm');
+    const togglePassword = document.getElementById('togglePassword');
+    const emailInput = document.getElementById('email');
+    let editingId = null;
+
+    addEmployeeBtn.addEventListener('click', ()=> openForm());
+    cancelBtn.addEventListener('click', closeForm);
+    modalWrap.addEventListener('click', e=>{ if(e.target===modalWrap) closeForm(); });
+    employeeForm.addEventListener('submit', submitForm);
+    document.getElementById('firstName').addEventListener('input', updateEmail);
+    document.getElementById('lastNameP').addEventListener('input', updateEmail);
+    togglePassword.addEventListener('click', ()=>{
+      const input=document.getElementById('password'); const isPass=input.type==='password';
+      input.type = isPass ? 'text' : 'password';
+      togglePassword.innerHTML = isPass ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-eye"></i>';
+    });
+
+    function openForm(emp=null){
+      modalTitle.textContent = emp ? 'Editar Empleado' : 'Nuevo Empleado';
+      document.querySelectorAll('.err').forEach(e=>e.style.display='none');
+      document.querySelectorAll('.invalid').forEach(e=>e.classList.remove('invalid'));
+      if(emp){
+        editingId = emp.id;
+        ['firstName','secondName','lastNameP','lastNameM','birthDate','phone','docNumber','role','username','password','hireDate','address']
+          .forEach(id=>{ const el=document.getElementById(id); let v=emp[id]||''; if(id==='phone') v=v.replace('+503 ',''); el.value=v; });
+        document.getElementById('docType').value = emp.docType; updateDocNumberPattern();
+        emailInput.value = emp.email;
+      }else{
+        editingId=null; employeeForm.reset(); emailInput.value=''; updateDocNumberPattern();
+      }
+      modalWrap.classList.add('show'); document.body.style.overflow='hidden';
+    }
+    function closeForm(){ modalWrap.classList.remove('show'); document.body.style.overflow=''; editingId=null; employeeForm.reset(); emailInput.value=''; }
+    function submitForm(e){
+      e.preventDefault();
+      if(!validateBirthDate() || !validateHireDate()) return;
+
+      const emp = {
+        id: editingId || Date.now(),
+        firstName: val('firstName'), secondName: val('secondName'),
+        lastNameP: val('lastNameP'), lastNameM: val('lastNameM'),
+        birthDate: val('birthDate'), phone: `+503 ${val('phone')}`,
+        docType: val('docType'), docNumber: val('docNumber'),
+        role: val('role'), username: val('username'),
+        password: val('password'), email: emailInput.value,
+        hireDate: val('hireDate'), address: val('address')
+      };
+      if(editingId){ const i=employees.findIndex(x=>x.id===editingId); if(i>-1) employees[i]=emp; } else { employees.push(emp); }
+      closeForm(); renderTable();
+    }
+
+    /* Validaciones */
+    function val(id){ return document.getElementById(id).value.trim(); }
+    function validateNameInput(el){ const re=/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/; const ok=re.test(el.value); if(!ok) el.value=el.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g,''); el.classList.toggle('invalid', !ok && el.value); const e=document.getElementById(el.id+'Error'); if(e) e.style.display=(!ok&&el.value)?'block':'none'; }
+    function validateUsername(el){ const re=/^[A-Za-z0-9]*$/; const ok=re.test(el.value); if(!ok) el.value=el.value.replace(/[^A-Za-z0-9]/g,''); el.classList.toggle('invalid', !ok && el.value); document.getElementById('usernameError').style.display=(!ok&&el.value)?'block':'none'; }
+    function formatPhone(el){ let v=el.value.replace(/\D/g,''); if(v.length>4) v=v.slice(0,4)+'-'+v.slice(4,8); el.value=v; const ok=v.length===9; el.classList.toggle('invalid', !ok && v); document.getElementById('phoneError').style.display=(!ok&&v)?'block':'none'; }
+    function updateDocNumberPattern(){ const el=document.getElementById('docNumber'); const type=document.getElementById('docType').value; el.value=''; el.classList.remove('invalid'); document.getElementById('docNumberError').style.display='none'; if(type==='DUI'){ el.placeholder='xxxxxxxx-x'; el.maxLength=10; } else { el.placeholder='xxxx-xxxxxx-xxx-x'; el.maxLength=16; } }
+    function formatDocNumber(el){ const t=document.getElementById('docType').value; let v=el.value.replace(/\D/g,''); if(t==='DUI'){ if(v.length>8) v=v.slice(0,8)+'-'+v.slice(8,9); el.value=v; const ok=v.length===10; el.classList.toggle('invalid', !ok && v); document.getElementById('docNumberError').style.display=(!ok&&v)?'block':'none'; } else { if(v.length>4) v=v.slice(0,4)+'-'+v.slice(4,10); if(v.length>11) v=v.slice(0,11)+'-'+v.slice(11,14); if(v.length>15) v=v.slice(0,15)+'-'+v.slice(15,16); el.value=v; const ok=v.length===16; el.classList.toggle('invalid', !ok && v); document.getElementById('docNumberError').style.display=(!ok&&v)?'block':'none'; } }
+    function validateBirthDate(){ const el=document.getElementById('birthDate'); if(!el.value){ el.classList.add('invalid'); document.getElementById('birthDateError').style.display='block'; return false; } const d=new Date(el.value), now=new Date(); if(d>now){ el.classList.add('invalid'); document.getElementById('birthDateError').textContent='La fecha no puede ser futura'; document.getElementById('birthDateError').style.display='block'; return false; } let age=now.getFullYear()-d.getFullYear(); const m=now.getMonth()-d.getMonth(); if(m<0||(m===0&&now.getDate()<d.getDate())) age--; const ok=age>=18&&age<=85; el.classList.toggle('invalid', !ok); document.getElementById('birthDateError').textContent='El empleado debe tener entre 18 y 85 años'; document.getElementById('birthDateError').style.display=ok?'none':'block'; return ok; }
+    function validateHireDate(){ const el=document.getElementById('hireDate'); if(!el.value){ el.classList.add('invalid'); document.getElementById('hireDateError').style.display='block'; return false; } const h=new Date(el.value), now=new Date(); if(h>now){ el.classList.add('invalid'); document.getElementById('hireDateError').textContent='La fecha no puede ser futura'; document.getElementById('hireDateError').style.display='block'; return false; } const bdv=document.getElementById('birthDate').value; if(bdv){ const bd=new Date(bdv); const min=new Date(bd); min.setFullYear(min.getFullYear()+18); if(h<min){ el.classList.add('invalid'); document.getElementById('hireDateError').textContent='Debe ser posterior a los 18 años'; document.getElementById('hireDateError').style.display='block'; return false; } } el.classList.remove('invalid'); document.getElementById('hireDateError').style.display='none'; return true; }
+    function validateAddress(el){ const re=/^[A-Za-z0-9 #ÁÉÍÓÚáéíóúÑñ,.\s]*$/; const ok=re.test(el.value)&&el.value.length<=160; if(!ok) el.value=el.value.replace(/[^A-Za-z0-9 #ÁÉÍÓÚáéíóúÑñ,.\s]/g,''); el.classList.toggle('invalid', !ok && el.value); document.getElementById('addressError').style.display=(!ok&&el.value)?'block':'none'; }
+    function updateEmail(){ const fn=(document.getElementById('firstName').value||'').toLowerCase().replace(/\s/g,''); const lp=(document.getElementById('lastNameP').value||'').toLowerCase().replace(/\s/g,''); emailInput.value = fn&&lp ? `${fn}_${lp}@orderly.com` : ''; }
+    function deleteEmployee(id){ if(confirm('¿Eliminar este empleado?')){ const i=employees.findIndex(e=>e.id===id); if(i>-1){ employees.splice(i,1); renderTable(); } } }
+  </script>
+</body>
 </html>
