@@ -1,3 +1,4 @@
+// controllers/mesasController.js
 import {
   getMesas,
   createMesa,
@@ -16,11 +17,7 @@ const NEXT_ID = { 1: 3, 3: 2, 2: 21, 21: 1 };
 const VALID_IDS = new Set([1, 2, 3, 21]);
 
 const toInt = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
-
-function extractNumberFromName(name){
-  const m = String(name||"").match(/(\d+)/);
-  return m ? parseInt(m[1],10) : 0;
-}
+function extractNumberFromName(name){ const m = String(name||"").match(/(\d+)/); return m ? parseInt(m[1],10) : 0; }
 function resolveMesaNumber(dto){
   const n2 = extractNumberFromName(dto.NomMesa ?? dto.nomMesa);
   if (n2 > 0) return n2;
@@ -28,16 +25,10 @@ function resolveMesaNumber(dto){
   return id > 0 ? id : 1;
 }
 function stateFromId(id){ return STATE_BY_ID[id] ?? STATE_BY_ID[1]; }
-function getTypeByNumber(n){
-  if(n>=1&&n<=4) return "dos";
-  if(n>=5&&n<=8) return "cuatro";
-  return "familiar";
-}
-function typeLabel(t){
-  return t==="dos" ? "2 personas" : (t==="cuatro" ? "4 personas" : "Familiar");
-}
+function getTypeByNumber(n){ if(n>=1&&n<=4) return "dos"; if(n>=5&&n<=8) return "cuatro"; return "familiar"; }
+function typeLabel(t){ return t==="dos" ? "2 personas" : (t==="cuatro" ? "4 personas" : "Familiar"); }
 
-const mesasCache = new Map(); 
+const mesasCache = new Map();
 let currentFilter = "all";
 
 let grid, emptyState;
@@ -69,6 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.cambiarEstadoMesa = cambiarEstadoMesa;
 });
 
+/* ===== GET (Read) ===== */
 async function cargarMesas() {
   if (grid) grid.innerHTML = `<div class="col-span-full text-center py-6 text-slate-500">Cargando mesas...</div>`;
   try {
@@ -242,6 +234,7 @@ function applyCardState(card, state) {
   card.querySelector(".cambiar-estado").addEventListener("click", () => cambiarEstadoMesa(card.dataset.mesaId));
 }
 
+/* ===== PATCH Estado (ciclo) ===== */
 async function cambiarEstadoMesa(mesaId) {
   const card = grid?.querySelector(`[data-mesa-id="${mesaId}"]`);
   if (!card || card.dataset.busy === "1") return;
@@ -263,10 +256,8 @@ async function cambiarEstadoMesa(mesaId) {
       IdEstadoMesa: nextId,
     };
     const resp = await patchEstadoMesa(mesaId, body);
-
     const real = resp || {};
     const realId = toInt(real.IdEstadoMesa ?? real.idEstadoMesa) || nextId;
-
     dto.IdEstadoMesa = realId;
     mesasCache.set(String(mesaId), { ...dto, ...real });
     applyCardState(card, stateFromId(realId));
@@ -279,17 +270,14 @@ async function cambiarEstadoMesa(mesaId) {
   }
 }
 
+/* ===== POST (Create) ===== */
 async function addMesa() {
   const numero = parseInt(document.getElementById('add-numero').value, 10);
   const capacidad = parseInt(document.getElementById('add-capacidad').value, 10);
   const msg = document.getElementById('add-message');
 
-  if (!Number.isFinite(numero) || numero < 1 || numero > 99) {
-    return showMessage(msg, 'El número de mesa debe ser entre 1 y 99', 'error');
-  }
-  if (!Number.isFinite(capacidad) || capacidad < 1 || capacidad > 20) {
-    return showMessage(msg, 'La capacidad debe ser entre 1 y 20 personas', 'error');
-  }
+  if (!Number.isFinite(numero) || numero < 1 || numero > 99) return showMessage(msg, 'El número de mesa debe ser entre 1 y 99', 'error');
+  if (!Number.isFinite(capacidad) || capacidad < 1 || capacidad > 20) return showMessage(msg, 'La capacidad debe ser entre 1 y 20 personas', 'error');
 
   const body = {
     NomMesa: `Mesa ${numero}`,
@@ -300,7 +288,6 @@ async function addMesa() {
   try {
     const resp = await createMesa(body);
     if (!resp) return showMessage(msg, 'No se pudo crear la mesa', 'error');
-
     showMessage(msg, '¡Mesa creada exitosamente!', 'success');
     setTimeout(() => {
       hideModal('add-modal');
@@ -314,6 +301,7 @@ async function addMesa() {
   }
 }
 
+/* ===== PUT (Update) ===== */
 function nextUpdate() {
   const numero = parseInt(document.getElementById('update-search-numero').value, 10);
   const msg1 = document.getElementById('update-message-step1');
@@ -341,12 +329,8 @@ async function updateMesaUI() {
   const cap = parseInt(document.getElementById('update-capacidad').value, 10);
   const msg = document.getElementById('update-message-step2');
 
-  if (!Number.isFinite(num) || num < 1 || num > 99) {
-    return showMessage(msg, 'El número debe ser entre 1 y 99', 'error');
-  }
-  if (!Number.isFinite(cap) || cap < 1 || cap > 20) {
-    return showMessage(msg, 'La capacidad debe ser entre 1 y 20', 'error');
-  }
+  if (!Number.isFinite(num) || num < 1 || num > 99) return showMessage(msg, 'El número debe ser entre 1 y 99', 'error');
+  if (!Number.isFinite(cap) || cap < 1 || cap > 20) return showMessage(msg, 'La capacidad debe ser entre 1 y 20', 'error');
 
   const pair = Array.from(mesasCache.entries()).find(([,dto]) => resolveMesaNumber(dto) === num);
   if (!pair) return showMessage(msg, 'No se encontró la mesa', 'error');
@@ -361,7 +345,6 @@ async function updateMesaUI() {
   try {
     const resp = await updateMesaApi(idStr, body);
     if (!resp) return showMessage(msg, 'No se pudo actualizar', 'error');
-
     showMessage(msg, '¡Mesa actualizada correctamente!', 'success');
     setTimeout(() => { hideModal('update-modal-step2'); cargarMesas(); }, 900);
   } catch (e) {
@@ -370,6 +353,7 @@ async function updateMesaUI() {
   }
 }
 
+/* ===== DELETE (Delete) ===== */
 async function deleteMesaUI() {
   const numero = parseInt(document.getElementById('delete-numero').value, 10);
   const msg = document.getElementById('delete-message');
@@ -386,7 +370,6 @@ async function deleteMesaUI() {
   try {
     const ok = await deleteMesaApi(idStr);
     if (!ok) return showMessage(msg, 'No se pudo eliminar', 'error');
-
     showMessage(msg, '¡Mesa eliminada correctamente!', 'success');
     setTimeout(() => { hideModal('delete-modal'); cargarMesas(); }, 900);
   } catch (e) {
@@ -395,6 +378,7 @@ async function deleteMesaUI() {
   }
 }
 
+/* ===== Utilidades UI ===== */
 function showMessage(element, message, type = 'info') {
   if (!element) return;
   const classes = {
@@ -403,7 +387,6 @@ function showMessage(element, message, type = 'info') {
     warning: 'text-amber-600 bg-amber-50 border-amber-200 border',
     info:    'text-blue-600 bg-blue-50 border-blue-200 border'
   }[type] || 'text-blue-600 bg-blue-50 border-blue-200 border';
-
   element.textContent = message;
   element.className = `text-center text-sm p-3 rounded-lg ${classes}`;
 }
@@ -419,14 +402,9 @@ function setupFAB() {
   fabMain.addEventListener('click', function() {
     fabMenu.classList.toggle('hidden');
     const icon = fabMain.querySelector('i');
-    if (fabMenu.classList.contains('hidden')) {
-      icon.classList.remove('fa-times'); icon.classList.add('fa-plus');
-    } else {
-      icon.classList.remove('fa-plus'); icon.classList.add('fa-times');
-    }
+    if (fabMenu.classList.contains('hidden')) { icon.classList.remove('fa-times'); icon.classList.add('fa-plus'); }
+    else { icon.classList.remove('fa-plus'); icon.classList.add('fa-times'); }
   });
-  
-
 
   addBtn?.addEventListener('click', function() { showModal('add-modal'); closeFABMenu(); });
   editBtn?.addEventListener('click', function() { showModal('update-modal-step1'); closeFABMenu(); });
@@ -440,12 +418,8 @@ function setupFAB() {
 }
 
 function setupModals() {
-  document.addEventListener('click', function(e) {
-    if (e.target.classList?.contains('modal')) hideModal(e.target.id);
-  });
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') hideAllModals();
-  });
+  document.addEventListener('click', function(e) { if (e.target.classList?.contains('modal')) hideModal(e.target.id); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') hideAllModals(); });
 }
 function showModal(id) {
   const modal = document.getElementById(id);
@@ -463,9 +437,7 @@ function hideModal(id) {
   if (mc) { mc.style.transform='scale(0.9)'; mc.style.opacity='0'; }
   setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('show'); }, 300);
 }
-function hideAllModals() {
-  ['add-modal','update-modal-step1','update-modal-step2','delete-modal'].forEach(hideModal);
-}
+function hideAllModals() { ['add-modal','update-modal-step1','update-modal-step2','delete-modal'].forEach(hideModal); }
 
 function setupSidebar() {
   const sidebar = document.getElementById('sidebar');
@@ -495,12 +467,7 @@ function setupSidebar() {
 function setupAnimations() {
   const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
   const observer = new IntersectionObserver((entries)=>{
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
-      }
-    });
+    entries.forEach(entry => { if (entry.isIntersecting) { entry.target.style.opacity = '1'; entry.target.style.transform = 'translateY(0)'; } });
   }, observerOptions);
 
   document.querySelectorAll('.animate-fade-in').forEach(el => {

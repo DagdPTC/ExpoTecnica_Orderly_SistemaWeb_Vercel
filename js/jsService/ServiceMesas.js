@@ -1,58 +1,64 @@
-import { API } from "./apiConfig.js";
+// services/mesaService.js
+const API_BASE = "http://localhost:8080";
+const BASE = `${API_BASE}/apiMesa`;
 
-function normalizaMesa(raw) {
-  if (!raw || typeof raw !== "object") return null;
-  return {
-    Id: raw.Id ?? raw.id ?? raw.idMesa ?? null,
-    NomMesa: raw.NomMesa ?? raw.nomMesa ?? raw.nombre ?? null,
-    IdTipoMesa:
-      raw.IdTipoMesa ?? raw.idTipoMesa ?? raw.tipoMesaId ?? raw?.tipoMesa?.IdTipoMesa ?? raw?.tipoMesa?.idTipoMesa ?? null,
-    IdEstadoMesa:
-      raw.IdEstadoMesa ?? raw.idEstadoMesa ?? raw.estadoMesaId ?? raw?.estadoMesa?.IdEstadoMesa ?? raw?.estadoMesa?.idEstadoMesa ?? null,
-    Numero: raw.Numero ?? raw.number ?? null,
-    ...raw,
-  };
+function normalize(resp) {
+  if (!resp) return resp;
+  if (Array.isArray(resp)) return resp.map(n => n);
+  return resp;
 }
 
 export async function getMesas(page = 0, size = 50) {
-  const url = `${API.mesa}/getDataMesa?page=${encodeURIComponent(page)}&size=${encodeURIComponent(size)}`;
+  const url = `${BASE}/getDataMesa?page=${encodeURIComponent(page)}&size=${encodeURIComponent(size)}`;
   const res = await fetch(url, { method: "GET", headers: { Accept: "application/json" } });
-  if (!res.ok) throw new Error(`GET Mesas: ${res.status} ${res.statusText}`);
+  if (!res.ok) throw new Error(`GET Mesas :: ${res.status}`);
   const data = await res.json();
-  const content = Array.isArray(data?.content) ? data.content.map(normalizaMesa).filter(Boolean) : [];
-  return content;
+  return normalize(data);
 }
 
-export async function patchEstadoMesa(id, estadoId) {
-  const url = `${API.mesa}/estado/${encodeURIComponent(id)}/${encodeURIComponent(estadoId)}`;
-  const res = await fetch(url, { method: "PATCH", headers: { Accept: "application/json" } });
-
-  const text = await res.text().catch(() => "");
-  if (!res.ok) {
-    console.error("Respuesta backend (PATCH estado):", text);
-    throw new Error(`PATCH estado mesa ${id}: ${res.status} ${res.statusText}`);
-  }
-  if (!text) return { Id: Number(id), IdEstadoMesa: Number(estadoId) }; 
-  try { return normalizaMesa(JSON.parse(text)); } catch { return { Id: Number(id), IdEstadoMesa: Number(estadoId) }; }
+export async function createMesa(dto) {
+  const res = await fetch(`${BASE}/createMesa`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(dto)
+  });
+  if (!res.ok) throw new Error(`POST Mesa :: ${res.status}`);
+  return res.json().catch(()=>true);
 }
 
-export async function putMesaCompleta(id, dtoActual, nuevoEstadoId) {
-  const payload = {
-    Id: dtoActual.Id,
-    NomMesa: dtoActual.NomMesa,
-    IdTipoMesa: dtoActual.IdTipoMesa,
-    IdEstadoMesa: nuevoEstadoId,
-  };
-  const res = await fetch(`${API.mesa}/modificarMesa/${encodeURIComponent(id)}`, {
+export async function updateMesa(id, dto) {
+  const res = await fetch(`${BASE}/modificarMesa/${encodeURIComponent(id)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(dto)
   });
-  const text = await res.text().catch(() => "");
-  if (!res.ok) {
-    console.error("Respuesta backend (PUT mesa):", text);
-    throw new Error(`PUT Mesa ${id}: ${res.status} ${res.statusText}`);
+  if (!res.ok) throw new Error(`PUT Mesa ${id} :: ${res.status}`);
+  return res.json().catch(()=>true);
+}
+
+export async function deleteMesa(id) {
+  const res = await fetch(`${BASE}/eliminarMesa/${encodeURIComponent(id)}`, { method: "DELETE" });
+  if (res.status === 204) return true;
+  if (!res.ok) throw new Error(`DELETE Mesa ${id} :: ${res.status}`);
+  return true;
+}
+
+export async function patchEstadoMesa(id, partialDto) {
+  // Intento PATCH; si el backend no lo soporta, reintenta con PUT
+  let res = await fetch(`${BASE}/modificarMesa/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(partialDto)
+  });
+
+  if (res.status === 405 || res.status === 501) {
+    res = await fetch(`${BASE}/modificarMesa/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(partialDto)
+    });
   }
-  if (!text) return payload; 
-  try { return normalizaMesa(JSON.parse(text)); } catch { return payload; }
+
+  if (!res.ok) throw new Error(`PATCH/PUT Estado Mesa ${id} :: ${res.status}`);
+  return res.json().catch(()=>partialDto);
 }
