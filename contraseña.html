@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,42 +7,404 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/contraseña.css">
+    <style>
+        :root {
+            --primary-blue: #1C4EFE;
+            --primary-cyan: #0F86CA;
+            --background-light: #F0F4F3;
+            --input-bg: #EEEEEE;
+            --text-dark: #1a1a1a;
+            --text-muted: #666;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --border-radius: 12px;
+            --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.15);
+            --shadow-heavy: 0 8px 30px rgba(0, 0, 0, 0.2);
+            --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, var(--background-light) 0%, #e8f2f1 100%);
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            min-height: 500px;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-heavy);
+            animation: slideInScale 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        @keyframes slideInScale {
+            0% {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .form-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .form-container h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+            text-align: center;
+        }
+
+        .form-container span {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 400;
+            line-height: 1.4;
+            display: block;
+        }
+
+        .input-container {
+            width: 100%;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .input-wrapper {
+            width: 100%;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 18px;
+            background: var(--input-bg);
+            border-radius: var(--border-radius);
+            border: 2px solid transparent;
+            transition: var(--transition-smooth);
+            position: relative;
+        }
+
+        .input-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(28, 78, 254, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .input-wrapper:focus-within::before {
+            left: 100%;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--primary-blue);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(28, 78, 254, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .input-wrapper.error {
+            border-color: var(--error-color);
+            background: #fef2f2;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .input-wrapper input {
+            border: none;
+            outline: none;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            font-size: 15px;
+            color: var(--text-dark);
+            font-weight: 400;
+        }
+
+        .input-wrapper input::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .input-wrapper ion-icon {
+            font-size: 20px;
+            color: var(--text-muted);
+            transition: var(--transition-smooth);
+            flex-shrink: 0;
+        }
+
+        .input-wrapper:focus-within ion-icon {
+            color: var(--primary-blue);
+            transform: scale(1.1);
+        }
+
+        .input-wrapper.error ion-icon {
+            color: var(--error-color);
+        }
+
+        .toggle-password {
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: var(--transition-smooth);
+        }
+
+        .toggle-password:hover {
+            background: rgba(28, 78, 254, 0.1);
+            color: var(--primary-blue);
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 13px;
+            margin-top: 6px;
+            margin-left: 4px;
+            font-weight: 500;
+            min-height: 18px;
+            text-align: left;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: var(--transition-smooth);
+        }
+
+        .error-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .submit-btn {
+            width: 100%;
+            max-width: 200px;
+            height: 50px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            margin-top: 25px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-cyan) 100%);
+            color: white;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-light);
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+            filter: brightness(1.1);
+        }
+
+        .info-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-cyan) 0%, #0a7cb8 100%);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        .info-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            color: white;
+            z-index: 2;
+            max-width: 320px;
+            gap: 25px;
+        }
+
+        .info-content h3 {
+            font-size: 24px;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-content p {
+            font-size: 15px;
+            line-height: 1.6;
+            opacity: 0.95;
+            font-weight: 400;
+        }
+
+        /* Responsive design */
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+                max-width: 500px;
+                min-height: auto;
+            }
+            
+            .form-section {
+                padding: 30px 20px;
+                order: 2;
+            }
+            
+            .info-section {
+                padding: 30px 20px;
+                min-height: 200px;
+                order: 1;
+            }
+            
+            .info-content {
+                gap: 15px;
+            }
+            
+            .info-content h3 {
+                font-size: 24px;
+            }
+            
+            .info-content p {
+                font-size: 14px;
+            }
+            
+            .submit-btn {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-section {
+                padding: 20px 15px;
+            }
+            
+            .info-section {
+                padding: 20px 15px;
+                min-height: 180px;
+            }
+            
+            .form-container h2 {
+                font-size: 20px;
+            }
+            
+            .input-wrapper {
+                height: 45px;
+                padding: 0 15px;
+            }
+            
+            .input-wrapper input {
+                font-size: 14px;
+            }
+            
+            .info-content {
+                padding: 0 10px;
+            }
+        }
+    </style>
 </head>
-
 <body>
-    <div class="container">
-        <div class="container-form">
-            <form class="sign-in" id="loginForm">
+    <div class="main-container">
+        <div class="form-section">
+            <div class="form-container">
                 <h2>Nueva Contraseña</h2>
+                <span>Ingrese y confirme su nueva contraseña</span>
                 
-
-                <div class="container-input">
+                <div class="input-container">
                     <div class="input-wrapper" id="newPasswordWrapper">
                         <ion-icon name="lock-closed-outline"></ion-icon>
                         <input type="password" placeholder="Nueva contraseña" id="newPassword">
-                        <ion-icon name="eye-outline" id="toggleNewPassword" class="toggle-password"></ion-icon>
+                        <ion-icon name="eye-outline" class="toggle-password" id="toggleNewPassword"></ion-icon>
                     </div>
                     <div class="error-message" id="newPasswordError"></div>
                 </div>
 
-                <div class="container-input">
+                <div class="input-container">
                     <div class="input-wrapper" id="confirmPasswordWrapper">
                         <ion-icon name="lock-closed-outline"></ion-icon>
                         <input type="password" placeholder="Confirmar contraseña" id="confirmPassword">
-                        <ion-icon name="eye-outline" id="toggleConfirmPassword" class="toggle-password"></ion-icon>
+                        <ion-icon name="eye-outline" class="toggle-password" id="toggleConfirmPassword"></ion-icon>
                     </div>
                     <div class="error-message" id="confirmPasswordError"></div>
                 </div>
 
-                <button type="submit" class="button" id="loginBtn">
-                    <span class="btn-text">Restablecer Contraseña</span>
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Restablecer Contraseña
                 </button>
-            </form>
+            </div>
         </div>
-
-        <div class="container-welcome">
-            <div class="welcome-sign-up welcome">
+        
+        <div class="info-section">
+            <div class="info-content">
                 <h3>¡Restablecer!</h3>
                 <p>Restablezca su contraseña, cumpliendo los requisitos: 
                    <br>- Mínimo 8 caracteres
@@ -56,7 +417,145 @@
 
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-    <script src="js/contraseña.js"></script>
-</body>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const newPasswordInput = document.getElementById('newPassword');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const newPasswordError = document.getElementById('newPasswordError');
+            const confirmPasswordError = document.getElementById('confirmPasswordError');
+            const newPasswordWrapper = document.getElementById('newPasswordWrapper');
+            const confirmPasswordWrapper = document.getElementById('confirmPasswordWrapper');
+            const toggleNewPassword = document.getElementById('toggleNewPassword');
+            const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+            const submitBtn = document.getElementById('submitBtn');
 
+            // Función para mostrar errores
+            function showError(wrapper, errorElement, message) {
+                if (wrapper && errorElement) {
+                    wrapper.classList.add('error');
+                    errorElement.textContent = message;
+                    errorElement.classList.add('show');
+                }
+            }
+
+            // Función para limpiar errores
+            function clearError(wrapper, errorElement) {
+                if (wrapper && errorElement) {
+                    wrapper.classList.remove('error');
+                    errorElement.classList.remove('show');
+                    errorElement.textContent = '';
+                }
+            }
+
+            // Toggle para mostrar/ocultar contraseña
+            if (toggleNewPassword && newPasswordInput) {
+                toggleNewPassword.addEventListener('click', function() {
+                    const type = newPasswordInput.type === 'password' ? 'text' : 'password';
+                    newPasswordInput.type = type;
+                    this.setAttribute('name', type === 'password' ? 'eye-outline' : 'eye-off-outline');
+                });
+            }
+
+            if (toggleConfirmPassword && confirmPasswordInput) {
+                toggleConfirmPassword.addEventListener('click', function() {
+                    const type = confirmPasswordInput.type === 'password' ? 'text' : 'password';
+                    confirmPasswordInput.type = type;
+                    this.setAttribute('name', type === 'password' ? 'eye-outline' : 'eye-off-outline');
+                });
+            }
+
+            // Validación de contraseña
+            function validatePassword(password) {
+                const errors = [];
+                
+                if (password.length < 8) {
+                    errors.push("La contraseña debe tener al menos 8 caracteres");
+                }
+                
+                if (/\s/.test(password)) {
+                    errors.push("La contraseña no puede contener espacios");
+                }
+                
+                if (!/\d/.test(password)) {
+                    errors.push("La contraseña debe contener al menos 1 número");
+                }
+                
+                if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+                    errors.push("La contraseña debe contener al menos 1 caracter especial");
+                }
+                
+                return errors;
+            }
+
+            // Validar al escribir
+            if (newPasswordInput) {
+                newPasswordInput.addEventListener('input', function() {
+                    const password = this.value;
+                    const errors = validatePassword(password);
+                    
+                    if (errors.length > 0) {
+                        showError(newPasswordWrapper, newPasswordError, errors.join('. '));
+                    } else {
+                        clearError(newPasswordWrapper, newPasswordError);
+                    }
+                    
+                    if (confirmPasswordInput && confirmPasswordInput.value) {
+                        if (password !== confirmPasswordInput.value) {
+                            showError(confirmPasswordWrapper, confirmPasswordError, "Las contraseñas no coinciden");
+                        } else {
+                            clearError(confirmPasswordWrapper, confirmPasswordError);
+                        }
+                    }
+                });
+            }
+
+            if (confirmPasswordInput) {
+                confirmPasswordInput.addEventListener('input', function() {
+                    if (newPasswordInput && newPasswordInput.value !== this.value) {
+                        showError(confirmPasswordWrapper, confirmPasswordError, "Las contraseñas no coinciden");
+                    } else {
+                        clearError(confirmPasswordWrapper, confirmPasswordError);
+                    }
+                });
+            }
+
+            // Envío del formulario
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const newPassword = newPasswordInput ? newPasswordInput.value : '';
+                    const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : '';
+                    const passwordErrors = validatePassword(newPassword);
+                    let isValid = true;
+                    
+                    if (passwordErrors.length > 0) {
+                        showError(newPasswordWrapper, newPasswordError, passwordErrors.join('. '));
+                        isValid = false;
+                    }
+                    
+                    if (newPassword !== confirmPassword) {
+                        showError(confirmPasswordWrapper, confirmPasswordError, "Las contraseñas no coinciden");
+                        isValid = false;
+                    }
+                    
+                    if (isValid) {
+                        this.disabled = true;
+                        const originalText = this.textContent;
+                        this.innerHTML = '<span class="loading"></span>';
+                        
+                        // Simulamos un envío al servidor
+                        setTimeout(() => {
+                            alert('Contraseña restablecida con éxito');
+                            this.disabled = false;
+                            this.textContent = originalText;
+                            newPasswordInput.value = '';
+                            confirmPasswordInput.value = '';
+                        }, 1500);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
 </html>
