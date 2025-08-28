@@ -2,8 +2,8 @@
 <html lang="es">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sistema de Reservaciones</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,7 +14,7 @@
   <!-- Overlay móvil -->
   <div class="mobile-overlay" id="mobileOverlay"></div>
 
-  <!-- ============== SIDEBAR (idéntico al index) ============== -->
+  <!-- ============== SIDEBAR ============== -->
   <aside class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
     <div class="logo-container animate-fade-in">
       <div class="flex items-center justify-center">
@@ -129,13 +129,9 @@
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div class="flex items-center gap-3">
             <label for="filter-status" class="text-gray-700 font-medium">Filtrar por:</label>
+            <!-- este select se rellena con los estados desde la API -->
             <select id="filter-status" class="modern-input min-w-[220px]">
-              <option value="all">Todos los estados</option>
-              <option value="pending">En espera</option>
-              <option value="in-progress">En proceso</option>
-              <option value="cancelled">Cancelado</option>
-              <option value="completed">Completado</option>
-              <option value="confirmed">Confirmado</option>
+              <option value="all" selected>Todos</option>
             </select>
           </div>
           <div class="relative w-full max-w-md">
@@ -186,1254 +182,129 @@
           </div>
         </div>
         <div class="stat-card p-6 border-l-4 border-red-500">
-      <div class="flex items-center">
-        <div class="flex-1">
-          <h3 class="text-gray-500 text-sm font-medium mb-1">Canceladas</h3>
-          <p id="cancelled-reservations" class="text-3xl font-bold text-gray-800">0</p>
-        </div>
-        <div class="stat-icon w-12 h-12 flex items-center justify-center text-white">
-          <i class="fas fa-times-circle text-lg"></i>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tabla -->
-  <div class="stat-card p-6">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-bold text-gray-800">Listado de Reservaciones</h2>
-      <div class="flex items-center gap-3 text-sm">
-        <label for="items-per-page" class="text-gray-600 font-medium">Mostrar:</label>
-        <select id="items-per-page" class="modern-input">
-          <option value="5">5</option>
-          <option value="10" selected>10</option>
-          <option value="20">20</option>
-          <option value="50">50</option>
-        </select>
-      </div>
-    </div>
-
-    <div id="reservations-container" class="modern-table">
-      <!-- Render de tabla por JS -->
-    </div>
-
-    <!-- Paginación -->
-    <div id="pagination-container" class="pagination-container mt-6 flex items-center justify-between" style="display:none;">
-      <div class="flex items-center gap-2">
-        <button id="prev-page" class="pagination-btn">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <div id="page-numbers" class="flex items-center gap-2"></div>
-        <button id="next-page" class="pagination-btn">
-          <i class="fas fa-chevron-right"></i>
-        </button>
-      </div>
-      <div class="text-sm text-gray-600">
-        Página <span id="current-page">1</span> de <span id="total-pages">1</span>
-      </div>
-    </div>
-  </div>
-</main>
-</div>
-
-<!-- ============== MODALES ============== -->
-
-<!-- Modal Nueva/Editar Reservación -->
-<div id="reservation-modal" class="fixed inset-0 bg-black/40 hidden z-50 modal">
-  <div class="modal-content absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl p-6 bg-white rounded-2xl">
-    <div class="flex items-center justify-between mb-4">
-      <h3 id="reservation-modal-title" class="text-xl font-semibold text-gray-800">Nueva Reservación</h3>
-      <button id="close-modal" class="text-gray-500 hover:text-gray-700">
-        <i class="fas fa-times text-lg"></i>
-      </button>
-    </div>
-
-    <form id="reservation-form" class="space-y-4">
-      <div id="reservation-message" class="hidden"></div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="text-sm font-medium text-gray-700">Nombre del cliente</label>
-          <input id="customer-name" type="text" class="modern-input w-full" placeholder="Ej. Juan Pérez">
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">Teléfono</label>
-          <input id="customer-phone" type="text" class="modern-input w-full" placeholder="0000-0000" maxlength="9">
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">Fecha</label>
-          <input id="reservation-date" type="date" class="modern-input w-full">
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="text-sm font-medium text-gray-700">Hora inicio</label>
-            <input id="reservation-time" type="time" class="modern-input w-full">
-          </div>
-          <div>
-            <label class="text-sm font-medium text-gray-700">Hora fin</label>
-            <input id="reservation-end-time" type="time" class="modern-input w-full">
-          </div>
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">Personas</label>
-          <input id="guest-count" type="number" min="1" max="999" class="modern-input w-full" placeholder="Ej. 4">
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">Notas especiales</label>
-          <textarea id="special-notes" class="modern-input w-full" rows="3" placeholder="Opcional"></textarea>
-        </div>
-      </div>
-
-      <!-- Selector de Mesas -->
-      <div class="mt-4">
-        <div class="flex items-center justify-between">
-          <h4 class="font-semibold text-gray-800">Seleccionar mesas</h4>
-          <div class="text-sm">
-            Capacidad total: <span id="total-capacity" class="font-semibold text-lg text-gray-800">0</span>
-            <div id="capacity-message" class="text-sm mt-1"></div>
-          </div>
-        </div>
-        <div id="tables-container" class="table-grid mt-3"></div>
-      </div>
-
-      <!-- Selector de Platillos -->
-      <div class="mt-4">
-        <div class="flex items-center justify-between">
-          <h4 class="font-semibold text-gray-800">Platillos</h4>
-          <button type="button" id="add-dish-btn" class="modern-btn bg-blue-600 hover:bg-blue-700 text-white">
-            <i class="fas fa-plus mr-2"></i>Agregar platillos
-          </button>
-        </div>
-        <div id="dishes-container" class="space-y-3 mt-3">
-          <!-- Render por JS -->
-        </div>
-        <input type="hidden" id="selected-dishes" value="">
-      </div>
-
-      <div class="flex items-center justify-end gap-3 pt-2">
-        <button id="cancel-reservation" type="button" class="modern-btn bg-gray-100 hover:bg-gray-200">Cancelar</button>
-        <button type="submit" class="modern-btn bg-green-600 hover:bg-green-700 text-white">Guardar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal Confirmación -->
-<div id="confirm-modal" class="fixed inset-0 bg-black/40 hidden z-50 modal">
-  <div class="modal-content absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 bg-white rounded-2xl">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-xl font-semibold text-gray-800">Confirmar acción</h3>
-      <button id="close-confirm-modal" class="text-gray-500 hover:text-gray-700">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-    <p class="text-gray-700 mb-6">¿Seguro que deseas continuar con esta acción?</p>
-    <div class="flex items-center justify-end gap-3">
-      <button id="cancel-action" class="modern-btn bg-gray-100 hover:bg-gray-200">Cancelar</button>
-      <button id="confirm-action" class="modern-btn bg-red-600 hover:bg-red-700 text-white">Confirmar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Platillos -->
-<div id="dishes-modal" class="fixed inset-0 bg-black/40 hidden z-50 modal">
-  <div class="modal-content absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl p-6 bg-white rounded-2xl dishes-modal-content">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-xl font-semibold text-gray-800">Seleccionar platillos</h3>
-      <button id="close-dishes-modal" class="text-gray-500 hover:text-gray-700">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-
-    <div class="mb-4">
-      <div class="relative">
-        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <i class="fas fa-search text-gray-400"></i>
-        </div>
-        <input id="dish-search" class="modern-input w-full pl-12" type="text" placeholder="Buscar por nombre o categoría...">
-      </div>
-    </div>
-
-    <div id="all-dishes-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      <!-- Render por JS -->
-    </div>
-
-    <div class="flex items-center justify-end gap-3 mt-6">
-      <button id="cancel-dishes-selection" class="modern-btn bg-gray-100 hover:bg-gray-200">Cancelar</button>
-      <button id="save-dishes-selection" class="modern-btn bg-blue-600 hover:bg-blue-700 text-white">Listo</button>
-    </div>
-  </div>
-</div>
-
-<!-- ============== SCRIPTS ============== -->
-<script>
-  // ------- Menú usuario navbar (igual que index) --------
-  document.addEventListener('DOMContentLoaded', function() {
-    let userBtn = document.querySelector('.navbar-user-avatar');
-    if (userBtn) {
-      userBtn.style.position = 'relative';
-      if (!document.getElementById('userDropdown')) {
-        const dropdown = document.createElement('div');
-        dropdown.className = 'user-dropdown';
-        dropdown.id = 'userDropdown';
-        dropdown.innerHTML = `
-          <button class="user-dropdown-item" id="logoutBtn">
-            <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
-          </button>
-        `;
-        userBtn.parentNode.style.position = "relative";
-        userBtn.parentNode.appendChild(dropdown);
-
-        const overlay = document.createElement('div');
-        overlay.className = 'user-dropdown-overlay';
-        overlay.id = 'userDropdownOverlay';
-        document.body.appendChild(overlay);
-
-        userBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          dropdown.classList.toggle('show');
-          overlay.classList.toggle('active');
-        });
-
-        overlay.addEventListener('click', function() {
-          dropdown.classList.remove('show');
-          overlay.classList.remove('active');
-        });
-
-        document.addEventListener('keydown', function(ev) {
-          if (ev.key === "Escape") {
-            dropdown.classList.remove('show');
-            overlay.classList.remove('active');
-          }
-        });
-
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-          dropdown.classList.remove('show');
-          overlay.classList.remove('active');
-          window.location.href = "inicioSesion.html";
-        });
-      }
-    }
-  });
-
-  // ------- Toggles del sidebar (móvil y desktop) -------
-  document.addEventListener('DOMContentLoaded', function() {
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
-    const sidebar = document.getElementById('sidebar');
-    const mobileOverlay = document.getElementById('mobileOverlay');
-
-    if (sidebarToggle && sidebar) {
-      sidebarToggle.addEventListener('click', function() {
-        sidebar.classList.toggle('mobile-open');
-        mobileOverlay.classList.toggle('active');
-      });
-    }
-
-    if (sidebarToggleDesktop && sidebar) {
-      sidebarToggleDesktop.addEventListener('click', function() {
-        sidebar.classList.toggle('collapsed');
-      });
-    }
-
-    if (mobileOverlay) {
-      mobileOverlay.addEventListener('click', function() {
-        sidebar.classList.remove('mobile-open');
-        mobileOverlay.classList.remove('active');
-      });
-    }
-
-    document.addEventListener('keydown', function(ev) {
-      if (ev.key === "Escape") {
-        sidebar.classList.remove('mobile-open');
-        mobileOverlay.classList.remove('active');
-      }
-    });
-
-    window.addEventListener('resize', function() {
-      if (window.innerWidth >= 1024) {
-        sidebar.classList.remove('mobile-open');
-        mobileOverlay.classList.remove('active');
-      }
-    });
-  });
-
-  // ------- Animaciones de entrada -------
-  document.addEventListener('DOMContentLoaded', function() {
-    const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
-    const observer = new IntersectionObserver(function(entries) {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0)';
-        }
-      });
-    }, observerOptions);
-
-    document.querySelectorAll('.animate-fade-in').forEach(el => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(20px)';
-      el.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-      observer.observe(el);
-    });
-  });
-
-  // ------- Smooth scroll -------
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({ behavior:'smooth', block:'start' });
-        }
-      });
-    });
-  });
-
-  // ========== CONFIGURACIÓN INICIAL ==========
-  const dishes = [
-    { id: 1, name: "Pasta Carbonara", price: 12.99, image: "https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=300&h=200&fit=crop", category: "Platos fuertes", disponible: true },
-    { id: 2, name: "Ensalada César", price: 8.50, image: "https://images.unsplash.com/photo-1546793665-c74683f339c1?w=300&h=200&fit=crop", category: "Entradas", disponible: true },
-    { id: 3, name: "Filete Mignon", price: 24.99, image: "https://images.unsplash.com/photo-1558030006-450675393462?w=300&h=200&fit=crop", category: "Platos fuertes", disponible: true },
-    { id: 4, name: "Sopa de Tomate", price: 6.99, image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=300&h=200&fit=crop", category: "Entradas", disponible: true },
-    { id: 5, name: "Tiramisú", price: 7.50, image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=300&h=200&fit=crop", category: "Postres", disponible: true },
-    { id: 6, name: "Limonada Natural", price: 3.99, image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300&h=200&fit=crop", category: "Bebidas", disponible: true }
-  ];
-
-  const mesasConfig = [
-    { id: 1,  capacidad: 4,  unible: true,  posicion: { x: 1, y: 1 }, area: "interior" },
-    { id: 2,  capacidad: 4,  unible: true,  posicion: { x: 2, y: 1 }, area: "interior" },
-    { id: 3,  capacidad: 4,  unible: true,  posicion: { x: 3, y: 1 }, area: "interior" },
-    { id: 4,  capacidad: 4,  unible: true,  posicion: { x: 4, y: 1 }, area: "interior" },
-    { id: 5,  capacidad: 6,  unible: true,  posicion: { x: 1, y: 2 }, area: "interior" },
-    { id: 6,  capacidad: 6,  unible: true,  posicion: { x: 2, y: 2 }, area: "interior" },
-    { id: 7,  capacidad: 8,  unible: false, posicion: { x: 3, y: 2 }, area: "interior" },
-    { id: 8,  capacidad: 2,  unible: true,  posicion: { x: 4, y: 2 }, area: "exterior" },
-    { id: 9,  capacidad: 4,  unible: true,  posicion: { x: 1, y: 3 }, area: "exterior" },
-    { id: 10, capacidad: 4,  unible: true,  posicion: { x: 2, y: 3 }, area: "exterior" },
-    { id: 11, capacidad: 6,  unible: true,  posicion: { x: 3, y: 3 }, area: "exterior" },
-    { id: 12, capacidad: 6,  unible: true,  posicion: { x: 4, y: 3 }, area: "exterior" },
-    { id: 13, capacidad: 8,  unible: false, posicion: { x: 1, y: 4 }, area: "exterior" },
-    { id: 14, capacidad: 10, unible: false, posicion: { x: 2, y: 4 }, area: "exterior" },
-    { id: 15, capacidad: 12, unible: false, posicion: { x: 3, y: 4 }, area: "exterior" }
-  ];
-
-  let reservations = [
-    {
-      id: 1,
-      customerName: "Juan Pérez",
-      customerPhone: "7890-1234",
-      date: "2024-12-15",
-      startTime: "19:00",
-      endTime: "20:30",
-      dishes: [1, 2, 5],
-      guestCount: 4,
-      selectedTables: [1, 2],
-      specialNotes: "Sin gluten por favor",
-      status: "confirmed",
-      createdAt: new Date()
-    },
-    {
-      id: 2,
-      customerName: "María García",
-      customerPhone: "6789-4321",
-      date: "2024-12-16",
-      startTime: "14:00",
-      endTime: "15:30",
-      dishes: [3, 4],
-      guestCount: 6,
-      selectedTables: [5],
-      specialNotes: "",
-      status: "pending",
-      createdAt: new Date()
-    }
-  ];
-
-  // ========== VARIABLES GLOBALES ==========
-  let currentAction = null;
-  let currentReservationId = null;
-  let isEditing = false;
-  let selectedDishes = [];
-  let selectedTables = [];
-  let allDishes = [...dishes];
-  let currentPage = 1;
-  let itemsPerPage = 10;
-  let totalPages = 1;
-  let filteredReservations = [];
-
-  // ========== INICIALIZACIÓN ==========
-  document.addEventListener('DOMContentLoaded', function() {
-    initializeApplication();
-  });
-
-  function initializeApplication() {
-    setupEventListeners();
-    applyFilters();
-    updateStatistics();
-    renderAllDishes();
-    renderTablesSelector();
-  }
-
-  function setupEventListeners() {
-    const filterStatus = document.getElementById('filter-status');
-    const searchInput = document.getElementById('search-input');
-    if (filterStatus) filterStatus.addEventListener('change', applyFilters);
-    if (searchInput) searchInput.addEventListener('input', applyFilters);
-
-    const closeModalBtn = document.getElementById('close-modal');
-    const cancelReservationBtn = document.getElementById('cancel-reservation');
-    const reservationForm = document.getElementById('reservation-form');
-    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
-    if (cancelReservationBtn) cancelReservationBtn.addEventListener('click', closeModal);
-    if (reservationForm) reservationForm.addEventListener('submit', handleReservationSubmit);
-
-    const closeConfirmModalBtn = document.getElementById('close-confirm-modal');
-    const cancelActionBtn = document.getElementById('cancel-action');
-    const confirmActionBtn = document.getElementById('confirm-action');
-    if (closeConfirmModalBtn) closeConfirmModalBtn.addEventListener('click', closeConfirmModal);
-    if (cancelActionBtn) cancelActionBtn.addEventListener('click', closeConfirmModal);
-    if (confirmActionBtn) confirmActionBtn.addEventListener('click', executeAction);
-
-    const closeDishesModalBtn = document.getElementById('close-dishes-modal');
-    const cancelDishesSelectionBtn = document.getElementById('cancel-dishes-selection');
-    const saveDishesSelectionBtn = document.getElementById('save-dishes-selection');
-    const addDishBtn = document.getElementById('add-dish-btn');
-    const dishSearchInput = document.getElementById('dish-search');
-    if (closeDishesModalBtn) closeDishesModalBtn.addEventListener('click', closeDishesModal);
-    if (cancelDishesSelectionBtn) cancelDishesSelectionBtn.addEventListener('click', closeDishesModal);
-    if (saveDishesSelectionBtn) saveDishesSelectionBtn.addEventListener('click', saveDishesSelection);
-    if (addDishBtn) addDishBtn.addEventListener('click', openDishesModal);
-    if (dishSearchInput) dishSearchInput.addEventListener('input', filterDishes);
-
-    const itemsPerPageSelect = document.getElementById('items-per-page');
-    const prevPageBtn = document.getElementById('prev-page');
-    const nextPageBtn = document.getElementById('next-page');
-    if (itemsPerPageSelect) {
-      itemsPerPageSelect.addEventListener('change', function() {
-        itemsPerPage = parseInt(this.value);
-        currentPage = 1;
-        applyFilters();
-      });
-    }
-    if (prevPageBtn) prevPageBtn.addEventListener('click', goToPrevPage);
-    if (nextPageBtn) nextPageBtn.addEventListener('click', goToNextPage);
-
-    const reservationTimeInput = document.getElementById('reservation-time');
-    const guestCountInput = document.getElementById('guest-count');
-    if (reservationTimeInput) reservationTimeInput.addEventListener('change', updateEndTimeMin);
-    if (guestCountInput) {
-      guestCountInput.addEventListener('input', validateGuestCountInput);
-      guestCountInput.addEventListener('change', updateTablesSelection);
-    }
-
-    const addReservationBtn = document.getElementById('add-reservation-btn');
-    if (addReservationBtn) addReservationBtn.addEventListener('click', openNewReservationModal);
-
-    setupInputValidation();
-  }
-
-  // ========== FILTROS + TABLA + PAGINACIÓN ==========
-  function applyFilters() {
-    const statusFilter = document.getElementById('filter-status')?.value || 'all';
-    const searchTerm = document.getElementById('search-input')?.value.toLowerCase() || '';
-
-    filteredReservations = reservations.filter(res => {
-      const matchesStatus = statusFilter === 'all' || res.status === statusFilter;
-      const matchesSearch = searchTerm === '' ||
-        res.customerName.toLowerCase().includes(searchTerm) ||
-        res.customerPhone.includes(searchTerm) ||
-        res.date.includes(searchTerm);
-      return matchesStatus && matchesSearch;
-    });
-
-    filteredReservations.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    totalPages = Math.max(1, Math.ceil(filteredReservations.length / itemsPerPage));
-    if (currentPage > totalPages) currentPage = totalPages;
-    if (currentPage < 1) currentPage = 1;
-
-    renderReservationsTable();
-    updatePagination();
-  }
-
-  function renderReservationsTable() {
-    const reservationsContainer = document.getElementById('reservations-container');
-    if (!reservationsContainer) return;
-
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, filteredReservations.length);
-    const currentReservations = filteredReservations.slice(startIndex, endIndex);
-
-    let tableHTML = `
-      <div class="overflow-x-auto">
-        <table class="min-w-full">
-          <thead class="table-header">
-            <tr>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Cliente</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Teléfono</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Fecha</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Horario</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Personas</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Mesas</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Estado</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Acciones</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-100">
-    `;
-
-    if (currentReservations.length === 0) {
-      tableHTML += `
-        <tr>
-          <td colspan="8" class="px-6 py-12 text-center text-gray-500">
-            <div class="flex flex-col items-center">
-              <i class="fas fa-calendar-alt text-4xl mb-4 text-gray-300"></i>
-              <p class="text-lg font-medium">No se encontraron reservaciones</p>
-              <p class="text-sm">Ajusta los filtros o crea una nueva reservación</p>
-            </div>
-          </td>
-        </tr>
-      `;
-    } else {
-      currentReservations.forEach(reservation => {
-        const statusInfo = getStatusInfo(reservation.status);
-        const formattedDate = new Date(reservation.date).toLocaleDateString('es-ES');
-        tableHTML += `
-          <tr class="table-row">
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="flex items-center">
-                <div class="flex-shrink-0">
-                  <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                    ${reservation.customerName.charAt(0).toUpperCase()}
-                  </div>
-                </div>
-                <div class="ml-4">
-                  <div class="text-sm font-medium text-gray-900">${reservation.customerName}</div>
-                  ${reservation.specialNotes ? `<div class="text-xs text-gray-500 truncate max-w-32">${reservation.specialNotes}</div>` : ''}
-                </div>
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              <div class="flex items-center">
-                <i class="fas fa-phone text-gray-400 mr-2"></i>${reservation.customerPhone}
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              <div class="flex items-center">
-                <i class="fas fa-calendar text-gray-400 mr-2"></i>${formattedDate}
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              <div class="flex items-center">
-                <i class="fas fa-clock text-gray-400 mr-2"></i>${reservation.startTime} - ${reservation.endTime}
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              <div class="flex items-center">
-                <i class="fas fa-users text-gray-400 mr-2"></i>${reservation.guestCount}
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              <div class="flex flex-wrap gap-1">
-                ${reservation.selectedTables.map(tableId => `<span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">${tableId}</span>`).join('')}
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="status-badge ${statusInfo.class}">
-                <i class="${statusInfo.icon} mr-1"></i>${statusInfo.text}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <div class="flex space-x-2">
-                <button onclick="openEditReservationModal(${reservation.id})" class="modern-btn bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 text-xs" title="Editar">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button onclick="confirmDeleteReservation(${reservation.id})" class="modern-btn bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 text-xs" title="Eliminar">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        `;
-      });
-    }
-
-    tableHTML += `
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    reservationsContainer.innerHTML = tableHTML;
-  }
-
-  function updatePagination() {
-    const currentPageSpan = document.getElementById('current-page');
-    const totalPagesSpan = document.getElementById('total-pages');
-    const prevPageBtn = document.getElementById('prev-page');
-    const nextPageBtn = document.getElementById('next-page');
-    const pageNumbersContainer = document.getElementById('page-numbers');
-
-    if (currentPageSpan) currentPageSpan.textContent = currentPage;
-    if (totalPagesSpan) totalPagesSpan.textContent = totalPages;
-
-    if (prevPageBtn) prevPageBtn.disabled = currentPage === 1;
-    if (nextPageBtn) nextPageBtn.disabled = currentPage === totalPages;
-
-    if (pageNumbersContainer) {
-      pageNumbersContainer.innerHTML = '';
-      const maxPagesToShow = 5;
-      let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-      let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-      if (endPage - startPage + 1 < maxPagesToShow) {
-        startPage = Math.max(1, endPage - maxPagesToShow + 1);
-      }
-      for (let i = startPage; i <= endPage; i++) {
-        const pageButton = document.createElement('button');
-        pageButton.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
-        pageButton.textContent = i;
-        pageButton.addEventListener('click', () => goToPage(i));
-        pageNumbersContainer.appendChild(pageButton);
-      }
-    }
-
-    const paginationContainer = document.getElementById('pagination-container');
-    if (paginationContainer) {
-      paginationContainer.style.display = totalPages > 1 ? 'flex' : 'none';
-    }
-  }
-
-  function goToPage(page) {
-    if (page >= 1 && page <= totalPages) {
-      currentPage = page;
-      applyFilters();
-    }
-  }
-
-  function goToPrevPage() {
-    if (currentPage > 1) {
-      currentPage--;
-      applyFilters();
-    }
-  }
-
-  function goToNextPage() {
-    if (currentPage < totalPages) {
-      currentPage++;
-      applyFilters();
-    }
-  }
-
-  // ========== INPUT VALIDATION ==========
-  function setupInputValidation() {
-    const customerNameInput = document.getElementById('customer-name');
-    const customerPhoneInput = document.getElementById('customer-phone');
-    const guestCountInput = document.getElementById('guest-count');
-
-    if (customerNameInput) {
-      customerNameInput.addEventListener('input', function() {
-        const cursorPosition = this.selectionStart;
-        this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-        this.setSelectionRange(cursorPosition, cursorPosition);
-        validateNameInput(this);
-      });
-    }
-
-    if (customerPhoneInput) {
-      customerPhoneInput.addEventListener('input', function() {
-        const cursorPosition = this.selectionStart;
-        let value = this.value.replace(/\D/g, '');
-        if (value.length > 8) value = value.substring(0, 8);
-        if (value.length > 4) value = value.substring(0, 4) + '-' + value.substring(4);
-        this.value = value;
-        this.setSelectionRange(cursorPosition, cursorPosition);
-        validatePhoneInput(this);
-      });
-    }
-
-    if (guestCountInput) {
-      guestCountInput.addEventListener('input', function() {
-        this.value = this.value.replace(/\D/g, '');
-        if (this.value.length > 3) this.value = this.value.substring(0, 3);
-        validateGuestCountInput();
-      });
-    }
-  }
-
-  function validateNameInput(input) {
-    const isValid = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,50}$/.test(input.value) && input.value.trim().split(' ').length >= 2;
-    input.classList.toggle('invalid', !isValid && input.value !== '');
-    return isValid;
-  }
-
-  function validatePhoneInput(input) {
-    const isValid = /^\d{4}-\d{4}$/.test(input.value);
-    input.classList.toggle('invalid', !isValid && input.value !== '');
-    return isValid;
-  }
-
-  function validateGuestCountInput() {
-    const input = document.getElementById('guest-count');
-    const value = parseInt(input.value) || 0;
-    const isValid = value > 0 && value <= 999;
-    input.classList.toggle('invalid', !isValid && input.value !== '');
-    return isValid;
-  }
-
-  // ========== TIME VALIDATION ==========
-  function updateEndTimeMin() {
-    const startTimeInput = document.getElementById('reservation-time');
-    const endTimeInput = document.getElementById('reservation-end-time');
-    if (!startTimeInput.value) return;
-    const [hours, minutes] = startTimeInput.value.split(':').map(Number);
-    const minEndTime = new Date(0, 0, 0, hours, minutes + 30);
-    endTimeInput.min = `${minEndTime.getHours().toString().padStart(2, '0')}:${minEndTime.getMinutes().toString().padStart(2, '0')}`;
-    if (endTimeInput.value && endTimeInput.value < endTimeInput.min) {
-      endTimeInput.value = endTimeInput.min;
-    }
-  }
-
-  function validateTimes() {
-    const startTime = document.getElementById('reservation-time').value;
-    const endTime = document.getElementById('reservation-end-time').value;
-    if (!startTime || !endTime) return true;
-
-    const [startH, startM] = startTime.split(':').map(Number);
-    const [endH, endM] = endTime.split(':').map(Number);
-
-    if (endH < startH || (endH === startH && endM <= startM)) {
-      showMessage("La hora final debe ser posterior a la hora de inicio.", "error");
-      return false;
-    }
-
-    const totalMinutes = (endH * 60 + endM) - (startH * 60 + startM);
-    if (totalMinutes < 30) {
-      showMessage("La reservación debe durar al menos 30 minutos.", "error");
-      return false;
-    }
-
-    if (startH < 9 || endH > 23 || (endH === 23 && endM > 0)) {
-      showMessage("El horario debe estar entre 9:00 AM y 11:00 PM.", "error");
-      return false;
-    }
-
-    hideMessage();
-    return true;
-  }
-
-  function validateDate() {
-    const dateInput = document.getElementById('reservation-date');
-    if (!dateInput.value) return true;
-
-    const selectedDate = new Date(dateInput.value);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (selectedDate < today) {
-      showMessage("No se pueden seleccionar fechas pasadas.", "error");
-      return false;
-    }
-
-    const maxDate = new Date();
-    maxDate.setDate(today.getDate() + 90);
-    if (selectedDate > maxDate) {
-      showMessage("Solo se permiten reservas con hasta 90 días de antelación.", "error");
-      return false;
-    }
-
-    hideMessage();
-    return true;
-  }
-
-  // ========== TABLAS (mesas) ==========
-  function renderTablesSelector() {
-    const tablesContainer = document.getElementById('tables-container');
-    if (!tablesContainer) return;
-    tablesContainer.innerHTML = '';
-    let totalCapacity = 0;
-
-    mesasConfig.forEach(mesa => {
-      const isAvailable = isTableAvailable(mesa.id);
-      const isSelected = selectedTables.includes(mesa.id);
-
-      const mesaElement = document.createElement('div');
-      mesaElement.className = `table-item ${isSelected ? 'selected' : ''} ${!isAvailable ? 'occupied' : 'available'}`;
-      mesaElement.innerHTML = `
-        <div class="text-xs font-semibold">${mesa.id}</div>
-        <div class="text-xs">${mesa.capacidad}p</div>
-        ${!isAvailable ? '<div class="absolute inset-0 bg-red-500/20 rounded-lg flex items-center justify-center"><i class="fas fa-times text-red-600"></i></div>' : ''}
-      `;
-
-      if (isAvailable) {
-        mesaElement.addEventListener('click', () => toggleTableSelection(mesa.id));
-      }
-
-      tablesContainer.appendChild(mesaElement);
-      if (isSelected) totalCapacity += mesa.capacidad;
-    });
-
-    updateCapacityDisplay(totalCapacity);
-  }
-
-  function toggleTableSelection(tableId) {
-    const index = selectedTables.indexOf(tableId);
-    if (index === -1) {
-      if (selectedTables.length >= 5) {
-        showCapacityMessage("Máximo 5 mesas por reserva", "error");
-        return;
-      }
-      if (!isTableAvailable(tableId)) {
-        showCapacityMessage("Mesa no disponible en este horario", "error");
-        return;
-      }
-      selectedTables.push(tableId);
-    } else {
-      selectedTables.splice(index, 1);
-    }
-    renderTablesSelector();
-    validateTableSelection();
-  }
-
-  function isTableAvailable(tableId) {
-    const date = document.getElementById('reservation-date')?.value;
-    const startTime = document.getElementById('reservation-time')?.value;
-    const endTime = document.getElementById('reservation-end-time')?.value;
-    if (!date || !startTime || !endTime) return true;
-
-    return !reservations.some(res => {
-      if (res.status === 'cancelled' || (isEditing && res.id === currentReservationId)) return false;
-      const sameDate = res.date === date;
-      const timeConflict = !(endTime <= res.startTime || startTime >= res.endTime);
-      const tableConflict = res.selectedTables.includes(tableId);
-      return sameDate && timeConflict && tableConflict;
-    });
-  }
-
-  function validateTableSelection() {
-    const guestCount = parseInt(document.getElementById('guest-count')?.value) || 0;
-    const totalCapacity = selectedTables.reduce((sum, tableId) => {
-      const mesa = mesasConfig.find(m => m.id === tableId);
-      return sum + (mesa ? mesa.capacidad : 0);
-    }, 0);
-
-    if (selectedTables.length === 0) {
-      showCapacityMessage("Selecciona al menos una mesa", "error");
-      return false;
-    }
-
-    if (guestCount > 0 && totalCapacity < guestCount) {
-      showCapacityMessage(`Capacidad insuficiente. Necesitas ${guestCount - totalCapacity} personas más de capacidad`, "error");
-      return false;
-    }
-
-    showCapacityMessage("Configuración válida", "success");
-    return true;
-  }
-
-  function updateCapacityDisplay(totalCapacity) {
-    const totalCapacityElement = document.getElementById('total-capacity');
-    if (!totalCapacityElement) return;
-    const guestCount = parseInt(document.getElementById('guest-count')?.value) || 0;
-
-    totalCapacityElement.textContent = totalCapacity;
-    totalCapacityElement.className = `font-semibold text-lg ${totalCapacity >= guestCount ? 'text-green-600' : 'text-red-600'}`;
-
-    if (guestCount > 0) {
-      const difference = totalCapacity - guestCount;
-      if (difference < 0) {
-        showCapacityMessage(`Faltan ${Math.abs(difference)} personas de capacidad`, "error");
-      } else if (difference > 0) {
-        showCapacityMessage(`${difference} personas de capacidad extra`, "warning");
-      } else {
-        showCapacityMessage("Capacidad perfecta", "success");
-      }
-    }
-  }
-
-  function showCapacityMessage(message, type) {
-    const capacityMessageElement = document.getElementById('capacity-message');
-    if (!capacityMessageElement) return;
-    capacityMessageElement.textContent = message;
-    capacityMessageElement.className = `text-sm mt-2 ${
-      type === 'error' ? 'text-red-600' :
-      type === 'warning' ? 'text-yellow-600' : 'text-green-600'
-    }`;
-  }
-
-  function updateTablesSelection() {
-    if (!validateGuestCountInput()) return;
-    const guestCount = parseInt(document.getElementById('guest-count')?.value) || 0;
-    if (selectedTables.length === 0 && guestCount > 0) {
-      suggestTables(guestCount);
-    } else {
-      validateTableSelection();
-    }
-  }
-
-  function suggestTables(requiredCapacity) {
-    const availableTables = mesasConfig.filter(mesa => isTableAvailable(mesa.id));
-    availableTables.sort((a, b) => b.capacidad - a.capacidad);
-    selectedTables = [];
-    let currentCapacity = 0;
-    for (const mesa of availableTables) {
-      if (currentCapacity >= requiredCapacity) break;
-      if (selectedTables.length >= 5) break;
-      selectedTables.push(mesa.id);
-      currentCapacity += mesa.capacidad;
-    }
-    renderTablesSelector();
-  }
-
-  // ========== PLATILLOS ==========
-  function renderAllDishes() {
-    const allDishesContainer = document.getElementById('all-dishes-container');
-    if (!allDishesContainer) return;
-    allDishesContainer.innerHTML = '';
-    allDishes.forEach(dish => {
-      const isSelected = selectedDishes.includes(dish.id);
-      const isAvailable = dish.disponible;
-      const dishElement = document.createElement('div');
-      dishElement.className = `dish-option p-4 ${isSelected ? 'selected' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`;
-      dishElement.innerHTML = `
-        <div class="relative">
-          <img src="${dish.image}" alt="${dish.name}" class="dish-image w-full h-32 object-cover rounded-lg mb-3">
-          ${isSelected ? '<div class="absolute top-2 right-2 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center"><i class="fas fa-check text-white text-xs"></i></div>' : ''}
-          ${!isAvailable ? '<div class="absolute inset-0 bg-gray-500/50 rounded-lg flex items-center justify-center"><span class="text-white font-semibold text-sm">No disponible</span></div>' : ''}
-        </div>
-        <h4 class="font-semibold text-gray-800 mb-1">${dish.name}</h4>
-        <p class="text-lg font-bold text-blue-600 mb-1">$${dish.price.toFixed(2)}</p>
-        <p class="text-sm text-gray-500">${dish.category}</p>
-      `;
-      if (isAvailable) {
-        dishElement.addEventListener('click', () => toggleDishSelection(dish.id));
-      }
-      allDishesContainer.appendChild(dishElement);
-    });
-  }
-
-  function toggleDishSelection(dishId) {
-    // Agregar el platillo a la selección (puede repetirse)
-    selectedDishes.push(dishId);
-    renderAllDishes();
-  }
-
-  function renderSelectedDishes() {
-    const dishesContainer = document.getElementById('dishes-container');
-    const selectedDishesInput = document.getElementById('selected-dishes');
-    if (!dishesContainer) return;
-
-    dishesContainer.innerHTML = '';
-    let total = 0;
-    
-    // Contar la cantidad de cada platillo
-    const dishCounts = {};
-    selectedDishes.forEach(dishId => {
-      dishCounts[dishId] = (dishCounts[dishId] || 0) + 1;
-    });
-
-    // Mostrar cada platillo con su cantidad
-    Object.keys(dishCounts).forEach(dishId => {
-      const dish = dishes.find(d => d.id === parseInt(dishId));
-      if (dish) {
-        const quantity = dishCounts[dishId];
-        total += dish.price * quantity;
-        
-        const dishElement = document.createElement('div');
-        dishElement.className = 'bg-white p-3 rounded-lg border border-gray-200 flex items-center justify-between';
-        dishElement.innerHTML = `
-          <div class="flex items-center space-x-3">
-            <img src="${dish.image}" alt="${dish.name}" class="w-12 h-12 object-cover rounded-lg">
-            <div>
-              <h5 class="font-medium text-gray-800">${dish.name} ${quantity > 1 ? `(${quantity})` : ''}</h5>
-              <p class="text-blue-600 font-semibold">$${(dish.price * quantity).toFixed(2)}</p>
-            </div>
-          </div>
           <div class="flex items-center">
-            <button class="text-blue-500 hover:text-blue-700 p-1" onclick="decreaseDishQuantity(${dishId})">
-              <i class="fas fa-minus"></i>
-            </button>
-            <span class="mx-2">${quantity}</span>
-            <button class="text-blue-500 hover:text-blue-700 p-1" onclick="increaseDishQuantity(${dishId})">
-              <i class="fas fa-plus"></i>
-            </button>
-            <button class="text-red-500 hover:text-red-700 p-1 ml-2" onclick="removeAllDish(${dishId})">
-              <i class="fas fa-times"></i>
-            </button>
+            <div class="flex-1">
+              <h3 class="text-gray-500 text-sm font-medium mb-1">Canceladas</h3>
+              <p id="cancelled-reservations" class="text-3xl font-bold text-gray-800">0</p>
+            </div>
+            <div class="stat-icon w-12 h-12 flex items-center justify-center text-white">
+              <i class="fas fa-times-circle text-lg"></i>
+            </div>
           </div>
-        `;
-        dishesContainer.appendChild(dishElement);
-      }
-    });
+        </div>
+      </div>
 
-    if (selectedDishesInput) selectedDishesInput.value = selectedDishes.join(',');
-  }
+      <!-- Tabla -->
+      <div class="stat-card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-gray-800">Listado de Reservaciones</h2>
+          <div class="flex items-center gap-3 text-sm">
+            <label for="items-per-page" class="text-gray-600 font-medium">Mostrar:</label>
+            <select id="items-per-page" class="modern-input">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
 
-  function increaseDishQuantity(dishId) {
-    selectedDishes.push(parseInt(dishId));
-    renderSelectedDishes();
-  }
+        <div id="reservations-container" class="modern-table"><!-- Render por JS --></div>
 
-  function decreaseDishQuantity(dishId) {
-    const index = selectedDishes.indexOf(parseInt(dishId));
-    if (index !== -1) {
-      selectedDishes.splice(index, 1);
-      renderSelectedDishes();
-    }
-  }
+        <!-- Paginación -->
+        <div id="pagination-container" class="pagination-container mt-6 flex items-center justify-between" style="display:none;">
+          <div class="flex items-center gap-2">
+            <button id="prev-page" class="pagination-btn"><i class="fas fa-chevron-left"></i></button>
+            <div id="page-numbers" class="flex items-center gap-2"></div>
+            <button id="next-page" class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <div class="text-sm text-gray-600">Página <span id="current-page">1</span> de <span id="total-pages">1</span></div>
+        </div>
+      </div>
+    </main>
+  </div>
 
-  function removeAllDish(dishId) {
-    selectedDishes = selectedDishes.filter(id => id !== parseInt(dishId));
-    renderSelectedDishes();
-  }
+  <!-- ============== MODAL NUEVA/EDITAR RESERVACIÓN ============== -->
+  <div id="reservation-modal" class="fixed inset-0 bg-black/40 hidden z-50 modal">
+    <div class="modal-content absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl p-6 bg-white rounded-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="reservation-modal-title" class="text-xl font-semibold text-gray-800">Nueva Reservación</h3>
+        <button id="close-modal" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times text-lg"></i></button>
+      </div>
 
-  function filterDishes() {
-    const dishSearchInput = document.getElementById('dish-search');
-    const searchTerm = dishSearchInput?.value.toLowerCase() || '';
-    allDishes = dishes.filter(dish =>
-      dish.name.toLowerCase().includes(searchTerm) ||
-      dish.category.toLowerCase().includes(searchTerm)
-    );
-    renderAllDishes();
-  }
+      <form id="reservation-form" class="space-y-4">
+        <div id="reservation-message" class="hidden"></div>
 
-  function saveDishesSelection() {
-    renderSelectedDishes();
-    closeDishesModal();
-  }
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-medium text-gray-700">Nombre del cliente</label>
+            <input id="customer-name" type="text" class="modern-input w-full" placeholder="Ej. Juan Pérez">
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-700">Teléfono</label>
+            <input id="customer-phone" type="text" class="modern-input w-full" placeholder="0000-0000" maxlength="9">
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-700">Fecha</label>
+            <input id="reservation-date" type="date" class="modern-input w-full">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Hora inicio</label>
+              <input id="reservation-time" type="time" class="modern-input w-full">
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Hora fin</label>
+              <input id="reservation-end-time" type="time" class="modern-input w-full">
+            </div>
+          </div>
 
-  // ========== FORM VALIDATION ==========
-  function validateReservationForm() {
-    hideMessage();
-    if (!validateNameInput(document.getElementById('customer-name'))) {
-      showMessage("Nombre inválido. Debe contener solo letras y mínimo 2 palabras.", "error");
-      return false;
-    }
-    if (!validatePhoneInput(document.getElementById('customer-phone'))) {
-      showMessage("Teléfono inválido. Formato: 0000-0000.", "error");
-      return false;
-    }
-    if (!validateDate()) return false;
-    if (!validateTimes()) return false;
-    if (!validateGuestCountInput()) return false;
-    if (!validateTableSelection()) return false;
+          <!-- Mesa desde API -->
+          <div>
+            <label class="text-sm font-medium text-gray-700">Mesa</label>
+            <select id="mesa-select" class="modern-input w-full">
+              <option value="">Seleccione mesa</option>
+            </select>
+          </div>
 
-    const guestCount = parseInt(document.getElementById('guest-count').value);
-    const totalCapacity = selectedTables.reduce((sum, tableId) => {
-      const mesa = mesasConfig.find(m => m.id === tableId);
-      return sum + (mesa ? mesa.capacidad : 0);
-    }, 0);
-    if (totalCapacity < guestCount) {
-      showMessage(`Capacidad insuficiente. Las mesas seleccionadas soportan ${totalCapacity} personas pero necesitas ${guestCount}.`, "error");
-      return false;
-    }
+          <!-- Tipo Reserva desde API -->
+          <div>
+            <label class="text-sm font-medium text-gray-700">Tipo de Reserva</label>
+            <select id="tipo-reserva-select" class="modern-input w-full">
+              <option value="">Seleccione tipo</option>
+            </select>
+          </div>
 
-    if (selectedDishes.length === 0) {
-      showMessage("Selecciona al menos un platillo.", "error");
-      return false;
-    }
+          <!-- Estado Reserva desde API -->
+          <div>
+            <label class="text-sm font-medium text-gray-700">Estado</label>
+            <select id="estado-reserva-select" class="modern-input w-full">
+              <option value="">Seleccione estado</option>
+            </select>
+          </div>
 
-    const unavailableDishes = selectedDishes.filter(dishId => {
-      const dish = dishes.find(d => d.id === dishId);
-      return dish && !dish.disponible;
-    });
-    if (unavailableDishes.length > 0) {
-      showMessage("Algunos platillos seleccionados no están disponibles.", "error");
-      return false;
-    }
-    return true;
-  }
+          <div>
+            <label class="text-sm font-medium text-gray-700">Personas</label>
+            <input id="guest-count" type="number" min="1" max="999" class="modern-input w-full" placeholder="Ej. 4">
+          </div>
 
-  // ========== RESERVATION MANAGEMENT ==========
-  function handleReservationSubmit(e) {
-    e.preventDefault();
-    if (!validateReservationForm()) return;
+          <div class="md:col-span-2">
+            <label class="text-sm font-medium text-gray-700">Notas especiales</label>
+            <textarea id="special-notes" class="modern-input w-full" rows="3" placeholder="Opcional"></textarea>
+          </div>
+        </div>
 
-    const reservationData = {
-      id: isEditing ? currentReservationId : Date.now(),
-      customerName: document.getElementById('customer-name').value.trim(),
-      customerPhone: document.getElementById('customer-phone').value.trim(),
-      date: document.getElementById('reservation-date').value,
-      startTime: document.getElementById('reservation-time').value,
-      endTime: document.getElementById('reservation-end-time').value,
-      dishes: [...selectedDishes],
-      guestCount: parseInt(document.getElementById('guest-count').value),
-      selectedTables: [...selectedTables],
-      specialNotes: document.getElementById('special-notes').value.trim(),
-      status: isEditing ?
-        reservations.find(r => r.id === currentReservationId).status :
-        'pending',
-      createdAt: isEditing ?
-        reservations.find(r => r.id === currentReservationId).createdAt :
-        new Date()
-    };
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button id="cancel-reservation" type="button" class="modern-btn bg-gray-100 hover:bg-gray-200">Cancelar</button>
+          <button type="submit" class="modern-btn bg-green-600 hover:bg-green-700 text-white">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-    if (isEditing) {
-      const index = reservations.findIndex(r => r.id === currentReservationId);
-      if (index !== -1) reservations[index] = reservationData;
-    } else {
-      reservations.push(reservationData);
-    }
-
-    applyFilters();
-    updateStatistics();
-    closeModal();
-    setTimeout(() => { alert(isEditing ? 'Reservación actualizada exitosamente' : 'Reservación creada exitosamente'); }, 100);
-  }
-
-  function openNewReservationModal() {
-    isEditing = false;
-    currentReservationId = null;
-    document.getElementById('reservation-modal-title').textContent = 'Nueva Reservación';
-    resetForm();
-    openModal();
-  }
-
-  function openEditReservationModal(id) {
-    const res = reservations.find(r => r.id === id);
-    if (!res) return;
-    isEditing = true;
-    currentReservationId = id;
-    document.getElementById('reservation-modal-title').textContent = 'Editar Reservación';
-
-    document.getElementById('customer-name').value = res.customerName;
-    document.getElementById('customer-phone').value = res.customerPhone;
-    document.getElementById('reservation-date').value = res.date;
-    document.getElementById('reservation-time').value = res.startTime;
-    document.getElementById('reservation-end-time').value = res.endTime;
-    document.getElementById('guest-count').value = res.guestCount;
-    document.getElementById('special-notes').value = res.specialNotes || '';
-
-    selectedDishes = [...res.dishes];
-    selectedTables = [...res.selectedTables];
-
-    renderSelectedDishes();
-    renderTablesSelector();
-    openModal();
-  }
-
-  function confirmDeleteReservation(id) {
-    currentAction = 'delete';
-    currentReservationId = id;
-    openConfirmModal();
-  }
-
-  function executeAction() {
-    if (currentAction === 'delete' && currentReservationId != null) {
-      reservations = reservations.filter(r => r.id !== currentReservationId);
-      applyFilters();
-      updateStatistics();
-    }
-    closeConfirmModal();
-  }
-
-  // ========== STATS ==========
-  function updateStatistics() {
-    const totalReservationsElement = document.getElementById('total-reservations');
-    const pendingReservationsElement = document.getElementById('pending-reservations');
-    const inProgressReservationsElement = document.getElementById('in-progress-reservations');
-    const cancelledReservationsElement = document.getElementById('cancelled-reservations');
-
-    if (!totalReservationsElement) return;
-
-    totalReservationsElement.textContent = reservations.length;
-    pendingReservationsElement.textContent = reservations.filter(r => r.status === 'pending').length;
-    inProgressReservationsElement.textContent = reservations.filter(r => r.status === 'in-progress').length;
-    cancelledReservationsElement.textContent = reservations.filter(r => r.status === 'cancelled').length;
-  }
-
-  // ========== MODALES ==========
-  function openModal() {
-    const reservationModal = document.getElementById('reservation-modal');
-    if (reservationModal) {
-      reservationModal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-  }
-
-  function closeModal() {
-    const reservationModal = document.getElementById('reservation-modal');
-    if (reservationModal) {
-      reservationModal.classList.add('hidden');
-      document.body.style.overflow = 'auto';
-    }
-    resetForm();
-  }
-
-  function openConfirmModal() {
-    const confirmModal = document.getElementById('confirm-modal');
-    if (confirmModal) {
-      confirmModal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-  }
-
-  function closeConfirmModal() {
-    const confirmModal = document.getElementById('confirm-modal');
-    if (confirmModal) {
-      confirmModal.classList.add('hidden');
-      document.body.style.overflow = 'auto';
-    }
-    currentAction = null;
-    currentReservationId = null;
-  }
-
-  function openDishesModal() {
-    const dishesModal = document.getElementById('dishes-modal');
-    if (dishesModal) {
-      dishesModal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-  }
-
-  function closeDishesModal() {
-    const dishesModal = document.getElementById('dishes-modal');
-    if (dishesModal) {
-      dishesModal.classList.add('hidden');
-      document.body.style.overflow = 'auto';
-    }
-  }
-
-  function resetForm() {
-    const reservationForm = document.getElementById('reservation-form');
-    if (reservationForm) reservationForm.reset();
-    selectedDishes = [];
-    selectedTables = [];
-    isEditing = false;
-    currentReservationId = null;
-    hideMessage();
-    renderSelectedDishes();
-    renderTablesSelector();
-  }
-
-  // ========== UTILS ==========
-  function getStatusInfo(status) {
-    const statusMap = {
-      'pending': { class: 'status-pending', icon: 'fas fa-clock', text: 'Pendiente' },
-      'confirmed': { class: 'status-confirmed', icon: 'fas fa-check-circle', text: 'Confirmada' },
-      'in-progress': { class: 'status-in-progress', icon: 'fas fa-utensils', text: 'En curso' },
-      'completed': { class: 'status-completed', icon: 'fas fa-clipboard-check', text: 'Completada' },
-      'cancelled': { class: 'status-cancelled', icon: 'fas fa-times-circle', text: 'Cancelada' }
-    };
-    return statusMap[status] || { class: 'status-pending', icon: 'fas fa-question-circle', text: 'Desconocido' };
-  }
-
-  function showMessage(message, type) {
-    const messageElement = document.getElementById('reservation-message');
-    if (!messageElement) return;
-    messageElement.textContent = message;
-    messageElement.className = `block px-4 py-2 rounded-lg ${
-      type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' :
-      type === 'warning' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
-      'bg-green-50 text-green-700 border border-green-200'
-    }`;
-  }
-
-  function hideMessage() {
-    const messageElement = document.getElementById('reservation-message');
-    if (!messageElement) return;
-    messageElement.className = 'hidden';
-    messageElement.textContent = '';
-  }
-</script>
+  <!-- ============== SCRIPTS (UI y Controller) ============== -->
+  <!-- IMPORTANTE: el JS del menú/animaciones VA AQUÍ, separado del controller -->
+  <script src="js/reservas.js"></script>
+  <script type="module" src="js/jsControllers/ControllerReserva.js"></script>
 </body>
 </html>
