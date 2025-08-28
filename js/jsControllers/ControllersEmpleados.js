@@ -1,21 +1,27 @@
 // js/jsControllers/ControllersEmpleados.js
 import {
-  getRoles, getTiposDocumento,
-  getEmpleadosPage, deleteEmpleado,
-  getPersonasPage, getUsuariosPage,
-  createDocumentoIdentidad, updateDocumentoIdentidad, getDocumentoIdentidadById,
-  createPersona, updatePersona,
-  createUsuario, updateUsuario,
-  createEmpleado, updateEmpleado
-} from "../jsService/ServiceEmpleado.js"; // <--- ruta corregida
+  getRoles,
+  getTiposDocumento,
+  getEmpleadosPage,
+  deleteEmpleado,
+  getPersonasPage,
+  getUsuariosPage,
+  createDocumentoIdentidad,
+  updateDocumentoIdentidad,
+  getDocumentoIdentidadById,
+  createPersona,
+  updatePersona,
+  createUsuario,
+  updateUsuario,
+  createEmpleado,
+  updateEmpleado,
+} from "../jsService/ServiceEmpleado.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
 const tbody = $("#employees-tbody");
 const searchInput = $("#searchInput");
-const roleBtn = $("#roleBtn");
-const roleMenu = $("#roleMenu");
 const addEmployeeBtn = $("#addEmployeeBtn");
 
 const modalWrap = $("#employeeModal");
@@ -23,7 +29,6 @@ const modalTitle = $("#modalTitle");
 const employeeForm = $("#employeeForm");
 const cancelBtn = $("#cancelBtn");
 const togglePassword = $("#togglePassword");
-const emailInput = $("#email");
 
 const f = {
   id: $("#id"),
@@ -39,142 +44,183 @@ const f = {
   password: $("#password"),
   email: $("#email"),
   hireDate: $("#hireDate"),
-  address: $("#address")
+  address: $("#address"),
 };
 
 let state = {
   page: 0,
   size: 10,
   empleadosVM: [],
-  roles: [],
-  tiposDoc: [],
-  personasIndex: new Map(),
-  usuariosIndex: new Map(),
-  roleIndex: new Map(),
-  tipoDocIndex: new Map(),
-  editing: null
+  roles: [],             // Rol: { id, rol }
+  tiposDoc: [],          // TipoDocumento (lo tomamos luego si nos pasas el JSON)
+  personasIndex: new Map(), // key: persona.id
+  usuariosIndex: new Map(), // key: usuario.id
+  roleIndex: new Map(),     // key: rol.id
+  tipoDocIndex: new Map(),  // key: tipoDoc.idTipoDoc
+  editing: null,
 };
 
-function composeVM(emp, personasMap, usuariosMap) {
-  const persona = personasMap.get(emp.idPersona) || {};
-  const usuario = usuariosMap.get(emp.idUsuario) || {};
-  return {
-    idEmpleado: emp.id,
-    idPersona: emp.idPersona,
-    idUsuario: emp.idUsuario,
-    fContratacion: emp.fContratacion || null,
-    pnombre: persona.pnombre || "",
-    snombre: persona.snombre || "",
-    apellidoP: persona.apellidoP || "",
-    apellidoM: persona.apellidoM || "",
-    fechaN: persona.fechaN || null,
-    direccion: persona.direccion || "",
-    idDoc: persona.idDoc || null,
-    correo: usuario.correo || "",
-    username: (usuario.correo || "").split("@")[0] || "",
-    docTypeName: null,
-    docNumber: null
-  };
-}
-
-async function loadCatalogs() {
-  state.roles = await getRoles(0, 200);
-  state.roleIndex = new Map(state.roles.map(r => [r.id, r]));
-  state.tiposDoc = await getTiposDocumento(0, 200);
-  state.tipoDocIndex = new Map(state.tiposDoc.map(t => [t.idTipoDoc, t]));
-  roleMenu.innerHTML = `
-    <div class="px-4 py-3 border-b border-slate-100">
-      <label class="flex items-center gap-3 cursor-pointer">
-        <input type="checkbox" class="role-filter w-4 h-4 text-blue-600" value="__all__" checked>
-        <span class="font-medium text-slate-700">Todos los roles</span>
-      </label>
-    </div>
-    ${state.roles.map(r => `
-      <div class="px-4 py-2 hover:bg-slate-50">
-        <label class="flex items-center gap-3 cursor-pointer">
-          <input type="checkbox" class="role-filter w-4 h-4 text-blue-600" value="${r.id}">
-          <span>${r.rol}</span>
-        </label>
-      </div>`).join("")}
-  `;
-  f.role.innerHTML = `<option value="">Seleccione un rol</option>` +
-    state.roles.map(r => `<option value="${r.id}">${r.rol}</option>`).join("");
-  f.docType.innerHTML = state.tiposDoc.map(t => `<option value="${t.idTipoDoc}">${t.tipoDoc}</option>`).join("");
-}
-
-async function loadData(page = 0, size = 10) {
-  state.page = page; state.size = size;
-
-  const empPage = await getEmpleadosPage(page, size);
-  const empleados = empPage?.content ?? [];
-
-  const [persPage, userPage] = await Promise.all([
-    getPersonasPage(0, 1000),
-    getUsuariosPage(0, 1000)
-  ]);
-
-  const personas = persPage?.content ?? [];
-  const usuarios = userPage?.content ?? [];
-
-  state.personasIndex = new Map(personas.map(p => [p.id, p]));
-  state.usuariosIndex = new Map(usuarios.map(u => [u.id, u]));
-  state.empleadosVM = empleados.map(e => composeVM(e, state.personasIndex, state.usuariosIndex));
-
-  await Promise.all(state.empleadosVM.map(async (vm) => {
-    if (vm?.idDoc != null) {
-      try {
-        const doc = await getDocumentoIdentidadById(vm.idDoc);
-        vm.docNumber = doc?.numDoc ?? null;
-        vm.docTypeName = state.tipoDocIndex.get(doc?.idtipoDoc || null)?.tipoDoc || null;
-      } catch { /* ignorar si no existe controller */ }
-    }
-  }));
-}
-
-function chipClassByRoleId(roleId) {
-  const rol = state.roleIndex.get(Number(roleId));
-  if (!rol) return "";
-  const name = (rol.rol || "").toLowerCase();
-  if (name.includes("admin")) return "admin";
-  if (name.includes("mesero")) return "mesero";
-  if (name.includes("cocin")) return "cocinero";
-  if (name.includes("cajer")) return "cajero";
-  if (name.includes("limp")) return "limpieza";
-  return "";
-}
-
+/* ================= UTILIDADES ================= */
 function formatDate(s) {
   if (!s) return "N/A";
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return s;
   return d.toLocaleDateString("es-ES");
 }
-
 function escapeHTML(str) {
-  return String(str ?? "").replace(/[&<>"']/g, (s) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[s]));
+  return String(str ?? "").replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[ch]));
+}
+function chipClassByRoleName(name) {
+  const n = (name || "").toLowerCase();
+  if (n.includes("admin")) return "admin";
+  if (n.includes("mesero")) return "mesero";
+  if (n.includes("cocin")) return "cocinero";
+  if (n.includes("cajer")) return "cajero";
+  if (n.includes("limp")) return "limpieza";
+  return "";
 }
 
+/* ============== VM CON CAMPOS EXACTOS (según tus JSON) ============== */
+function composeVM(emp, personasMap, usuariosMap) {
+  const persona = personasMap.get(emp.idPersona) || personasMap.get(String(emp.idPersona)) || {};
+  const usuario = usuariosMap.get(emp.idUsuario) || usuariosMap.get(String(emp.idUsuario)) || {};
+
+  const correo = usuario.correo || "";
+  const username = correo.split("@")[0] || "";
+
+  return {
+    idEmpleado: emp.id,
+    idPersona: emp.idPersona,
+    idUsuario: emp.idUsuario,
+    fContratacion: emp.fcontratacion || null,
+
+    pnombre: persona.pnombre || "",
+    snombre: persona.snombre || "",
+    apellidoP: persona.apellidoP || "",
+    apellidoM: persona.apellidoM || "",
+    fechaN: persona.fechaN || null,
+    direccion: persona.direccion || "",
+    idDoc: persona.idDoc ?? null,
+
+    correo,
+    username,
+
+    docTypeName: null,
+    docNumber: null
+  };
+}
+
+
+/* ================== CARGA DE CATÁLOGOS (roles/TipoDoc) ================== */
+async function loadCatalogs() {
+  // Roles: [{ id, rol }]
+  state.roles = await getRoles(0, 200);
+  state.roleIndex = new Map(state.roles.map(r => [r.id, r]));
+
+  // TipoDoc: dejamos soporte si existe; si no, no frena el GET
+  try {
+    state.tiposDoc = await getTiposDocumento(0, 200);
+  } catch { state.tiposDoc = []; }
+  state.tipoDocIndex = new Map(
+    state.tiposDoc.map(t => {
+      const key = t.idTipoDoc ?? t.IdTipoDoc ?? t.idtipoDoc ?? t.IdtipoDoc;
+      return [key, t];
+    })
+  );
+
+  // Selects
+  f.role.innerHTML =
+    `<option value="">Seleccione un rol</option>` +
+    state.roles.map(r => `<option value="${r.id}">${r.rol}</option>`).join("");
+
+  f.docType.innerHTML =
+    state.tiposDoc.map(t => {
+      const key = t.idTipoDoc ?? t.IdTipoDoc ?? t.idtipoDoc ?? t.IdtipoDoc;
+      const label = t.tipoDoc ?? t.TipoDoc ?? "";
+      return `<option value="${key}">${label}</option>`;
+    }).join("");
+}
+
+/* ================== CARGA DE DATOS (GET) ================== */
+async function loadData(page = 0, size = 10) {
+  state.page = page; state.size = size;
+
+  const empPage = await getEmpleadosPage(page, size); // Page<{id,fcontratacion,idPersona,idUsuario}>
+  const empleados = empPage?.content ?? [];
+
+  const [persPage, userPage] = await Promise.all([
+    getPersonasPage(0, 1000), // Page<Persona>
+    getUsuariosPage(0, 1000), // Page<Usuario>
+  ]);
+
+  const personas = persPage?.content ?? [];
+  const usuarios = userPage?.content ?? [];
+
+  // Construye índices con doble clave (number y string) para evitar mismatches
+state.personasIndex = new Map();
+for (const p of personas) {
+  if (p?.id == null) continue;
+  state.personasIndex.set(p.id, p);
+  state.personasIndex.set(String(p.id), p);
+}
+
+state.usuariosIndex = new Map();
+for (const u of usuarios) {
+  if (u?.id == null) continue;
+  state.usuariosIndex.set(u.id, u);
+  state.usuariosIndex.set(String(u.id), u);
+}
+
+// (opcional, pero recomendado) también para roles:
+state.roleIndex = new Map();
+for (const r of state.roles) {
+  if (r?.id == null) continue;
+  state.roleIndex.set(r.id, r);
+  state.roleIndex.set(String(r.id), r);
+}
+
+// Construir VM con los índices ya robustos
+state.empleadosVM = empleados.map(e => composeVM(e, state.personasIndex, state.usuariosIndex));
+
+  // Completar documento (si hay)
+  await Promise.all(state.empleadosVM.map(async (vm) => {
+    if (!vm.idDoc) return;
+    try {
+      const doc = await getDocumentoIdentidadById(vm.idDoc); // { id, idtipoDoc?/idTipoDoc?, numDoc }
+      vm.docNumber = doc?.numDoc ?? null;
+
+      // Resolver nombre de tipo (si tenemos catálogo)
+      const tId = doc?.idtipoDoc ?? doc?.idTipoDoc ?? null;
+      const t = state.tipoDocIndex.get(tId);
+      const label = t?.tipoDoc ?? t?.TipoDoc ?? null;
+      vm.docTypeName = label;
+    } catch { /* no frena UI */ }
+  }));
+}
+
+/* ================== RENDER ================== */
 function renderTable() {
   const term = (searchInput.value || "").toLowerCase().trim();
-  const selectedRoleIds = $$(".role-filter:checked").map(c => c.value);
-  const allOn = selectedRoleIds.includes("__all__");
 
   const filtered = state.empleadosVM.filter(vm => {
-    const usuario = state.usuariosIndex.get(vm.idUsuario) || {};
-    const rolId = usuario.rolId;
-    const text = [vm.pnombre, vm.apellidoP, vm.username, vm.correo, vm.docTypeName, vm.docNumber]
-      .join(" ").toLowerCase();
-    const okText = term === "" ? true : text.includes(term);
-    const okRole = allOn ? true : selectedRoleIds.some(id => Number(id) === Number(rolId));
-    return okText && okRole;
+    const usuario = state.usuariosIndex.get(vm.idUsuario) || state.usuariosIndex.get(String(vm.idUsuario)) || {};
+const rol = state.roleIndex.get(usuario.rolId) || state.roleIndex.get(String(usuario.rolId));
+const rolName = rol?.rol || "N/A";
+
+    const text = [
+      vm.pnombre, vm.apellidoP, vm.username, vm.correo,
+      vm.docTypeName, vm.docNumber, rolName, vm.direccion
+    ].join(" ").toLowerCase();
+    return term === "" ? true : text.includes(term);
   });
 
   tbody.innerHTML = "";
   for (const vm of filtered) {
     const usuario = state.usuariosIndex.get(vm.idUsuario) || {};
-    const rolId = usuario.rolId;
-    const rolChipClass = chipClassByRoleId(rolId);
-    const rolName = state.roleIndex.get(Number(rolId))?.rol || "N/A";
+    const rolName = state.roleIndex.get(Number(usuario.rolId))?.rol || "N/A";
+    const rolChipClass = chipClassByRoleName(rolName);
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -204,7 +250,7 @@ function renderTable() {
       <td colspan="6" class="p-0">
         <div id="d-${vm.idEmpleado}" class="hidden border-t border-slate-200 bg-slate-50/50">
           <div class="px-6 py-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-            <div><div class="font-semibold">Segundo Nombre</div><div>${escapeHTML(vm.snombre || "N/A")}</div></div>
+            <div><div class="font-semibold">Segundo Nombre</div><div>${escapeHTML(vm.nombre || "N/A")}</div></div>
             <div><div class="font-semibold">Apellido Materno</div><div>${escapeHTML(vm.apellidoM || "N/A")}</div></div>
             <div><div class="font-semibold">Fecha de Nacimiento</div><div>${formatDate(vm.fechaN)}</div></div>
             <div><div class="font-semibold">Documento</div><div>${escapeHTML(vm.docTypeName || "N/A")} ${escapeHTML(vm.docNumber || "")}</div></div>
@@ -232,8 +278,7 @@ function renderTable() {
   $$(".btn-delete").forEach(b => b.addEventListener("click", () => onDelete(Number(b.dataset.id))));
 }
 
-// ==== Modal / CRUD ====
-
+/* ================== MODAL / FORM ================== */
 function openModal() {
   modalWrap.classList.add("show");
   document.body.style.overflow = "hidden";
@@ -243,79 +288,23 @@ function closeModal() {
   document.body.style.overflow = "";
   state.editing = null;
   employeeForm.reset();
-  emailInput.value = "";
+  f.email.value = "";
 }
-
-function clearErrors() {
-  document.querySelectorAll(".err").forEach(e => e.style.display = "none");
-  document.querySelectorAll(".invalid").forEach(e => e.classList.remove("invalid"));
-}
-
-function updateDocPattern() {
-  const typeId = Number(f.docType.value);
-  const typeName = state.tipoDocIndex.get(typeId)?.tipoDoc || "";
-  const isDUI = typeName.toUpperCase().includes("DUI");
-  if (isDUI) { f.docNumber.placeholder = "xxxxxxxx-x"; f.docNumber.maxLength = 10; }
-  else { f.docNumber.placeholder = "xxxx-xxxxxx-xxx-x"; f.docNumber.maxLength = 16; }
-}
-
-function updateEmail() {
-  const fn = (f.firstName.value || "").toLowerCase().replace(/\s/g, "");
-  const lp = (f.lastNameP.value || "").toLowerCase().replace(/\s/g, "");
-  f.email.value = fn && lp ? `${fn}_${lp}@orderly.com` : "";
-}
-
-function validateBirthDate() {
-  const el = f.birthDate;
-  if (!el.value) return false;
-  const d = new Date(el.value), now = new Date();
-  if (d > now) return false;
-  let age = now.getFullYear() - d.getFullYear();
-  const m = now.getMonth() - d.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
-  return age >= 18 && age <= 85;
-}
-
-function validateHireDate() {
-  const el = f.hireDate;
-  if (!el.value) return false;
-  const h = new Date(el.value), now = new Date();
-  if (h > now) return false;
-  if (f.birthDate.value) {
-    const bd = new Date(f.birthDate.value);
-    const min = new Date(bd); min.setFullYear(min.getFullYear() + 18);
-    if (h < min) return false;
-  }
-  return true;
-}
-
-function validateAll() {
-  const nameRe = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
-  if (!nameRe.test(f.firstName.value.trim())) return false;
-  if (f.secondName.value && !nameRe.test(f.secondName.value.trim())) return false;
-  if (!nameRe.test(f.lastNameP.value.trim())) return false;
-  if (f.lastNameM.value && !nameRe.test(f.lastNameM.value.trim())) return false;
-  if (!validateBirthDate()) return false;
-  if (!validateHireDate()) return false;
-  if (!f.role.value) return false;
-  if (!/^[A-Za-z0-9]+$/.test(f.username.value.trim())) return false;
-  return true;
-}
-
 function openFormNew() {
   state.editing = null;
   employeeForm.reset();
-  emailInput.value = "";
+  f.email.value = "";
   modalTitle.textContent = "Nuevo Empleado";
   clearErrors();
   updateDocPattern();
   openModal();
 }
-
 function openFormForEdit(idEmpleado) {
   const vm = state.empleadosVM.find(v => v.idEmpleado === idEmpleado);
   if (!vm) return;
+
   state.editing = { idEmpleado: vm.idEmpleado, idPersona: vm.idPersona, idUsuario: vm.idUsuario, idDoc: vm.idDoc ?? null };
+
   f.firstName.value = vm.pnombre || "";
   f.secondName.value = vm.snombre || "";
   f.lastNameP.value = vm.apellidoP || "";
@@ -324,19 +313,26 @@ function openFormForEdit(idEmpleado) {
   f.address.value = vm.direccion || "";
   f.email.value = vm.correo || "";
   f.username.value = vm.username || "";
-  f.password.value = "";
+  f.password.value = ""; // (requerida por backend en create/update)
+
   const usuario = state.usuariosIndex.get(vm.idUsuario) || {};
   f.role.value = usuario?.rolId != null ? String(usuario.rolId) : "";
-  const foundDoc = state.tiposDoc.find(t => t.tipoDoc === vm.docTypeName);
-  f.docType.value = foundDoc ? String(foundDoc.idTipoDoc) : (state.tiposDoc[0]?.idTipoDoc ?? "");
+
+  if (vm.docTypeName) {
+    const match = state.tiposDoc.find(t => (t.tipoDoc ?? t.TipoDoc) === vm.docTypeName);
+    if (match) f.docType.value = String(match.idTipoDoc ?? match.IdTipoDoc ?? match.idtipoDoc ?? match.IdtipoDoc);
+  }
   f.docNumber.value = vm.docNumber || "";
   updateDocPattern();
+
   f.hireDate.value = vm.fContratacion || "";
+
   modalTitle.textContent = "Editar Empleado";
   clearErrors();
   openModal();
 }
 
+/* ================== SUBMIT (mantengo nombres del form; DTOs los ajustas luego) ================== */
 async function onSubmit(e) {
   e.preventDefault();
   clearErrors();
@@ -346,62 +342,57 @@ async function onSubmit(e) {
     const rolId = Number(f.role.value);
     const correo = f.email.value.trim();
     const contrasenia = f.password.value.trim();
-    const contraseniaSet = !!contrasenia;
 
+    // Documento (opcional)
     let idDoc = state.editing?.idDoc ?? null;
-    const idtipoDoc = Number(f.docType.value);
+    const tId = Number(f.docType.value);
     const numDoc = f.docNumber.value.trim();
-
-    if (!idDoc) {
-      if (idtipoDoc && numDoc) {
-        const doc = await createDocumentoIdentidad({ idtipoDoc, numDoc });
-        idDoc = doc?.id ?? null;
-      }
-    } else {
-      if (idtipoDoc && numDoc) {
-        await updateDocumentoIdentidad(idDoc, { idtipoDoc, numDoc });
+    if (tId && numDoc) {
+      if (!idDoc) {
+        const doc = await createDocumentoIdentidad({ IdtipoDoc: tId, numDoc }); // si tu DTO usa idtipoDoc, ajústalo aquí
+        idDoc = doc?.id ?? doc?.Id ?? null;
+      } else {
+        await updateDocumentoIdentidad(idDoc, { IdtipoDoc: tId, numDoc });
       }
     }
 
+    // Persona
     let idPersona = state.editing?.idPersona ?? null;
     const personaDTO = {
       id: idPersona,
       pnombre: f.firstName.value.trim(),
       snombre: f.secondName.value.trim() || null,
       apellidoP: f.lastNameP.value.trim(),
-      apellidoM: f.lastNameM.value.trim() || null,
+      apellidoM: f.lastNameM.value.trim(),
       fechaN: f.birthDate.value || null,
       direccion: f.address.value.trim(),
-      idDoc: idDoc
+      idDoc: idDoc ?? null,
     };
     if (idPersona) {
       await updatePersona(idPersona, personaDTO);
     } else {
       const p = await createPersona(personaDTO);
-      idPersona = p?.data?.id ?? p?.id ?? null;
+      idPersona = p?.id ?? p?.Id ?? null;
     }
 
+    // Usuario (tu JSON real usa: { id, rolId, correo, contrasenia })
     let idUsuario = state.editing?.idUsuario ?? null;
-    const usuarioDTO = {
-      id: idUsuario,
-      rolId: rolId,
-      correo: correo,
-      ...(contraseniaSet ? { contrasenia } : {})
-    };
+    const usuarioDTO = { id: idUsuario, rolId, correo, contrasenia };
     if (idUsuario) {
       await updateUsuario(idUsuario, usuarioDTO);
     } else {
       const u = await createUsuario(usuarioDTO);
-      idUsuario = u?.data?.id ?? u?.id ?? null;
+      idUsuario = u?.id ?? u?.Id ?? null;
     }
 
+    // Empleado (tu JSON real usa: { id, fcontratacion, idPersona, idUsuario })
     let idEmpleado = state.editing?.idEmpleado ?? null;
-    const empleadoDTO = { id: idEmpleado, idPersona, idUsuario, fContratacion: f.hireDate.value || null };
+    const empleadoDTO = { id: idEmpleado, fcontratacion: f.hireDate.value || null, idPersona, idUsuario };
     if (idEmpleado) {
       await updateEmpleado(idEmpleado, empleadoDTO);
     } else {
       const eRes = await createEmpleado(empleadoDTO);
-      idEmpleado = eRes?.data?.id ?? eRes?.id ?? null;
+      idEmpleado = eRes?.id ?? eRes?.Id ?? null;
     }
 
     closeModal();
@@ -412,6 +403,7 @@ async function onSubmit(e) {
   }
 }
 
+/* ================== DELETE ================== */
 async function onDelete(idEmpleado) {
   if (!confirm("¿Eliminar este empleado?")) return;
   try {
@@ -423,10 +415,88 @@ async function onDelete(idEmpleado) {
   }
 }
 
+/* ============== VALIDACIONES (UI) ============== */
+function clearErrors() {
+  $$(".err").forEach(e => e.style.display = "none");
+  $$(".invalid").forEach(e => e.classList.remove("invalid"));
+}
+function validateAll() {
+  const nameRe = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+  if (!nameRe.test(f.firstName.value.trim())) return markErr(f.firstName, "firstNameError"), false;
+  if (f.secondName.value && !nameRe.test(f.secondName.value.trim())) return markErr(f.secondName, "secondNameError"), false;
+  if (!nameRe.test(f.lastNameP.value.trim())) return markErr(f.lastNameP, "lastNamePError"), false;
+  if (!nameRe.test(f.lastNameM.value.trim())) return markErr(f.lastNameM, "lastNameMError"), false;
+  if (!validateBirthDate()) return false;
+  if (!validateHireDate()) return false;
+
+  // Si hay docType seleccionado, valida longitud con patrón actual de la UI
+  const t = Number(f.docType.value);
+  if (t && f.docNumber.value.trim()) {
+    const ok =
+      (f.docNumber.maxLength === 10 && f.docNumber.value.length === 10) ||
+      (f.docNumber.maxLength === 16 && f.docNumber.value.length === 16);
+    if (!ok) return markErr(f.docNumber, "docNumberError"), false;
+  }
+
+  if (!f.role.value) return markErr(f.role, "roleError"), false;
+  if (!/^[A-Za-z0-9]+$/.test(f.username.value.trim())) return markErr(f.username, "usernameError"), false;
+
+  // contrasenia (tu API la exige en create/update)
+  if (!/^[\s\S]{8}$/.test(f.password.value.trim())) return markErr(f.password, "passwordError"), false;
+
+  return true;
+}
+function markErr(input, errId) {
+  input.classList.add("invalid");
+  const err = document.getElementById(errId);
+  if (err) err.style.display = "block";
+}
+function validateBirthDate() {
+  const el = f.birthDate;
+  if (!el.value) { el.classList.add("invalid"); $("#birthDateError").style.display = "block"; return false; }
+  const d = new Date(el.value), now = new Date();
+  if (d > now) { el.classList.add("invalid"); $("#birthDateError").textContent = "La fecha no puede ser futura"; $("#birthDateError").style.display = "block"; return false; }
+  let age = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
+  const ok = age >= 18 && age <= 85;
+  el.classList.toggle("invalid", !ok);
+  $("#birthDateError").textContent = "El empleado debe tener entre 18 y 85 años";
+  $("#birthDateError").style.display = ok ? "none" : "block";
+  return ok;
+}
+function validateHireDate() {
+  const el = f.hireDate;
+  if (!el.value) { el.classList.add("invalid"); $("#hireDateError").style.display = "block"; return false; }
+  const h = new Date(el.value), now = new Date();
+  if (h > now) { el.classList.add("invalid"); $("#hireDateError").textContent = "La fecha no puede ser futura"; $("#hireDateError").style.display = "block"; return false; }
+  if (f.birthDate.value) {
+    const bd = new Date(f.birthDate.value);
+    const min = new Date(bd); min.setFullYear(min.getFullYear() + 18);
+    if (h < min) { el.classList.add("invalid"); $("#hireDateError").textContent = "Debe ser posterior a los 18 años"; $("#hireDateError").style.display = "block"; return false; }
+  }
+  el.classList.remove("invalid");
+  $("#hireDateError").style.display = "none";
+  return true;
+}
+
+/* ============== PATRÓN DOC ============== */
+function updateDocPattern() {
+  const typeId = Number(f.docType.value);
+  const t = state.tipoDocIndex.get(typeId);
+  const typeName = t?.tipoDoc ?? t?.TipoDoc ?? "";
+  const isDUI = typeName.toUpperCase().includes("DUI");
+  if (isDUI) {
+    f.docNumber.placeholder = "xxxxxxxx-x";
+    f.docNumber.maxLength = 10;
+  } else {
+    f.docNumber.placeholder = "xxxx-xxxxxx-xxx-x";
+    f.docNumber.maxLength = 16;
+  }
+}
+
+/* ============== BIND/RELOAD ============== */
 function bindUI() {
-  roleBtn?.addEventListener("click", (e) => { e.stopPropagation(); roleMenu.classList.toggle("hidden"); });
-  document.addEventListener("click", () => roleMenu.classList.add("hidden"));
-  roleMenu.addEventListener("change", (e) => { if (e.target.classList.contains("role-filter")) renderTable(); });
   searchInput?.addEventListener("input", renderTable);
   addEmployeeBtn?.addEventListener("click", openFormNew);
   cancelBtn?.addEventListener("click", closeModal);
@@ -437,26 +507,36 @@ function bindUI() {
     f.password.type = isPass ? "text" : "password";
     togglePassword.innerHTML = isPass ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-eye"></i>';
   });
-  f.firstName.addEventListener("input", updateEmail);
-  f.lastNameP.addEventListener("input", updateEmail);
+
+  f.firstName.addEventListener("input", () => {
+    const fn = (f.firstName.value || "").toLowerCase().replace(/\s/g, "");
+    const lp = (f.lastNameP.value || "").toLowerCase().replace(/\s/g, "");
+    f.email.value = fn && lp ? `${fn}_${lp}@orderly.com` : "";
+  });
+  f.lastNameP.addEventListener("input", () => {
+    const fn = (f.firstName.value || "").toLowerCase().replace(/\s/g, "");
+    const lp = (f.lastNameP.value || "").toLowerCase().replace(/\s/g, "");
+    f.email.value = fn && lp ? `${fn}_${lp}@orderly.com` : "";
+  });
+
   f.docType.addEventListener("change", updateDocPattern);
   f.docNumber.addEventListener("input", () => {
     const typeId = Number(f.docType.value);
-    const typeName = state.tipoDocIndex.get(typeId)?.tipoDoc || "";
+    const t = state.tipoDocIndex.get(typeId);
+    const typeName = t?.tipoDoc ?? t?.TipoDoc ?? "";
     const isDUI = typeName.toUpperCase().includes("DUI");
     let v = f.docNumber.value.replace(/\D/g, "");
     if (isDUI) {
       if (v.length > 8) v = v.slice(0, 8) + "-" + v.slice(8, 9);
       f.docNumber.value = v.slice(0, 10);
     } else {
-      if (v.length > 4) v = v.slice(0, 4) + "-" + v.slice(4, 10);
+      if (v.length > 4)  v = v.slice(0, 4)  + "-" + v.slice(4, 10);
       if (v.length > 11) v = v.slice(0, 11) + "-" + v.slice(11, 14);
       if (v.length > 15) v = v.slice(0, 15) + "-" + v.slice(15, 16);
       f.docNumber.value = v.slice(0, 16);
     }
   });
 }
-
 async function reload() {
   await loadData(state.page, state.size);
   renderTable();

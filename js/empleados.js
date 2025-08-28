@@ -4,13 +4,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const sidebar = document.getElementById("sidebar");
   const mobileOverlay = document.getElementById("mobileOverlay");
 
-  if (sidebarToggle && sidebar) {
+  if (sidebarToggle) {
     sidebarToggle.addEventListener("click", function () {
       sidebar.classList.toggle("mobile-open");
       mobileOverlay.classList.toggle("active");
     });
   }
-  if (sidebarToggleDesktop && sidebar) {
+  if (sidebarToggleDesktop) {
     sidebarToggleDesktop.addEventListener("click", function () {
       sidebar.classList.toggle("collapsed");
     });
@@ -34,23 +34,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  const observerOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
-  const observer = new IntersectionObserver(function (entries) {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity = "1";
-        entry.target.style.transform = "translateY(0)";
-      }
-    });
-  }, observerOptions);
-
+  // aparición suave
   document.querySelectorAll(".animate-fade-in").forEach((el) => {
     el.style.opacity = "0";
-    el.style.transform = "translateY(20px)";
-    el.style.transition = "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
-    observer.observe(el);
+    el.style.transform = "translateY(16px)";
+    el.style.transition = "all .45s cubic-bezier(0.4,0,0.2,1)";
+    requestAnimationFrame(() => {
+      el.style.opacity = "1";
+      el.style.transform = "translateY(0)";
+    });
   });
 
+  // mini dropdown usuario
   const userBtn = document.querySelector(".navbar-user-avatar");
   if (userBtn && !document.getElementById("userDropdown")) {
     const dropdown = document.createElement("div");

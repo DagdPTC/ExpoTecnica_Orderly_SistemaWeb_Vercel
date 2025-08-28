@@ -4,7 +4,7 @@ import {
   updateMesa as updateMesaApi,
   deleteMesa as deleteMesaApi,
   patchEstadoMesa
-} from "../services/mesaService.js";
+} from "../jsService/ServiceMesas";
 
 const STATE_BY_ID = {
   1:  { id: 1,  key: "libre",     label: "Disponible", classes: "bg-emerald-100 text-emerald-600" },
