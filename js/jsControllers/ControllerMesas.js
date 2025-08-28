@@ -1,4 +1,3 @@
-// controllers/mesasController.js
 import {
   getMesas,
   createMesa,
@@ -7,22 +6,15 @@ import {
   patchEstadoMesa
 } from "../services/mesaService.js";
 
-/** =========================
- *  Config de estados (fallback si el backend no trae catálogo)
- *  ========================= */
 const STATE_BY_ID = {
   1:  { id: 1,  key: "libre",     label: "Disponible", classes: "bg-emerald-100 text-emerald-600" },
   3:  { id: 3,  key: "ocupada",   label: "Ocupada",    classes: "bg-red-100 text-red-600" },
   2:  { id: 2,  key: "reservada", label: "Reservada",  classes: "bg-blue-100 text-blue-600" },
   21: { id: 21, key: "limpieza",  label: "Limpieza",   classes: "bg-amber-100 text-amber-600" },
 };
-// Orden cíclico por id (libre → ocupada → reservada → limpieza → libre)
 const NEXT_ID = { 1: 3, 3: 2, 2: 21, 21: 1 };
 const VALID_IDS = new Set([1, 2, 3, 21]);
 
-/** =========================
- *  Utilidades
- *  ========================= */
 const toInt = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
 
 function extractNumberFromName(name){
@@ -30,10 +22,8 @@ function extractNumberFromName(name){
   return m ? parseInt(m[1],10) : 0;
 }
 function resolveMesaNumber(dto){
-  // 1) Intenta extraer número de "Mesa 12"
   const n2 = extractNumberFromName(dto.NomMesa ?? dto.nomMesa);
   if (n2 > 0) return n2;
-  // 2) Si no, usa el Id como número visible
   const id = toInt(dto.Id ?? dto.id ?? dto.idMesa);
   return id > 0 ? id : 1;
 }
@@ -47,20 +37,13 @@ function typeLabel(t){
   return t==="dos" ? "2 personas" : (t==="cuatro" ? "4 personas" : "Familiar");
 }
 
-/** =========================
- *  Estado UI
- *  ========================= */
-const mesasCache = new Map(); // idMesa -> dto
+const mesasCache = new Map(); 
 let currentFilter = "all";
 
 let grid, emptyState;
 let countLibre, countOcupada, countReservada, countLimpieza;
 
-/** =========================
- *  Inicio
- *  ========================= */
 document.addEventListener("DOMContentLoaded", () => {
-  // Elementos del HTML (coinciden con los de tu layout)
   grid = document.getElementById("mesas-container");
   emptyState = document.getElementById("empty-state");
   countLibre = document.getElementById("count-libre");
@@ -75,7 +58,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   cargarMesas();
 
-  // Exponer funciones usadas por los botones inline del HTML
   window.filterTables   = filterTables;
   window.addMesa        = addMesa;
   window.closeAdd       = () => hideModal('add-modal');
@@ -87,9 +69,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.cambiarEstadoMesa = cambiarEstadoMesa;
 });
 
-/** =========================
- *  Carga y render
- *  ========================= */
 async function cargarMesas() {
   if (grid) grid.innerHTML = `<div class="col-span-full text-center py-6 text-slate-500">Cargando mesas...</div>`;
   try {
@@ -162,9 +141,6 @@ function animateCounter(el, val) {
   }, 150);
 }
 
-/** =========================
- *  Cards
- *  ========================= */
 function createMesaCard(dto, index) {
   const id = dto.Id ?? dto.id ?? dto.idMesa;
   const number = resolveMesaNumber(dto);
@@ -266,9 +242,6 @@ function applyCardState(card, state) {
   card.querySelector(".cambiar-estado").addEventListener("click", () => cambiarEstadoMesa(card.dataset.mesaId));
 }
 
-/** =========================
- *  Acciones (Cambiar estado / CRUD)
- *  ========================= */
 async function cambiarEstadoMesa(mesaId) {
   const card = grid?.querySelector(`[data-mesa-id="${mesaId}"]`);
   if (!card || card.dataset.busy === "1") return;
@@ -281,7 +254,6 @@ async function cambiarEstadoMesa(mesaId) {
   const nextId   = NEXT_ID[VALID_IDS.has(beforeId) ? beforeId : 1];
   const nextSt   = stateFromId(nextId);
 
-  // Optimistic UI
   applyCardState(card, nextSt);
 
   try {
@@ -292,7 +264,6 @@ async function cambiarEstadoMesa(mesaId) {
     };
     const resp = await patchEstadoMesa(mesaId, body);
 
-    // Confirmar con lo que regresa la API
     const real = resp || {};
     const realId = toInt(real.IdEstadoMesa ?? real.idEstadoMesa) || nextId;
 
@@ -424,9 +395,6 @@ async function deleteMesaUI() {
   }
 }
 
-/** =========================
- *  UI helpers (modales, sidebar, animaciones, mensajes)
- *  ========================= */
 function showMessage(element, message, type = 'info') {
   if (!element) return;
   const classes = {

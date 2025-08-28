@@ -32,7 +32,7 @@ export async function patchEstadoMesa(id, estadoId) {
     console.error("Respuesta backend (PATCH estado):", text);
     throw new Error(`PATCH estado mesa ${id}: ${res.status} ${res.statusText}`);
   }
-  if (!text) return { Id: Number(id), IdEstadoMesa: Number(estadoId) }; // 204 sin cuerpo
+  if (!text) return { Id: Number(id), IdEstadoMesa: Number(estadoId) }; 
   try { return normalizaMesa(JSON.parse(text)); } catch { return { Id: Number(id), IdEstadoMesa: Number(estadoId) }; }
 }
 
@@ -53,6 +53,6 @@ export async function putMesaCompleta(id, dtoActual, nuevoEstadoId) {
     console.error("Respuesta backend (PUT mesa):", text);
     throw new Error(`PUT Mesa ${id}: ${res.status} ${res.statusText}`);
   }
-  if (!text) return payload; // 204
+  if (!text) return payload; 
   try { return normalizaMesa(JSON.parse(text)); } catch { return payload; }
 }
