@@ -357,4 +357,310 @@
   <script type="module" src="js/jsControllers/ControllerReserva.js"></script>
 </body>
 
+</html><!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Reservaciones</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/reservas.css" />
+</head>
+
+<body class="bg-gray-50 font-sans overflow-x-hidden">
+  <div class="mobile-overlay" id="mobileOverlay"></div>
+  <aside class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
+    <div class="logo-container animate-fade-in">
+      <div class="flex items-center justify-center">
+        <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
+          <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo w-10 h-10">
+        </div>
+        <span class="logo-text ml-3 text-xl font-bold text-white">Orderly</span>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto px-4">
+      <div class="section-title">MAIN</div>
+      <a href="index.html" class="nav-item flex items-center p-3 rounded-xl mb-2 text-white hover:text-white">
+        <i class="fas fa-tachometer-alt w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Inicio</span>
+      </a>
+      <div class="section-title">OPERATIONS</div>
+      <a href="mesas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-chair w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Mesas</span>
+      </a>
+      <a href="menu.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-book w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Menú</span>
+      </a>
+      <a href="reservas.html" class="nav-item active flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-calendar-check w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Reservaciones</span>
+      </a>
+      <div class="section-title">MANAGEMENT</div>
+      <a href="empleados.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-users w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Empleados</span>
+      </a>
+      <a href="facturas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-file-invoice-dollar w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Facturas</span>
+      </a>
+      <div class="section-title">REPORTS</div>
+      <a href="ofertas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-chart-line w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Ofertas</span>
+      </a>
+      <a href="historial.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-history w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Historial</span>
+      </a>
+    </div>
+    <div class="p-4 border-t border-white/20">
+      <div class="flex items-center glass-effect rounded-xl p-3">
+        <div class="user-info-icon w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+          <i class="fas fa-user text-white"></i>
+        </div>
+        <div class="user-info-text ml-3">
+          <div class="text-sm font-semibold text-white">Admin User</div>
+          <div class="text-xs text-white/70">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="main-content flex flex-col min-h-screen">
+    <header class="main-header flex items-center justify-between px-6 animate-fade-in">
+      <div class="flex items-center">
+        <button id="sidebarToggle"
+          class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
+          <i class="fas fa-bars text-lg"></i>
+        </button>
+        <button id="sidebarToggleDesktop"
+          class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
+          <i class="fas fa-bars text-lg"></i>
+        </button>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">Reservaciones</h1>
+          <p class="text-gray-600 text-sm">Administra las reservaciones de tu restaurante</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <div class="relative">
+          <button
+            class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors"
+            title="Notificaciones">
+            <i class="fas fa-bell text-lg"></i>
+            <span class="notification-badge">3</span>
+          </button>
+        </div>
+        <div class="relative">
+          <button
+            class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors"
+            title="Mensajes">
+            <i class="fas fa-envelope text-lg"></i>
+            <span class="notification-badge bg-blue-500">5</span>
+          </button>
+        </div>
+        <div class="relative">
+          <button
+            class="text-gray-600 hover:text-gray-800 focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+              <i class="fas fa-user"></i>
+            </div>
+            <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
+            <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+    <main class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
+      <div class="stat-card p-4 mb-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div class="relative w-full max-w-md">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <i class="fas fa-search text-gray-400"></i>
+            </div>
+            <input id="search-input" type="text" class="modern-input w-full pl-12"
+              placeholder="Buscar por nombre, teléfono o fecha...">
+          </div>
+          <button id="add-reservation-btn" class="modern-btn bg-blue-600 hover:bg-blue-700 text-white">
+            <i class="fas fa-plus mr-2"></i>Nueva Reservación
+          </button>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="stat-card p-6 border-l-4 border-blue-500">
+          <div class="flex items-center">
+            <div class="flex-1">
+              <h3 class="text-gray-500 text-sm font-medium mb-1">Total Reservaciones</h3>
+              <p id="total-reservations" class="text-3xl font-bold text-gray-800">0</p>
+            </div>
+            <div class="stat-icon w-12 h-12 flex items-center justify-center text-white">
+              <i class="fas fa-calendar-alt text-lg"></i>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card p-6 border-l-4 border-yellow-500">
+          <div class="flex items-center">
+            <div class="flex-1">
+              <h3 class="text-gray-500 text-sm font-medium mb-1">En Espera</h3>
+              <p id="pending-reservations" class="text-3xl font-bold text-gray-800">0</p>
+            </div>
+            <div class="stat-icon w-12 h-12 flex items-center justify-center text-white">
+              <i class="fas fa-clock text-lg"></i>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card p-6 border-l-4 border-green-500">
+          <div class="flex items-center">
+            <div class="flex-1">
+              <h3 class="text-gray-500 text-sm font-medium mb-1">En Proceso</h3>
+              <p id="in-progress-reservations" class="text-3xl font-bold text-gray-800">0</p>
+            </div>
+            <div class="stat-icon w-12 h-12 flex items-center justify-center text-white">
+              <i class="fas fa-utensils text-lg"></i>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card p-6 border-l-4 border-red-500">
+          <div class="flex items-center">
+            <div class="flex-1">
+              <h3 class="text-gray-500 text-sm font-medium mb-1">Canceladas</h3>
+              <p id="cancelled-reservations" class="text-3xl font-bold text-gray-800">0</p>
+            </div>
+            <div class="stat-icon w-12 h-12 flex items-center justify-center text-white">
+              <i class="fas fa-times-circle text-lg"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="stat-card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-gray-800">Listado de Reservaciones</h2>
+          <div class="flex items-center gap-3 text-sm">
+            <label for="items-per-page" class="text-gray-600 font-medium">Mostrar:</label>
+            <select id="items-per-page" class="modern-input">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
+        <div id="reservations-container" class="modern-table"></div>
+        <div id="pagination-container" class="pagination-container mt-6 flex items-center justify-between"
+          style="display:none;">
+          <div class="flex items-center gap-2">
+            <button id="prev-page" class="pagination-btn">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div id="page-numbers" class="flex items-center gap-2"></div>
+            <button id="next-page" class="pagination-btn">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="text-sm text-gray-600">
+            Página <span id="current-page">1</span> de <span id="total-pages">1</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <div id="reservation-modal" class="fixed inset-0 bg-black/40 hidden z-50 modal">
+    <div
+      class="modal-content absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl p-6 bg-white rounded-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="reservation-modal-title" class="text-xl font-semibold text-gray-800">Nueva Reservación</h3>
+        <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-lg"></i>
+        </button>
+      </div>
+      <form id="reservation-form" class="space-y-4">
+        <div id="reservation-message" class="hidden"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-medium text-gray-700">Nombre del cliente</label>
+            <input id="customer-name" type="text" class="modern-input w-full" placeholder="Ej. Juan Pérez">
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-700">Teléfono</label>
+            <input id="customer-phone" type="text" class="modern-input w-full" placeholder="0000-0000" maxlength="9">
+          </div>
+          <div class="flex-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+            <div class="relative">
+              <input id="reservation-date" type="date" class="modern-input w-full" />
+              <i class="far fa-calendar absolute right-3 top-3 text-gray-400"></i>
+            </div>
+          </div>
+          <div class="flex-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Hora inicio</label>
+            <div class="relative">
+              <input id="reservation-time" type="time" class="modern-input w-full" step="60" />
+              <i class="far fa-clock absolute right-3 top-3 text-gray-400"></i>
+            </div>
+          </div>
+          <div class="flex-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Hora fin</label>
+            <div class="relative">
+              <input id="reservation-end-time" type="time" class="modern-input w-full" step="60" />
+              <i class="far fa-clock absolute right-3 top-3 text-gray-400"></i>
+            </div>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-700">Personas</label>
+            <input id="guest-count" type="number" min="1" max="999" class="modern-input w-full" placeholder="Ej. 4">
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-700">Tipo de Reserva</label>
+            <select id="tipo-reserva-select" class="modern-input w-full">
+              <option value="">Seleccione tipo</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-4">
+          <div class="flex items-center justify-between mt-6 mb-2">
+            <h3 class="text-lg font-semibold text-gray-800">Seleccionar mesas</h3>
+            <div class="text-sm text-gray-600">
+              Capacidad total: <span id="total-capacity">0</span>
+            </div>
+          </div>
+          <div id="tables-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"></div>
+          <input type="hidden" id="selected-mesa-id" value="">
+        </div>
+        <div class="mt-4">
+          <label class="text-sm font-medium text-gray-700">Notas especiales</label>
+          <textarea id="special-notes" class="modern-input w-full" rows="3" placeholder="Opcional"></textarea>
+        </div>
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button id="cancel-reservation" type="button"
+            class="modern-btn bg-gray-100 hover:bg-gray-200">Cancelar</button>
+          <button type="submit" class="modern-btn bg-green-600 hover:bg-green-700 text-white">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div id="confirm-modal" class="fixed inset-0 bg-black/40 hidden z-50 modal">
+    <div
+      class="modal-content absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 bg-white rounded-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-semibold text-gray-800">Confirmar acción</h3>
+        <button id="close-confirm-modal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <p class="text-gray-700 mb-6">¿Seguro que deseas continuar con esta acción?</p>
+      <div class="flex items-center justify-end gap-3">
+        <button id="cancel-action" class="modern-btn bg-gray-100 hover:bg-gray-200">Cancelar</button>
+        <button id="confirm-action" class="modern-btn bg-red-600 hover:bg-red-700 text-white">Confirmar</button>
+      </div>
+    </div>
+  </div>
+  <script src="js/reservas.js" defer></script>
+  <script type="module" src="js/jsControllers/ControllerReserva.js"></script>
+</body>
+
 </html>

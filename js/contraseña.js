@@ -8,21 +8,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const confirmPasswordWrapper = document.getElementById('confirmPasswordWrapper');
     const submitBtn = document.getElementById('loginBtn');
 
-    // Función para mostrar errores
     function showError(inputWrapper, errorElement, message) {
         inputWrapper.classList.add('error');
         errorElement.textContent = message;
         errorElement.classList.add('show');
     }
 
-    // Función para limpiar errores
     function clearError(inputWrapper, errorElement) {
         inputWrapper.classList.remove('error');
         errorElement.textContent = '';
         errorElement.classList.remove('show');
     }
 
-    // Validación de contraseña
     function validatePassword(password) {
         const errors = [];
 
@@ -45,7 +42,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return errors;
     }
 
-    // Validar al escribir
     newPasswordInput.addEventListener('input', function () {
         const password = newPasswordInput.value;
         const errors = validatePassword(password);
@@ -95,14 +91,12 @@ document.addEventListener('DOMContentLoaded', function () {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="btn-text">Procesando...</span>';
 
-            // Simulamos un envío al servidor con un pequeño retraso
             setTimeout(function () {
                 window.location.href = 'inicioSesion.html';
             }, 1500);
         }
     });
 
-    // Toggle para mostrar/ocultar contraseña
     document.getElementById('toggleNewPassword').addEventListener('click', function () {
         togglePasswordVisibility(newPasswordInput, this);
     });

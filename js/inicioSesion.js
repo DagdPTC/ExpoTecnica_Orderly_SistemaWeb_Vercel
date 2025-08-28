@@ -1,4 +1,3 @@
-// Variables principales
 const container = document.querySelector(".container");
 const btnSignIn = document.getElementById("btn-sign-in");
 const btnSignUp = document.getElementById("btn-sign-up");
@@ -7,7 +6,6 @@ const password = document.getElementById('password');
 const toggleRegisterPassword = document.getElementById('toggleRegisterPassword');
 const registerPassword = document.getElementById('txtPassr');
 
-// Funciones para cambiar entre formularios
 btnSignIn.addEventListener("click", () => {
     container.classList.remove("toggle");
     clearAllErrors();
@@ -18,7 +16,6 @@ btnSignUp.addEventListener("click", () => {
     clearAllErrors();
 });
 
-// Toggle de contraseña
 togglePassword.addEventListener('click', () => {
     const isPassword = password.type === 'password';
     password.type = isPassword ? 'text' : 'password';
@@ -31,55 +28,46 @@ toggleRegisterPassword.addEventListener('click', () => {
     toggleRegisterPassword.setAttribute('name', isPassword ? 'eye-off-outline' : 'eye-outline');
 });
 
-// Sistema de validación robusto
 class ValidationSystem {
     constructor() {
         this.setupEventListeners();
     }
 
     setupEventListeners() {
-        // Validación en tiempo real para email (bloqueo de mayúsculas y espacios)
         document.getElementById('txtUser').addEventListener('input', (e) => {
             e.target.value = e.target.value.toLowerCase().replace(/\s/g, '');
             this.validateEmail(e.target, 'emailError', 'emailWrapper');
         });
 
-        // Validación en tiempo real para contraseña (bloqueo de espacios)
         document.getElementById('password').addEventListener('input', (e) => {
             e.target.value = e.target.value.replace(/\s/g, '');
             this.validateLoginPassword(e.target, 'passwordError', 'passwordWrapper');
         });
 
-        // Validación en tiempo real para nombre (solo letras)
         document.getElementById('txtNombre').addEventListener('input', (e) => {
             e.target.value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s']/g, '');
             this.validateName(e.target, 'nameError', 'nameWrapper');
         });
 
-        // Validación en tiempo real para email de registro (bloqueo de mayúsculas y espacios)
         document.getElementById('txtCorreoE').addEventListener('input', (e) => {
             e.target.value = e.target.value.toLowerCase().replace(/\s/g, '');
             this.validateEmail(e.target, 'registerEmailError', 'registerEmailWrapper');
         });
 
-        // Validación en tiempo real para contraseña de registro (bloqueo de espacios)
         document.getElementById('txtPassr').addEventListener('input', (e) => {
             e.target.value = e.target.value.replace(/\s/g, '');
             this.validateRegisterPassword(e.target, 'registerPasswordError', 'registerPasswordWrapper');
         });
 
-        // Validación al perder foco
         document.getElementById('txtUser').addEventListener('blur', (e) => this.validateEmail(e.target, 'emailError', 'emailWrapper'));
         document.getElementById('password').addEventListener('blur', (e) => this.validateLoginPassword(e.target, 'passwordError', 'passwordWrapper'));
         document.getElementById('txtNombre').addEventListener('blur', (e) => this.validateName(e.target, 'nameError', 'nameWrapper'));
         document.getElementById('txtCorreoE').addEventListener('blur', (e) => this.validateEmail(e.target, 'registerEmailError', 'registerEmailWrapper'));
         document.getElementById('txtPassr').addEventListener('blur', (e) => this.validateRegisterPassword(e.target, 'registerPasswordError', 'registerPasswordWrapper'));
 
-        // Formularios
         document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
         document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
 
-        // Redirección para olvidó contraseña
         document.getElementById('forgotPassword').addEventListener('click', (e) => {
             e.preventDefault();
             window.location.href = 'recuperacion.html';
@@ -181,7 +169,6 @@ class ValidationSystem {
         const emailField = document.getElementById('txtUser');
         const passwordField = document.getElementById('password');
 
-        // Aplicar trim() a los campos
         emailField.value = emailField.value.trim();
         passwordField.value = passwordField.value.trim();
 
@@ -189,7 +176,6 @@ class ValidationSystem {
         const passwordValid = this.validateLoginPassword(passwordField, 'passwordError', 'passwordWrapper');
 
         if (!emailValid || !passwordValid) {
-            // Enfocar el primer campo con error
             if (!emailValid) {
                 emailField.focus();
             } else if (!passwordValid) {
@@ -205,10 +191,8 @@ class ValidationSystem {
         btnText.innerHTML = '<span class="loading"></span>';
 
         try {
-            // Simular autenticación
             await new Promise(resolve => setTimeout(resolve, 1500));
 
-            // Éxito - redirigir al dashboard
             window.location.href = 'index.html';
 
         } catch (error) {
@@ -227,7 +211,6 @@ class ValidationSystem {
         const emailField = document.getElementById('txtCorreoE');
         const passwordField = document.getElementById('txtPassr');
 
-        // Aplicar trim() a los campos
         nameField.value = nameField.value.trim();
         emailField.value = emailField.value.trim();
         passwordField.value = passwordField.value.trim();
@@ -237,7 +220,6 @@ class ValidationSystem {
         const passwordValid = this.validateRegisterPassword(passwordField, 'registerPasswordError', 'registerPasswordWrapper');
 
         if (!nameValid || !emailValid || !passwordValid) {
-            // Enfocar el primer campo con error
             if (!nameValid) {
                 nameField.focus();
             } else if (!emailValid) {
@@ -255,13 +237,10 @@ class ValidationSystem {
         btnText.innerHTML = '<span class="loading"></span>';
 
         try {
-            // Simular registro
             await new Promise(resolve => setTimeout(resolve, 2000));
 
-            // Mostrar mensaje de éxito
             this.showSuccessMessage('¡Cuenta creada exitosamente! Ya puedes iniciar sesión.');
 
-            // Limpiar formulario y cambiar a login después de 2 segundos
             setTimeout(() => {
                 this.clearRegisterForm();
                 container.classList.remove("toggle");
@@ -316,7 +295,6 @@ function clearAllErrors() {
     });
 }
 
-// Inicializar el sistema de validación
 document.addEventListener('DOMContentLoaded', () => {
     new ValidationSystem();
 });

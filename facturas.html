@@ -12,10 +12,8 @@
 </head>
 
 <body class="bg-gray-50 min-h-screen font-sans bg-pattern overflow-x-hidden">
-  <!-- Overlay para mobile -->
   <div class="mobile-overlay" id="mobileOverlay"></div>
 
-  <!-- Barra lateral -->
   <div class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
     <div class="logo-container animate-fade-in">
       <div class="flex items-center justify-center">
@@ -82,9 +80,7 @@
     </div>
   </div>
 
-  <!-- Contenido principal -->
   <div class="main-content flex flex-col min-h-screen">
-    <!-- Barra superior - Estilo igual al index -->
     <header class="main-header flex items-center justify-between px-6 animate-fade-in">
       <div class="flex items-center">
         <button id="sidebarToggle"
@@ -127,9 +123,7 @@
       </div>
     </header>
 
-    <!-- Contenido del Dashboard -->
     <main class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
-      <!-- Filters Section -->
       <div class="pb-4">
         <div class="stat-card p-6 hover-lift animate-fade-in">
           <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -162,7 +156,6 @@
         </div>
       </div>
 
-      <!-- Invoices Table -->
       <div class="pb-8">
         <div class="table-container scrollbar-custom max-h-[70vh] overflow-y-auto card-hover">
           <table class="min-w-full divide-y divide-gray-200">
@@ -184,7 +177,6 @@
     </main>
   </div>
 
-  <!-- Edit Modal -->
   <div id="editModal" class="modal-overlay hidden">
     <div class="modal-content animate-fade-in">
       <div class="flex items-center mb-6">
@@ -252,7 +244,6 @@
     </div>
   </div>
 
-  <!-- Details Modal -->
   <div id="detailsModal" class="modal-overlay hidden">
     <div class="modal-content animate-fade-in">
       <div class="flex items-center mb-6">
@@ -315,7 +306,6 @@
     </div>
   </div>
 
-  <!-- Delete Confirmation Modal -->
   <div id="confirmModal" class="modal-overlay hidden">
     <div class="modal-content animate-fade-in max-w-md">
       <div class="text-center mb-6">
@@ -341,6 +331,7 @@
   </div>
 
 
+  <script src="js/factura.js"></script>
 </body>
 
 </html>

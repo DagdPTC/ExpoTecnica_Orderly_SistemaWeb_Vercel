@@ -12,10 +12,8 @@
 </head>
 
 <body class="bg-gray-50 font-sans overflow-x-hidden">
-    <!-- Overlay para mobile -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <!-- Barra lateral -->
     <div class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
         <div class="logo-container animate-fade-in">
             <div class="flex items-center justify-center">
@@ -82,9 +80,7 @@
         </div>
     </div>
 
-    <!-- Contenido principal -->
     <div class="main-content flex flex-col min-h-screen">
-        <!-- Barra superior -->
         <header class="main-header flex items-center justify-between px-6 animate-fade-in">
             <div class="flex items-center">
                 <button id="sidebarToggle"
@@ -124,7 +120,6 @@
                         <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
                     </button>
 
-                    <!-- Menú desplegable de usuario -->
                     <div id="userDropdown" class="user-dropdown">
                         <div class="p-2">
                             <button id="logoutBtn" class="user-dropdown-item">
@@ -137,12 +132,9 @@
             </div>
         </header>
 
-        <!-- Contenido del Dashboard -->
         <main class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
-            <!-- Controls Section -->
             <div class="glass card p-6 mb-8 animate-fade-in">
                 <div class="flex flex-col lg:flex-row gap-6 mb-6">
-                    <!-- Search -->
                     <div class="flex-1 relative">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <i class="fas fa-search text-gray-400"></i>
@@ -151,7 +143,6 @@
                             class="form-input w-full pl-12 pr-4 py-4 text-lg">
                     </div>
 
-                    <!-- Category Filter -->
                     <div class="lg:w-64 relative">
                         <select id="categoryFilter" class="form-input w-full py-4 px-4 text-lg appearance-none">
                             <option value="all">Todas las categorías</option>
@@ -162,7 +153,6 @@
                     </div>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="flex flex-wrap gap-4">
                     <button id="addCategoryBtn" class="btn btn-primary px-6 py-3 flex items-center">
                         <i class="fas fa-plus mr-2"></i>
@@ -179,12 +169,9 @@
                 </div>
             </div>
 
-            <!-- Menu Grid -->
             <div id="menuContainer" class="grid-responsive animate-fade-in">
-                <!-- Platillos se cargarán aquí -->
             </div>
 
-            <!-- No Results -->
             <div id="noResults" class="hidden text-center py-16 animate-fade-in">
                 <div
                     class="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
@@ -196,7 +183,6 @@
         </main>
     </div>
 
-    <!-- FAB Button -->
     <div class="fab">
         <button id="fab-main" class="fab-main flex items-center justify-center text-white focus:outline-none">
             <i class="fas fa-plus text-xl"></i>
@@ -221,7 +207,6 @@
         </div>
     </div>
 
-    <!-- Modal Platillo -->
     <div id="platilloModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
         <div class="modal-content w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div class="p-8">
@@ -235,7 +220,6 @@
                 <form id="platilloForm" class="space-y-6">
                     <input type="hidden" id="platilloId">
 
-                    <!-- Imagen -->
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-3">Imagen del Platillo</label>
                         <div class="flex flex-col sm:flex-row gap-4 mb-4">
@@ -256,7 +240,6 @@
                         </div>
                     </div>
 
-                    <!-- Nombre -->
                     <div>
                         <label for="platilloNombre" class="block text-sm font-bold text-gray-700 mb-2">Nombre del
                             Platillo *</label>
@@ -265,7 +248,6 @@
                         <div id="platilloNombreError" class="error-message">El nombre del platillo es requerido</div>
                     </div>
 
-                    <!-- Categoría -->
                     <div>
                         <label for="platilloCategoria" class="block text-sm font-bold text-gray-700 mb-2">Categoría
                             *</label>
@@ -275,7 +257,6 @@
                         <div id="platilloCategoriaError" class="error-message">Debe seleccionar una categoría</div>
                     </div>
 
-                    <!-- Descripción -->
                     <div>
                         <label for="platilloDescripcion"
                             class="block text-sm font-bold text-gray-700 mb-2">Descripción</label>
@@ -285,7 +266,6 @@
                         <div id="platilloDescripcionError" class="error-message">Máximo 255 caracteres</div>
                     </div>
 
-                    <!-- Precio -->
                     <div>
                         <label for="platilloPrecio" class="block text-sm font-bold text-gray-700 mb-2">Precio *</label>
                         <div class="relative">
@@ -299,7 +279,6 @@
                         </div>
                     </div>
 
-                    <!-- Buttons -->
                     <div class="flex flex-col sm:flex-row gap-4 pt-6">
                         <button type="button" id="cancelPlatilloBtn"
                             class="btn bg-gray-200 text-gray-700 hover:bg-gray-300 px-6 py-3 flex items-center justify-center">
@@ -316,7 +295,6 @@
         </div>
     </div>
 
-    <!-- Modal Categoría -->
     <div id="categoriaModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
         <div class="modal-content w-full max-w-lg">
             <div class="p-8">
@@ -330,7 +308,6 @@
                 <form id="categoriaForm" class="space-y-6">
                     <input type="hidden" id="categoriaAction" value="add">
 
-                    <!-- Select existing category (for edit/delete) -->
                     <div id="categoriaSelectContainer" class="hidden">
                         <label for="categoriaSelect" class="block text-sm font-bold text-gray-700 mb-2">Seleccionar
                             Categoría</label>
@@ -340,7 +317,6 @@
                         <div id="categoriaSelectError" class="error-message">Debe seleccionar una categoría</div>
                     </div>
 
-                    <!-- Category name -->
                     <div id="categoriaNombreContainer">
                         <label for="categoriaNombre" class="block text-sm font-bold text-gray-700 mb-2">Nombre de la
                             Categoría *</label>
@@ -350,7 +326,6 @@
                         </div>
                     </div>
 
-                    <!-- Buttons -->
                     <div class="flex flex-col sm:flex-row gap-4 pt-6">
                         <button type="button" id="cancelCategoriaBtn"
                             class="btn bg-gray-200 text-gray-700 hover:bg-gray-300 px-6 py-3 flex items-center justify-center">
@@ -368,7 +343,6 @@
         </div>
     </div>
 
-    <!-- Modal Confirmación -->
     <div id="confirmModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
         <div class="modal-content w-full max-w-md">
             <div class="p-8 text-center">

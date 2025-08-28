@@ -12,10 +12,8 @@
 </head>
 
 <body class="bg-gray-50 font-sans overflow-x-hidden">
-    <!-- Overlay para mobile -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <!-- Barra lateral -->
     <div class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
         <div class="logo-container animate-fade-in">
             <div class="flex items-center justify-center">
@@ -82,9 +80,7 @@
         </div>
     </div>
 
-    <!-- Contenido principal -->
     <div class="main-content flex flex-col min-h-screen">
-        <!-- Barra superior -->
         <header class="main-header flex items-center justify-between px-6 animate-fade-in">
             <div class="flex items-center">
                 <button id="sidebarToggle"
@@ -127,9 +123,7 @@
             </div>
         </header>
 
-        <!-- Contenido del Dashboard -->
         <main class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
-            <!-- Tarjetas de Estadísticas -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="stat-card p-6 hover-lift animate-fade-in" style="animation-delay: 0.1s">
                     <div class="flex items-center justify-between">
@@ -192,9 +186,7 @@
                 </div>
             </div>
 
-            <!-- Sección de Mesas y Órdenes -->
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
-                <!-- Estado de Mesas -->
                 <div class="xl:col-span-1">
                     <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.5s">
                         <div class="flex items-center justify-between mb-6">
@@ -245,7 +237,6 @@
                     </div>
                 </div>
 
-                <!-- Órdenes Actuales -->
                 <div class="xl:col-span-2">
                     <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.6s">
                         <div class="flex items-center justify-between mb-6">
@@ -347,9 +338,7 @@
                 </div>
             </div>
 
-            <!-- Sección de Inventario y Reservaciones -->
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <!-- Artículos con Bajo Stock -->
                 <div class="xl:col-span-1">
                     <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.7s">
                         <div class="flex items-center justify-between mb-6">
@@ -408,7 +397,6 @@
                     </div>
                 </div>
 
-                <!-- Reservaciones de Hoy -->
                 <div class="xl:col-span-2">
                     <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.8s">
                         <div class="flex items-center justify-between mb-6">

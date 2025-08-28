@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 
@@ -11,10 +12,8 @@
 </head>
 
 <body class="bg-gray-50 font-sans overflow-x-hidden">
-  <!-- Overlay para mobile -->
   <div class="mobile-overlay" id="mobileOverlay"></div>
 
-  <!-- Sidebar (idéntico patrón al index) -->
   <aside class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
     <div class="logo-container animate-fade-in">
       <div class="flex items-center justify-center">
@@ -81,9 +80,7 @@
     </div>
   </aside>
 
-  <!-- Contenido principal -->
   <div class="main-content flex flex-col min-h-screen">
-    <!-- Barra superior -->
     <header class="main-header flex items-center justify-between px-6 animate-fade-in">
       <div class="flex items-center">
         <button id="sidebarToggle"
@@ -120,16 +117,13 @@
       </div>
     </header>
 
-    <!-- Page Content -->
     <main class="flex-1 p-6">
       <div class="max-w-7xl mx-auto">
-        <!-- Page Header -->
         <header class="page-header text-center">
           <h1>Ofertas Únicas del Restaurante</h1>
           <p>Descubre nuestras increíbles promociones y ahorra en tus platillos favoritos</p>
         </header>
 
-        <!-- Search and Filter -->
         <section class="search-container">
           <div class="flex flex-col md:flex-row gap-4">
             <div class="flex-1 search-input-wrapper">
@@ -148,10 +142,8 @@
           </div>
         </section>
 
-        <!-- Offers Grid -->
         <section id="offersContainer" class="offers-grid"></section>
 
-        <!-- Empty State -->
         <section id="emptyState" class="empty-state hidden">
           <i class="fas fa-search"></i>
           <h3>No se encontraron ofertas</h3>
@@ -161,12 +153,10 @@
     </main>
   </div>
 
-  <!-- FAB Button -->
   <button id="fab" class="fab">
     <i class="fas fa-plus"></i>
   </button>
 
-  <!-- Modal -->
   <div id="offer-modal" class="modal hidden">
     <div class="modal-content">
       <h2 id="modal-title" class="modal-title">Agregar Oferta</h2>
@@ -242,9 +232,9 @@
     </div>
   </div>
 
-  <!-- JS -->
   <script src="js/ofertas.js"></script>
   <script type="module" src="js/jsControllers/ControllerOfertas.js"></script>
 </body>
 
 </html>
+```
