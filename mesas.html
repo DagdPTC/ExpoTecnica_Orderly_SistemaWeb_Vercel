@@ -10,7 +10,7 @@
     <style>
         /* Configuración personalizada de Tailwind */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
+
         * {
             font-family: 'Inter', sans-serif;
         }
@@ -33,28 +33,64 @@
 
         /* Animaciones personalizadas */
         @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
         }
 
-        .animate-slide-in { animation: slideIn 0.3s ease-out; }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
-        .animate-scale-in { animation: scaleIn 0.2s ease-out; }
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .animate-scale-in {
+            animation: scaleIn 0.2s ease-out;
+        }
 
         /* Layout responsive */
         .sidebar {
@@ -77,7 +113,7 @@
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
         }
 
-        .sidebar.collapsed + .main-content {
+        .sidebar.collapsed+.main-content {
             margin-left: var(--sidebar-collapsed);
         }
 
@@ -362,8 +398,15 @@
         }
 
         @keyframes dropdownEnter {
-            from { opacity: 0; transform: translateY(-10px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .user-dropdown.show {
@@ -440,7 +483,7 @@
                 margin-left: 0;
             }
 
-            .sidebar.collapsed + .main-content {
+            .sidebar.collapsed+.main-content {
                 margin-left: 0;
             }
 
@@ -475,7 +518,7 @@
         }
 
         @media (max-width: 640px) {
-            .main-content > main {
+            .main-content>main {
                 padding: 1rem !important;
             }
 
@@ -685,10 +728,21 @@
             opacity: 1;
         }
 
-        .status-dot-libre { background-color: #10b981; }
-        .status-dot-ocupada { background-color: #ef4444; }
-        .status-dot-reservada { background-color: #3b82f6; }
-        .status-dot-limpieza { background-color: #f59e0b; }
+        .status-dot-libre {
+            background-color: #10b981;
+        }
+
+        .status-dot-ocupada {
+            background-color: #ef4444;
+        }
+
+        .status-dot-reservada {
+            background-color: #3b82f6;
+        }
+
+        .status-dot-limpieza {
+            background-color: #f59e0b;
+        }
 
         .scrollbar-custom::-webkit-scrollbar {
             width: 6px;
@@ -726,7 +780,8 @@
         <div class="logo-container animate-fade-in">
             <div class="flex items-center justify-center">
                 <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
-                    <img src="https://via.placeholder.com/48/0ea5e9/ffffff?text=O" alt="Logo Orderly" class="logo w-10 h-10">
+                    <img src="https://via.placeholder.com/48/0ea5e9/ffffff?text=O" alt="Logo Orderly"
+                        class="logo w-10 h-10">
                 </div>
                 <span class="logo-text ml-3 text-xl font-bold text-white">Orderly</span>
             </div>
@@ -740,7 +795,8 @@
             </a>
 
             <div class="section-title">OPERATIONS</div>
-            <a href="mesas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2 active bg-gradient-to-r from-blue-500 to-blue-600">
+            <a href="mesas.html"
+                class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2 active bg-gradient-to-r from-blue-500 to-blue-600">
                 <i class="fas fa-chair w-6 text-center text-lg"></i>
                 <span class="nav-text ml-3 font-medium">Mesas</span>
             </a>
@@ -792,31 +848,37 @@
         <!-- Barra superior -->
         <header class="main-header flex items-center justify-between px-6 animate-fade-in">
             <div class="flex items-center">
-                <button id="sidebarToggle" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
+                <button id="sidebarToggle"
+                    class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
                     <i class="fas fa-bars text-lg"></i>
                 </button>
-                <button id="sidebarToggleDesktop" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
+                <button id="sidebarToggleDesktop"
+                    class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
                     <i class="fas fa-bars text-lg"></i>
                 </button>
                 <h1 class="text-2xl font-bold text-gray-800">Gestión de Mesas</h1>
             </div>
-            
+
             <div class="flex items-center space-x-4">
                 <div class="relative">
-                    <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                    <button
+                        class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
                         <i class="fas fa-bell text-lg"></i>
                         <span class="notification-badge">3</span>
                     </button>
                 </div>
                 <div class="relative">
-                    <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                    <button
+                        class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
                         <i class="fas fa-envelope text-lg"></i>
                         <span class="notification-badge bg-blue-500">5</span>
                     </button>
                 </div>
                 <div class="relative">
-                    <button class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+                    <button
+                        class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
                             <i class="fas fa-user"></i>
                         </div>
                         <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
@@ -831,23 +893,28 @@
             <!-- Filter Buttons -->
             <div class="mb-8 animate-fade-in">
                 <div class="flex flex-wrap gap-3">
-                    <button onclick="filterTables('all')" class="btn-modern px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl font-medium shadow-lg active-filter">
+                    <button onclick="filterTables('all')"
+                        class="btn-modern px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl font-medium shadow-lg active-filter">
                         <i class="fas fa-th mr-2"></i>
                         Todas las mesas
                     </button>
-                    <button onclick="filterTables('libre')" class="btn-modern px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-medium shadow-lg">
+                    <button onclick="filterTables('libre')"
+                        class="btn-modern px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-medium shadow-lg">
                         <i class="fas fa-check-circle mr-2"></i>
                         Disponibles
                     </button>
-                    <button onclick="filterTables('ocupada')" class="btn-modern px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-medium shadow-lg">
+                    <button onclick="filterTables('ocupada')"
+                        class="btn-modern px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-medium shadow-lg">
                         <i class="fas fa-users mr-2"></i>
                         Ocupadas
                     </button>
-                    <button onclick="filterTables('reservada')" class="btn-modern px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium shadow-lg">
+                    <button onclick="filterTables('reservada')"
+                        class="btn-modern px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium shadow-lg">
                         <i class="fas fa-bookmark mr-2"></i>
                         Reservadas
                     </button>
-                    <button onclick="filterTables('limpieza')" class="btn-modern px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium shadow-lg">
+                    <button onclick="filterTables('limpieza')"
+                        class="btn-modern px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium shadow-lg">
                         <i class="fas fa-broom mr-2"></i>
                         En limpieza
                     </button>
@@ -950,17 +1017,20 @@
         <button id="fab-main" class="fab-main flex items-center justify-center text-white focus:outline-none">
             <i class="fas fa-plus text-xl"></i>
         </button>
-        
+
         <div id="fab-menu" class="absolute bottom-16 right-0 space-y-3 hidden">
-            <button id="add-btn" class="fab-option flex items-center bg-emerald-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-emerald-600 transition-all transform hover:scale-105">
+            <button id="add-btn"
+                class="fab-option flex items-center bg-emerald-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-emerald-600 transition-all transform hover:scale-105">
                 <i class="fas fa-plus mr-2"></i>
                 <span class="font-medium">Agregar Mesa</span>
             </button>
-            <button id="edit-btn" class="fab-option flex items-center bg-amber-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-amber-600 transition-all transform hover:scale-105">
+            <button id="edit-btn"
+                class="fab-option flex items-center bg-amber-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-amber-600 transition-all transform hover:scale-105">
                 <i class="fas fa-edit mr-2"></i>
                 <span class="font-medium">Editar Mesa</span>
             </button>
-            <button id="delete-btn" class="fab-option flex items-center bg-red-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-red-600 transition-all transform hover:scale-105">
+            <button id="delete-btn"
+                class="fab-option flex items-center bg-red-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-red-600 transition-all transform hover:scale-105">
                 <i class="fas fa-trash mr-2"></i>
                 <span class="font-medium">Eliminar Mesa</span>
             </button>
@@ -982,26 +1052,28 @@
                 <form class="space-y-6">
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Número de Mesa</label>
-                        <input id="add-numero" type="number" min="1" max="99" 
-                               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                               placeholder="Ej: 15">
+                        <input id="add-numero" type="number" min="1" max="99"
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                            placeholder="Ej: 15">
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Capacidad</label>
                         <input id="add-capacidad" type="number" min="1" max="20"
-                               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                               placeholder="Ej: 4 personas">
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                            placeholder="Ej: 4 personas">
                     </div>
 
                     <div id="add-message" class="text-center text-sm"></div>
                 </form>
 
                 <div class="flex space-x-4 mt-8">
-                    <button onclick="closeAdd()" class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
+                    <button onclick="closeAdd()"
+                        class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
                         Cancelar
                     </button>
-                    <button onclick="addMesa()" class="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all font-medium shadow-lg">
+                    <button onclick="addMesa()"
+                        class="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all font-medium shadow-lg">
                         Crear Mesa
                     </button>
                 </div>
@@ -1025,18 +1097,20 @@
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Número de Mesa</label>
                         <input id="update-search-numero" type="number" min="1" max="99"
-                               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-                               placeholder="Buscar mesa...">
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                            placeholder="Buscar mesa...">
                     </div>
 
                     <div id="update-message-step1" class="text-center text-sm"></div>
                 </form>
 
                 <div class="flex space-x-4 mt-8">
-                    <button onclick="closeUpdate()" class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
+                    <button onclick="closeUpdate()"
+                        class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
                         Cancelar
                     </button>
-                    <button onclick="nextUpdate()" class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-medium shadow-lg">
+                    <button onclick="nextUpdate()"
+                        class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-medium shadow-lg">
                         Buscar Mesa
                     </button>
                 </div>
@@ -1060,23 +1134,25 @@
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Número de Mesa</label>
                         <input id="update-numero" type="number" min="1" max="99"
-                               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all">
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all">
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Capacidad</label>
                         <input id="update-capacidad" type="number" min="1" max="20"
-                               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all">
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all">
                     </div>
 
                     <div id="update-message-step2" class="text-center text-sm"></div>
                 </form>
 
                 <div class="flex space-x-4 mt-8">
-                    <button onclick="closeUpdate()" class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
+                    <button onclick="closeUpdate()"
+                        class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
                         Cancelar
                     </button>
-                    <button onclick="updateMesa()" class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-medium shadow-lg">
+                    <button onclick="updateMesa()"
+                        class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-medium shadow-lg">
                         Actualizar
                     </button>
                 </div>
@@ -1100,18 +1176,20 @@
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Número de Mesa</label>
                         <input id="delete-numero" type="number" min="1" max="99"
-                               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-                               placeholder="Mesa a eliminar">
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+                            placeholder="Mesa a eliminar">
                     </div>
 
                     <div id="delete-message" class="text-center text-sm"></div>
                 </form>
 
                 <div class="flex space-x-4 mt-8">
-                    <button onclick="closeDelete()" class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
+                    <button onclick="closeDelete()"
+                        class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
                         Cancelar
                     </button>
-                    <button onclick="deleteMesa()" class="flex-1 py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all font-medium shadow-lg">
+                    <button onclick="deleteMesa()"
+                        class="flex-1 py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all font-medium shadow-lg">
                         Eliminar Mesa
                     </button>
                 </div>
@@ -1119,669 +1197,7 @@
         </div>
     </div>
 
-    <script>
-        // ==========================================
-        // DATOS INICIALES
-        // ==========================================
-        let mesas = [
-            { id: 1, numero: 1, capacidad: 4, estado: 'libre', responsable: '', cliente: '' },
-            { id: 2, numero: 2, capacidad: 2, estado: 'ocupada', responsable: 'Juan Pérez', cliente: '' },
-            { id: 3, numero: 3, capacidad: 6, estado: 'reservada', responsable: '', cliente: 'María García' },
-            { id: 4, numero: 4, capacidad: 4, estado: 'limpieza', responsable: '', cliente: '' },
-            { id: 5, numero: 5, capacidad: 8, estado: 'libre', responsable: '', cliente: '' },
-            { id: 6, numero: 6, capacidad: 2, estado: 'ocupada', responsable: 'Ana López', cliente: '' },
-            { id: 7, numero: 7, capacidad: 6, estado: 'reservada', responsable: '', cliente: 'Carlos Ruiz' },
-            { id: 8, numero: 8, capacidad: 4, estado: 'libre', responsable: '', cliente: '' }
-        ];
-
-        let currentMesaId = null;
-        let currentFilter = 'all';
-
-        // ==========================================
-        // INICIALIZACIÓN
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-        });
-
-        function initializeApp() {
-            setupSidebar();
-            setupFAB();
-            setupModals();
-            renderMesas();
-            updateCounters();
-        }
-
-        // ==========================================
-        // CONFIGURACIÓN DEL SIDEBAR
-        // ==========================================
-        function setupSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
-            const mobileOverlay = document.getElementById('mobileOverlay');
-            
-            // Toggle móvil
-            if (sidebarToggle && sidebar) {
-                sidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('mobile-open');
-                    mobileOverlay.classList.toggle('active');
-                });
-            }
-            
-            // Toggle desktop (colapsar sidebar)
-            if (sidebarToggleDesktop && sidebar) {
-                sidebarToggleDesktop.addEventListener('click', function() {
-                    sidebar.classList.toggle('collapsed');
-                });
-            }
-            
-            // Cerrar sidebar móvil al hacer click en overlay
-            if (mobileOverlay) {
-                mobileOverlay.addEventListener('click', function() {
-                    sidebar.classList.remove('mobile-open');
-                    mobileOverlay.classList.remove('active');
-                });
-            }
-            
-            // Cerrar sidebar móvil con Escape
-            document.addEventListener('keydown', function(ev) {
-                if (ev.key === "Escape") {
-                    sidebar.classList.remove('mobile-open');
-                    mobileOverlay.classList.remove('active');
-                }
-            });
-            
-            // Cerrar sidebar móvil al cambiar a desktop
-            window.addEventListener('resize', function() {
-                if (window.innerWidth >= 1024) {
-                    sidebar.classList.remove('mobile-open');
-                    mobileOverlay.classList.remove('active');
-                }
-            });
-        }
-
-        // ==========================================
-        // CONFIGURACIÓN DEL FAB
-        // ==========================================
-        function setupFAB() {
-            const fabMain = document.getElementById('fab-main');
-            const fabMenu = document.getElementById('fab-menu');
-            const addBtn = document.getElementById('add-btn');
-            const editBtn = document.getElementById('edit-btn');
-            const deleteBtn = document.getElementById('delete-btn');
-
-            fabMain.addEventListener('click', function() {
-                fabMenu.classList.toggle('hidden');
-                const icon = fabMain.querySelector('i');
-                if (fabMenu.classList.contains('hidden')) {
-                    icon.classList.remove('fa-times');
-                    icon.classList.add('fa-plus');
-                } else {
-                    icon.classList.remove('fa-plus');
-                    icon.classList.add('fa-times');
-                }
-            });
-
-            addBtn.addEventListener('click', function() {
-                showModal('add-modal');
-                closeFABMenu();
-            });
-
-            editBtn.addEventListener('click', function() {
-                showModal('update-modal-step1');
-                closeFABMenu();
-            });
-
-            deleteBtn.addEventListener('click', function() {
-                showModal('delete-modal');
-                closeFABMenu();
-            });
-        }
-
-        function closeFABMenu() {
-            const fabMenu = document.getElementById('fab-menu');
-            const fabMain = document.getElementById('fab-main');
-            fabMenu.classList.add('hidden');
-            const icon = fabMain.querySelector('i');
-            icon.classList.remove('fa-times');
-            icon.classList.add('fa-plus');
-        }
-
-        // ==========================================
-        // CONFIGURACIÓN DE MODALES
-        // ==========================================
-        function setupModals() {
-            // Close modals when clicking outside
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('modal')) {
-                    hideModal(e.target.id);
-                }
-            });
-
-            // Close modals with Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    hideAllModals();
-                    closeFABMenu();
-                }
-            });
-        }
-
-        function showModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.remove('hidden');
-            modal.classList.add('show');
-            setTimeout(() => {
-                modal.querySelector('.modal-content').style.transform = 'scale(1)';
-                modal.querySelector('.modal-content').style.opacity = '1';
-            }, 10);
-        }
-
-        function hideModal(modalId) {
-            const modal = document.getElementById(modalId);
-            const modalContent = modal.querySelector('.modal-content');
-            modalContent.style.transform = 'scale(0.9)';
-            modalContent.style.opacity = '0';
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('show');
-            }, 300);
-        }
-
-        function hideAllModals() {
-            const modals = ['add-modal', 'update-modal-step1', 'update-modal-step2', 'delete-modal'];
-            modals.forEach(modalId => {
-                const modal = document.getElementById(modalId);
-                if (!modal.classList.contains('hidden')) {
-                    hideModal(modalId);
-                }
-            });
-        }
-
-        // ==========================================
-        // RENDERIZADO DE MESAS
-        // ==========================================
-        function renderMesas(filter = 'all') {
-            const container = document.getElementById('mesas-container');
-            const emptyState = document.getElementById('empty-state');
-            
-            currentFilter = filter;
-            container.innerHTML = '';
-
-            const filteredMesas = filter === 'all' ? mesas : mesas.filter(mesa => mesa.estado === filter);
-
-            if (filteredMesas.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            } else {
-                emptyState.classList.add('hidden');
-            }
-
-            filteredMesas.forEach((mesa, index) => {
-                const card = createMesaCard(mesa, index);
-                container.appendChild(card);
-            });
-        }
-
-        function createMesaCard(mesa, index) {
-            const card = document.createElement('div');
-            card.className = `mesa-card mesa-${mesa.estado} bg-white rounded-2xl shadow-lg p-6 border border-slate-100`;
-            card.style.animationDelay = `${index * 0.1}s`;
-            card.classList.add('animate-fade-in');
-
-            const statusConfig = {
-                libre: { icon: 'fa-check-circle', color: 'emerald', text: 'Disponible' },
-                ocupada: { icon: 'fa-users', color: 'red', text: 'Ocupada' },
-                reservada: { icon: 'fa-bookmark', color: 'blue', text: 'Reservada' },
-                limpieza: { icon: 'fa-broom', color: 'amber', text: 'Limpieza' }
-            };
-
-            const config = statusConfig[mesa.estado];
-            
-            let extraInfo = '';
-            if (mesa.estado === 'ocupada' && mesa.responsable) {
-                extraInfo = `
-                    <div class="mt-4 p-3 bg-slate-50 rounded-xl">
-                        <div class="flex items-center text-slate-600">
-                            <i class="fas fa-user-tie mr-2"></i>
-                            <span class="text-sm">Mesero: <strong>${mesa.responsable}</strong></span>
-                        </div>
-                    </div>
-                `;
-            } else if (mesa.estado === 'reservada' && mesa.cliente) {
-                extraInfo = `
-                    <div class="mt-4 p-3 bg-slate-50 rounded-xl">
-                        <div class="flex items-center text-slate-600">
-                            <i class="fas fa-user mr-2"></i>
-                            <span class="text-sm">Cliente: <strong>${mesa.cliente}</strong></span>
-                        </div>
-                    </div>
-                `;
-            }
-
-            card.innerHTML = `
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h3 class="text-2xl font-bold text-slate-800">Mesa ${mesa.numero}</h3>
-                        <p class="text-slate-500 text-sm">ID: ${mesa.id}</p>
-                    </div>
-                    <div class="w-14 h-14 bg-${config.color}-100 rounded-xl flex items-center justify-center">
-                        <i class="fas ${config.icon} text-${config.color}-600 text-xl"></i>
-                    </div>
-                </div>
-
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-600 font-medium">Estado</span>
-                        <div class="flex items-center">
-                            <div class="w-3 h-3 bg-${config.color}-500 rounded-full mr-2"></div>
-                            <span class="text-${config.color}-600 font-semibold">${config.text}</span>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-600 font-medium">Capacidad</span>
-                        <div class="flex items-center">
-                            <i class="fas fa-users text-slate-400 mr-2"></i>
-                            <span class="text-slate-800 font-semibold">${mesa.capacidad} personas</span>
-                        </div>
-                    </div>
-                </div>
-
-                ${extraInfo}
-
-                <div class="mt-6 pt-4 border-t border-slate-100">
-                    <div class="flex justify-center">
-                        <button onclick="cambiarEstadoMesa(${mesa.id})" class="btn-modern px-6 py-2 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg text-sm font-medium hover:from-slate-700 hover:to-slate-800">
-                            <i class="fas fa-sync-alt mr-2"></i>
-                            Cambiar Estado
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            return card;
-        }
-
-        // ==========================================
-        // ACTUALIZACIÓN DE CONTADORES
-        // ==========================================
-        function updateCounters() {
-            const estados = ['libre', 'ocupada', 'reservada', 'limpieza'];
-            estados.forEach(estado => {
-                const count = mesas.filter(mesa => mesa.estado === estado).length;
-                const element = document.getElementById(`count-${estado}`);
-                if (element) {
-                    // Animación del contador
-                    element.style.transform = 'scale(1.2)';
-                    setTimeout(() => {
-                        element.textContent = count;
-                        element.style.transform = 'scale(1)';
-                    }, 150);
-                }
-            });
-        }
-
-        // ==========================================
-        // FILTROS
-        // ==========================================
-        function filterTables(status) {
-            // Update active button
-            document.querySelectorAll('.btn-modern').forEach(btn => {
-                btn.classList.remove('active-filter', 'ring-4', 'ring-opacity-50');
-            });
-            
-            event.target.classList.add('active-filter', 'ring-4', 'ring-opacity-50');
-            
-            renderMesas(status);
-        }
-
-        // ==========================================
-        // FUNCIONES CRUD
-        // ==========================================
-        function closeAdd() {
-            hideModal('add-modal');
-            clearForm('add');
-        }
-
-        function closeUpdate() {
-            hideModal('update-modal-step1');
-            hideModal('update-modal-step2');
-            clearForm('update');
-        }
-
-        function closeDelete() {
-            hideModal('delete-modal');
-            clearForm('delete');
-        }
-
-        function clearForm(type) {
-            const elements = {
-                add: ['add-numero', 'add-capacidad', 'add-message'],
-                update: ['update-search-numero', 'update-numero', 'update-capacidad', 'update-message-step1', 'update-message-step2'],
-                delete: ['delete-numero', 'delete-message']
-            };
-
-            elements[type].forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    if (element.tagName === 'INPUT') {
-                        element.value = '';
-                    } else {
-                        element.textContent = '';
-                        element.className = 'text-center text-sm';
-                    }
-                }
-            });
-        }
-
-        function showMessage(elementId, message, type = 'info') {
-            const element = document.getElementById(elementId);
-            const colors = {
-                success: 'text-emerald-600 bg-emerald-50 border border-emerald-200',
-                error: 'text-red-600 bg-red-50 border border-red-200',
-                warning: 'text-amber-600 bg-amber-50 border border-amber-200',
-                info: 'text-blue-600 bg-blue-50 border border-blue-200'
-            };
-
-            element.textContent = message;
-            element.className = `text-center text-sm p-3 rounded-lg ${colors[type]}`;
-        }
-
-        // ==========================================
-        // AGREGAR MESA
-        // ==========================================
-        function addMesa() {
-            const numero = parseInt(document.getElementById('add-numero').value);
-            const capacidad = parseInt(document.getElementById('add-capacidad').value);
-
-            // Validaciones
-            if (isNaN(numero) || numero < 1 || numero > 99) {
-                showMessage('add-message', 'El número de mesa debe ser entre 1 y 99', 'error');
-                return;
-            }
-
-            if (mesas.some(mesa => mesa.numero === numero)) {
-                showMessage('add-message', 'Ya existe una mesa con este número', 'error');
-                return;
-            }
-
-            if (isNaN(capacidad) || capacidad < 1 || capacidad > 20) {
-                showMessage('add-message', 'La capacidad debe ser entre 1 y 20 personas', 'error');
-                return;
-            }
-
-            // Crear nueva mesa
-            const newId = Math.max(...mesas.map(mesa => mesa.id), 0) + 1;
-            const newMesa = {
-                id: newId,
-                numero: numero,
-                capacidad: capacidad,
-                estado: 'libre',
-                responsable: '',
-                cliente: ''
-            };
-
-            mesas.push(newMesa);
-            showMessage('add-message', '¡Mesa creada exitosamente!', 'success');
-
-            // Update UI
-            renderMesas(currentFilter);
-            updateCounters();
-
-            // Close modal after delay
-            setTimeout(() => {
-                closeAdd();
-            }, 1500);
-        }
-
-        // ==========================================
-        // BUSCAR Y ACTUALIZAR MESA
-        // ==========================================
-        function nextUpdate() {
-            const numero = parseInt(document.getElementById('update-search-numero').value);
-            
-            if (isNaN(numero)) {
-                showMessage('update-message-step1', 'Ingresa un número válido', 'error');
-                return;
-            }
-
-            const mesa = mesas.find(m => m.numero === numero);
-            if (!mesa) {
-                showMessage('update-message-step1', 'No se encontró ninguna mesa con ese número', 'error');
-                return;
-            }
-
-            if (mesa.estado !== 'libre') {
-                showMessage('update-message-step1', 'Solo se pueden editar mesas disponibles', 'warning');
-                return;
-            }
-
-            // Preparar segundo modal
-            currentMesaId = mesa.id;
-            document.getElementById('update-numero').value = mesa.numero;
-            document.getElementById('update-capacidad').value = mesa.capacidad;
-
-            // Switch modals
-            hideModal('update-modal-step1');
-            setTimeout(() => {
-                showModal('update-modal-step2');
-            }, 300);
-        }
-
-        function updateMesa() {
-            const numero = parseInt(document.getElementById('update-numero').value);
-            const capacidad = parseInt(document.getElementById('update-capacidad').value);
-
-            // Validaciones
-            if (isNaN(numero) || numero < 1 || numero > 99) {
-                showMessage('update-message-step2', 'El número debe ser entre 1 и 99', 'error');
-                return;
-            }
-
-            if (mesas.some(mesa => mesa.numero === numero && mesa.id !== currentMesaId)) {
-                showMessage('update-message-step2', 'Ya existe otra mesa con este número', 'error');
-                return;
-            }
-
-            if (isNaN(capacidad) || capacidad < 1 || capacidad > 20) {
-                showMessage('update-message-step2', 'La capacidad debe ser entre 1 y 20', 'error');
-                return;
-            }
-
-            // Actualizar mesa
-            const mesa = mesas.find(m => m.id === currentMesaId);
-            if (mesa) {
-                mesa.numero = numero;
-                mesa.capacidad = capacidad;
-                
-                showMessage('update-message-step2', '¡Mesa actualizada correctamente!', 'success');
-                
-                // Update UI
-                renderMesas(currentFilter);
-                updateCounters();
-
-                // Close modal
-                setTimeout(() => {
-                    closeUpdate();
-                }, 1500);
-            }
-        }
-
-        // ==========================================
-        // ELIMINAR MESA
-        // ==========================================
-        function deleteMesa() {
-            const numero = parseInt(document.getElementById('delete-numero').value);
-            
-            if (isNaN(numero)) {
-                showMessage('delete-message', 'Ingresa un número válido', 'error');
-                return;
-            }
-
-            const index = mesas.findIndex(mesa => mesa.numero === numero);
-            if (index === -1) {
-                showMessage('delete-message', 'No se encontró la mesa', 'error');
-                return;
-            }
-
-            const mesa = mesas[index];
-            if (mesa.estado !== 'libre') {
-                showMessage('delete-message', 'Solo se pueden eliminar mesas disponibles', 'warning');
-                return;
-            }
-
-            // Eliminar mesa
-            mesas.splice(index, 1);
-            showMessage('delete-message', '¡Mesa eliminada correctamente!', 'success');
-
-            // Update UI
-            renderMesas(currentFilter);
-            updateCounters();
-
-            // Close modal
-            setTimeout(() => {
-                closeDelete();
-            }, 1500);
-        }
-
-        // ==========================================
-        // CAMBIAR ESTADO DE MESA
-        // ==========================================
-        function cambiarEstadoMesa(mesaId) {
-            const mesa = mesas.find(m => m.id === mesaId);
-            if (!mesa) return;
-
-            const estados = ['libre', 'ocupada', 'reservada', 'limpieza'];
-            const currentIndex = estados.indexOf(mesa.estado);
-            const nextIndex = (currentIndex + 1) % estados.length;
-            
-            mesa.estado = estados[nextIndex];
-            
-            // Simulate responsable/cliente data
-            if (mesa.estado === 'ocupada') {
-                const meseros = ['Juan Pérez', 'Ana López', 'Carlos Ruiz', 'María González'];
-                mesa.responsable = meseros[Math.floor(Math.random() * meseros.length)];
-                mesa.cliente = '';
-            } else if (mesa.estado === 'reservada') {
-                const clientes = ['María García', 'Pedro Martínez', 'Laura Sánchez', 'Diego Torres'];
-                mesa.cliente = clientes[Math.floor(Math.random() * clientes.length)];
-                mesa.responsable = '';
-            } else {
-                mesa.responsable = '';
-                mesa.cliente = '';
-            }
-
-            renderMesas(currentFilter);
-            updateCounters();
-        }
-
-        // ------- Menú usuario navbar: se inyecta automáticamente --------
-        document.addEventListener('DOMContentLoaded', function() {
-            // Encuentra el avatar del usuario
-            let userBtn = document.querySelector('.navbar-user-avatar');
-            if (userBtn) {
-                userBtn.style.position = 'relative';
-                
-                // Crea el menú solo si no existe aún
-                if (!document.getElementById('userDropdown')) {
-                    // Contenedor de dropdown
-                    const dropdown = document.createElement('div');
-                    dropdown.className = 'user-dropdown';
-                    dropdown.id = 'userDropdown';
-                    dropdown.innerHTML = `
-                        <button class="user-dropdown-item" id="logoutBtn">
-                            <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
-                        </button>
-                    `;
-                    userBtn.parentNode.style.position = "relative";
-                    userBtn.parentNode.appendChild(dropdown);
-
-                    // Overlay para cerrar el menú al hacer click fuera
-                    const overlay = document.createElement('div');
-                    overlay.className = 'user-dropdown-overlay';
-                    overlay.id = 'userDropdownOverlay';
-                    document.body.appendChild(overlay);
-
-                    // Mostrar/ocultar menú al hacer click en el avatar
-                    userBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        dropdown.classList.toggle('show');
-                        overlay.classList.toggle('active');
-                    });
-
-                    // Cerrar si clic fuera
-                    overlay.addEventListener('click', function() {
-                        dropdown.classList.remove('show');
-                        overlay.classList.remove('active');
-                    });
-
-                    // Cerrar con Esc
-                    document.addEventListener('keydown', function(ev) {
-                        if (ev.key === "Escape") {
-                            dropdown.classList.remove('show');
-                            overlay.classList.remove('active');
-                        }
-                    });
-
-                    // Acción cerrar sesión
-                    document.getElementById('logoutBtn').addEventListener('click', function() {
-                        dropdown.classList.remove('show');
-                        overlay.classList.remove('active');
-                        window.location.href = "inicioSesion.html";
-                    });
-                }
-            }
-        });
-
-        // Animaciones de entrada escalonada para las cards
-        document.addEventListener('DOMContentLoaded', function() {
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver(function(entries) {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, observerOptions);
-
-            // Observar elementos con animación
-            document.querySelectorAll('.animate-fade-in').forEach(el => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(20px)';
-                el.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-                observer.observe(el);
-            });
-        });
-
-        // Efectos hover mejorados para las mesas
-        document.addEventListener('DOMContentLoaded', function() {
-            const tableStatus = document.querySelectorAll('.mesa-card');
-            
-            tableStatus.forEach(table => {
-                table.addEventListener('mouseenter', function() {
-                    this.style.transform = 'scale(1.05) rotate(2deg)';
-                });
-                
-                table.addEventListener('mouseleave', function() {
-                    this.style.transform = 'scale(1) rotate(0deg)';
-                });
-                
-                table.addEventListener('click', function() {
-                    // Efecto de click
-                    this.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        this.style.transform = 'scale(1.05) rotate(2deg)';
-                    }, 150);
-                });
-            });
-        });
-    </script>
+    <script src="js/mesas.js"></script>
 </body>
+
 </html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -59,6 +60,7 @@
                 opacity: 0;
                 transform: scale(0.95) translateY(20px);
             }
+
             100% {
                 opacity: 1;
                 transform: scale(1) translateY(0);
@@ -148,9 +150,19 @@
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
         }
 
         .input-wrapper input {
@@ -277,9 +289,19 @@
         }
 
         @keyframes float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(30px, -30px) rotate(120deg); }
-            66% { transform: translate(-20px, 20px) rotate(240deg); }
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(30px, -30px) rotate(120deg);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) rotate(240deg);
+            }
         }
 
         .info-content {
@@ -314,30 +336,30 @@
                 max-width: 500px;
                 min-height: auto;
             }
-            
+
             .form-section {
                 padding: 30px 20px;
                 order: 2;
             }
-            
+
             .info-section {
                 padding: 30px 20px;
                 min-height: 200px;
                 order: 1;
             }
-            
+
             .info-content {
                 gap: 15px;
             }
-            
+
             .info-content h3 {
                 font-size: 24px;
             }
-            
+
             .info-content p {
                 font-size: 14px;
             }
-            
+
             .submit-btn {
                 max-width: 100%;
             }
@@ -347,38 +369,39 @@
             .form-section {
                 padding: 20px 15px;
             }
-            
+
             .info-section {
                 padding: 20px 15px;
                 min-height: 180px;
             }
-            
+
             .form-container h2 {
                 font-size: 20px;
             }
-            
+
             .input-wrapper {
                 height: 45px;
                 padding: 0 15px;
             }
-            
+
             .input-wrapper input {
                 font-size: 14px;
             }
-            
+
             .info-content {
                 padding: 0 10px;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="main-container">
         <div class="form-section">
             <div class="form-container">
                 <h2>Nueva Contraseña</h2>
                 <span>Ingrese y confirme su nueva contraseña</span>
-                
+
                 <div class="input-container">
                     <div class="input-wrapper" id="newPasswordWrapper">
                         <ion-icon name="lock-closed-outline"></ion-icon>
@@ -402,15 +425,16 @@
                 </button>
             </div>
         </div>
-        
+
         <div class="info-section">
             <div class="info-content">
                 <h3>¡Restablecer!</h3>
-                <p>Restablezca su contraseña, cumpliendo los requisitos: 
-                   <br>- Mínimo 8 caracteres
-                   <br>- No espacios
-                   <br>- Mínimo 1 número
-                   <br>- Mínimo 1 caracter especial</p>
+                <p>Restablezca su contraseña, cumpliendo los requisitos:
+                    <br>- Mínimo 8 caracteres
+                    <br>- No espacios
+                    <br>- Mínimo 1 número
+                    <br>- Mínimo 1 caracter especial
+                </p>
             </div>
         </div>
     </div>
@@ -418,7 +442,7 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const newPasswordInput = document.getElementById('newPassword');
             const confirmPasswordInput = document.getElementById('confirmPassword');
             const newPasswordError = document.getElementById('newPasswordError');
@@ -449,7 +473,7 @@
 
             // Toggle para mostrar/ocultar contraseña
             if (toggleNewPassword && newPasswordInput) {
-                toggleNewPassword.addEventListener('click', function() {
+                toggleNewPassword.addEventListener('click', function () {
                     const type = newPasswordInput.type === 'password' ? 'text' : 'password';
                     newPasswordInput.type = type;
                     this.setAttribute('name', type === 'password' ? 'eye-outline' : 'eye-off-outline');
@@ -457,7 +481,7 @@
             }
 
             if (toggleConfirmPassword && confirmPasswordInput) {
-                toggleConfirmPassword.addEventListener('click', function() {
+                toggleConfirmPassword.addEventListener('click', function () {
                     const type = confirmPasswordInput.type === 'password' ? 'text' : 'password';
                     confirmPasswordInput.type = type;
                     this.setAttribute('name', type === 'password' ? 'eye-outline' : 'eye-off-outline');
@@ -467,38 +491,38 @@
             // Validación de contraseña
             function validatePassword(password) {
                 const errors = [];
-                
+
                 if (password.length < 8) {
                     errors.push("La contraseña debe tener al menos 8 caracteres");
                 }
-                
+
                 if (/\s/.test(password)) {
                     errors.push("La contraseña no puede contener espacios");
                 }
-                
+
                 if (!/\d/.test(password)) {
                     errors.push("La contraseña debe contener al menos 1 número");
                 }
-                
+
                 if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
                     errors.push("La contraseña debe contener al menos 1 caracter especial");
                 }
-                
+
                 return errors;
             }
 
             // Validar al escribir
             if (newPasswordInput) {
-                newPasswordInput.addEventListener('input', function() {
+                newPasswordInput.addEventListener('input', function () {
                     const password = this.value;
                     const errors = validatePassword(password);
-                    
+
                     if (errors.length > 0) {
                         showError(newPasswordWrapper, newPasswordError, errors.join('. '));
                     } else {
                         clearError(newPasswordWrapper, newPasswordError);
                     }
-                    
+
                     if (confirmPasswordInput && confirmPasswordInput.value) {
                         if (password !== confirmPasswordInput.value) {
                             showError(confirmPasswordWrapper, confirmPasswordError, "Las contraseñas no coinciden");
@@ -510,7 +534,7 @@
             }
 
             if (confirmPasswordInput) {
-                confirmPasswordInput.addEventListener('input', function() {
+                confirmPasswordInput.addEventListener('input', function () {
                     if (newPasswordInput && newPasswordInput.value !== this.value) {
                         showError(confirmPasswordWrapper, confirmPasswordError, "Las contraseñas no coinciden");
                     } else {
@@ -521,29 +545,29 @@
 
             // Envío del formulario
             if (submitBtn) {
-                submitBtn.addEventListener('click', function(e) {
+                submitBtn.addEventListener('click', function (e) {
                     e.preventDefault();
-                    
+
                     const newPassword = newPasswordInput ? newPasswordInput.value : '';
                     const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : '';
                     const passwordErrors = validatePassword(newPassword);
                     let isValid = true;
-                    
+
                     if (passwordErrors.length > 0) {
                         showError(newPasswordWrapper, newPasswordError, passwordErrors.join('. '));
                         isValid = false;
                     }
-                    
+
                     if (newPassword !== confirmPassword) {
                         showError(confirmPasswordWrapper, confirmPasswordError, "Las contraseñas no coinciden");
                         isValid = false;
                     }
-                    
+
                     if (isValid) {
                         this.disabled = true;
                         const originalText = this.textContent;
                         this.innerHTML = '<span class="loading"></span>';
-                        
+
                         // Simulamos un envío al servidor
                         setTimeout(() => {
                             alert('Contraseña restablecida con éxito');
@@ -558,4 +582,5 @@
         });
     </script>
 </body>
+
 </html>

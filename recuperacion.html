@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -59,6 +60,7 @@
                 opacity: 0;
                 transform: scale(0.95) translateY(20px);
             }
+
             100% {
                 opacity: 1;
                 transform: scale(1) translateY(0);
@@ -78,7 +80,8 @@
             max-width: 320px;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Esto centra todo el contenido */
+            align-items: center;
+            /* Esto centra todo el contenido */
         }
 
         .form-container h2 {
@@ -148,9 +151,19 @@
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
         }
 
         .input-wrapper input {
@@ -265,9 +278,19 @@
         }
 
         @keyframes float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(30px, -30px) rotate(120deg); }
-            66% { transform: translate(-20px, 20px) rotate(240deg); }
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(30px, -30px) rotate(120deg);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) rotate(240deg);
+            }
         }
 
         .info-content {
@@ -322,26 +345,26 @@
                 max-width: 500px;
                 min-height: auto;
             }
-            
+
             .form-section {
                 padding: 30px 20px;
                 order: 2;
             }
-            
+
             .info-section {
                 padding: 30px 20px;
                 min-height: 200px;
                 order: 1;
             }
-            
+
             .info-content h3 {
                 font-size: 24px;
             }
-            
+
             .info-content p {
                 font-size: 14px;
             }
-            
+
             .button {
                 max-width: 100%;
             }
@@ -351,34 +374,35 @@
             .form-section {
                 padding: 20px 15px;
             }
-            
+
             .info-section {
                 padding: 20px 15px;
                 min-height: 180px;
             }
-            
+
             .form-container h2 {
                 font-size: 20px;
             }
-            
+
             .input-wrapper {
                 height: 45px;
                 padding: 0 15px;
             }
-            
+
             .input-wrapper input {
                 font-size: 14px;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="main-container">
         <div class="form-section">
             <div class="form-container">
                 <h2>Buscar tu correo</h2>
                 <span>Ingrese su correo de recuperación</span>
-                
+
                 <div class="input-container">
                     <div class="input-wrapper" id="emailWrapper">
                         <ion-icon name="mail-outline"></ion-icon>
@@ -392,11 +416,12 @@
                 </button>
             </div>
         </div>
-        
+
         <div class="info-section">
             <div class="info-content">
                 <h3>¿Olvidaste?</h3>
-                <p>No te preocupes, ingresa tu correo y se te enviará un PIN de seguridad con el cual podrás recuperar tu contraseña.</p>
+                <p>No te preocupes, ingresa tu correo y se te enviará un PIN de seguridad con el cual podrás recuperar
+                    tu contraseña.</p>
             </div>
         </div>
     </div>
@@ -404,7 +429,7 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const emailInput = document.getElementById('txtCorreo');
             const emailError = document.getElementById('emailError');
             const emailWrapper = document.getElementById('emailWrapper');
@@ -431,13 +456,13 @@
             // Validación de email
             function validateEmail(email) {
                 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                
+
                 if (!email) {
                     return "El correo electrónico es requerido";
                 } else if (!emailRegex.test(email)) {
                     return "Formato de correo inválido (ejemplo: usuario@dominio.com)";
                 }
-                
+
                 return null;
             }
 
@@ -446,7 +471,7 @@
                 emailInput.addEventListener('input', (e) => {
                     // Remover espacios y convertir a minúsculas automáticamente
                     e.target.value = e.target.value.replace(/\s/g, '').toLowerCase();
-                    
+
                     // Limpiar error si existe
                     if (emailWrapper.classList.contains('error')) {
                         clearError(emailWrapper, emailError);
@@ -465,12 +490,12 @@
 
             // Envío del formulario
             if (btnSignUp) {
-                btnSignUp.addEventListener('click', function(e) {
+                btnSignUp.addEventListener('click', function (e) {
                     e.preventDefault();
-                    
+
                     const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
                     const error = validateEmail(email);
-                    
+
                     if (error) {
                         showError(emailWrapper, emailError, error);
                         return;
@@ -479,7 +504,7 @@
                     this.disabled = true;
                     const originalText = this.textContent;
                     this.innerHTML = '<span class="loading"></span>';
-                    
+
                     // Simulamos un envío al servidor
                     setTimeout(() => {
                         alert('PIN enviado correctamente a ' + email);
@@ -491,11 +516,12 @@
 
             // Botón alternativo
             if (btnSignIn) {
-                btnSignIn.addEventListener('click', function() {
+                btnSignIn.addEventListener('click', function () {
                     emailInput.focus();
                 });
             }
         });
     </script>
 </body>
+
 </html>

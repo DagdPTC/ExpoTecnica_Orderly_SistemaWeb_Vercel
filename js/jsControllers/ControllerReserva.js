@@ -9,22 +9,22 @@ const $ = (s) => document.querySelector(s);
 const pad2 = (n) => String(n).padStart(2, "0");
 const pick = (obj, keys) => { for (const k of keys) if (obj?.[k] !== undefined && obj?.[k] !== null) return obj[k]; return null; };
 
-const getFecha  = (r) => pick(r, ["fReserva","FReserva","fechaReserva","fecha_reserva","fecha"]);
-const getHoraI  = (r) => pick(r, ["horaI","HoraI","horai","horaInicio","hora_inicio"]);
-const getHoraF  = (r) => pick(r, ["horaF","HoraF","horaf","horaFin","hora_fin"]);
-const getIdMesa = (r) => { const v = pick(r, ["idMesa","IdMesa","idmesa","mesaId","id_mesa"]); return v==null?null:Number(v); };
+const getFecha = (r) => pick(r, ["fReserva", "FReserva", "fechaReserva", "fecha_reserva", "fecha"]);
+const getHoraI = (r) => pick(r, ["horaI", "HoraI", "horai", "horaInicio", "hora_inicio"]);
+const getHoraF = (r) => pick(r, ["horaF", "HoraF", "horaf", "horaFin", "hora_fin"]);
+const getIdMesa = (r) => { const v = pick(r, ["idMesa", "IdMesa", "idmesa", "mesaId", "id_mesa"]); return v == null ? null : Number(v); };
 
 const toInputDate = (v) => {
   if (!v) return "";
   const s = String(v);
-  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) { const [d,m,y] = s.split("/"); return `${y}-${pad2(m)}-${pad2(d)}`; }
-  return s.length>=10 ? s.slice(0,10) : s;
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) { const [d, m, y] = s.split("/"); return `${y}-${pad2(m)}-${pad2(d)}`; }
+  return s.length >= 10 ? s.slice(0, 10) : s;
 };
-const toInputTime = (v) => v ? String(v).slice(0,5) : "";
-const formatDate  = (v) => { const iso = toInputDate(v); if(!iso) return ""; const [y,m,d] = iso.split("-"); return `${d}/${m}/${y}`; };
-const formatTime  = (v) => toInputTime(v) || "--:--";
-const makeDT      = (iso, hhmm) => new Date(`${iso}T${hhmm}:00`);
+const toInputTime = (v) => v ? String(v).slice(0, 5) : "";
+const formatDate = (v) => { const iso = toInputDate(v); if (!iso) return ""; const [y, m, d] = iso.split("-"); return `${d}/${m}/${y}`; };
+const formatTime = (v) => toInputTime(v) || "--:--";
+const makeDT = (iso, hhmm) => new Date(`${iso}T${hhmm}:00`);
 
 /* ========= Estado ========= */
 let currentPage = 0;
@@ -74,8 +74,8 @@ async function bootstrapCatalogs() {
     if (pTiposMesa.status === "fulfilled") {
       const list = pTiposMesa.value?.content ?? pTiposMesa.value ?? [];
       list.forEach(t => {
-        const id  = Number(pick(t, ["id","Id","idTipoMesa"]));
-        const cap = Number(pick(t, ["capacidadPersonas","capacidad","capacidad_personas"])) || 0;
+        const id = Number(pick(t, ["id", "Id", "idTipoMesa"]));
+        const cap = Number(pick(t, ["capacidadPersonas", "capacidad", "capacidad_personas"])) || 0;
         if (!Number.isNaN(id)) tipoMesaCap.set(id, cap);
       });
     }
@@ -86,9 +86,9 @@ async function bootstrapCatalogs() {
         ? (pMesas.value?.content ?? pMesas.value ?? [])
         : [];
       mesas = list.map(m => ({
-        id: Number(pick(m, ["id","Id"])) || null,
-        nomMesa: pick(m, ["nomMesa","NomMesa","nombre","mesa"]) ?? `Mesa ${pick(m, ["id","Id"])}`,
-        idTipoMesa: Number(pick(m, ["idTipoMesa","IdTipoMesa","idtipomesa","tipoMesaId","id_tipo_mesa"])) || null,
+        id: Number(pick(m, ["id", "Id"])) || null,
+        nomMesa: pick(m, ["nomMesa", "NomMesa", "nombre", "mesa"]) ?? `Mesa ${pick(m, ["id", "Id"])}`,
+        idTipoMesa: Number(pick(m, ["idTipoMesa", "IdTipoMesa", "idtipomesa", "tipoMesaId", "id_tipo_mesa"])) || null,
       })).filter(x => x.id !== null);
     }
 
@@ -119,11 +119,11 @@ async function refreshEstados() {
     estados.clear();
     const list = resp?.content ?? resp ?? [];
     list.forEach(e => {
-      const n  = String(pick(e, ["nomEstado","NomEstado","nombre"]) || "").toLowerCase();
-      const id = Number(pick(e, ["id","Id"]));
+      const n = String(pick(e, ["nomEstado", "NomEstado", "nombre"]) || "").toLowerCase();
+      const id = Number(pick(e, ["id", "Id"]));
       if (n && !Number.isNaN(id)) estados.set(n, id);
     });
-  } catch(e) {
+  } catch (e) {
     console.warn("No se pudo refrescar EstadosReserva:", e);
   }
 }
@@ -148,7 +148,7 @@ function renderTable() {
     .filter(r => {
       const k = computeStatusKey(getFecha(r), getHoraI(r), getHoraF(r));
       const okStatus = status === "all" || k === status;
-      const text = `${r.nomCliente||""} ${r.telefono||""} ${formatDate(getFecha(r))||""}`.toLowerCase();
+      const text = `${r.nomCliente || ""} ${r.telefono || ""} ${formatDate(getFecha(r)) || ""}`.toLowerCase();
       return okStatus && text.includes(q);
     })
     .map(r => rowHtml(r))
@@ -194,15 +194,15 @@ function rowHtml(r) {
     <td class="px-6 py-4">
       <div class="flex items-center">
         <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-          ${((r.nomCliente||'?')[0]||'?').toUpperCase()}
+          ${((r.nomCliente || '?')[0] || '?').toUpperCase()}
         </div>
-        <div class="ml-4"><div class="text-sm font-medium text-gray-900">${r.nomCliente||''}</div></div>
+        <div class="ml-4"><div class="text-sm font-medium text-gray-900">${r.nomCliente || ''}</div></div>
       </div>
     </td>
-    <td class="px-6 py-4 text-sm text-gray-900"><i class="fas fa-phone text-gray-400 mr-2"></i>${r.telefono||''}</td>
-    <td class="px-6 py-4 text-sm text-gray-900"><i class="fas fa-calendar text-gray-400 mr-2"></i>${formatDate(fecha)||'-'}</td>
+    <td class="px-6 py-4 text-sm text-gray-900"><i class="fas fa-phone text-gray-400 mr-2"></i>${r.telefono || ''}</td>
+    <td class="px-6 py-4 text-sm text-gray-900"><i class="fas fa-calendar text-gray-400 mr-2"></i>${formatDate(fecha) || '-'}</td>
     <td class="px-6 py-4 text-sm text-gray-900"><i class="fas fa-clock text-gray-400 mr-2"></i>${formatTime(horaI)} - ${formatTime(horaF)}</td>
-    <td class="px-6 py-4 text-sm text-gray-900"><i class="fas fa-users text-gray-400 mr-2"></i>${r.cantidadPersonas||0}</td>
+    <td class="px-6 py-4 text-sm text-gray-900"><i class="fas fa-users text-gray-400 mr-2"></i>${r.cantidadPersonas || 0}</td>
     <td class="px-6 py-4 text-sm text-gray-900">${nombreMesa}</td>
     <td class="px-6 py-4">${statusPill(estadoKey)}</td>
     <td class="px-6 py-4 text-sm font-medium">
@@ -214,27 +214,27 @@ function rowHtml(r) {
   </tr>`;
 }
 window.__editRes = (id) => openEditModal(id);
-window.__delRes  = async (id) => {
+window.__delRes = async (id) => {
   if (!confirm("¿Eliminar esta reservación?")) return;
-  try { await deleteReserva(id); await loadAndRender(); } catch(e){ console.error(e); alert("No se pudo eliminar."); }
+  try { await deleteReserva(id); await loadAndRender(); } catch (e) { console.error(e); alert("No se pudo eliminar."); }
 };
 
 /* ========= Paginación ========= */
 function renderPagination() {
   const totalPages = rawPage?.totalPages ?? 1;
-  const number     = rawPage?.number     ?? 0;
+  const number = rawPage?.number ?? 0;
 
   const prev = $("#prev-page");
   const next = $("#next-page");
   const curr = $("#current-page");
-  const tot  = $("#total-pages");
+  const tot = $("#total-pages");
   const nums = $("#page-numbers");
   const cont = $("#pagination-container");
 
   if (!prev || !next || !curr || !tot || !nums || !cont) return;
 
   curr.textContent = number + 1;
-  tot.textContent  = totalPages;
+  tot.textContent = totalPages;
 
   prev.disabled = number <= 0;
   next.disabled = number >= totalPages - 1;
@@ -244,13 +244,13 @@ function renderPagination() {
 
   nums.innerHTML = "";
   const max = 5;
-  let start = Math.max(0, number - Math.floor(max/2));
-  let end   = Math.min(totalPages - 1, start + max - 1);
+  let start = Math.max(0, number - Math.floor(max / 2));
+  let end = Math.min(totalPages - 1, start + max - 1);
   if (end - start + 1 < max) start = Math.max(0, end - max + 1);
   for (let i = start; i <= end; i++) {
     const b = document.createElement("button");
-    b.className = `pagination-btn ${i===number?'active':''}`;
-    b.textContent = String(i+1);
+    b.className = `pagination-btn ${i === number ? 'active' : ''}`;
+    b.textContent = String(i + 1);
     b.onclick = () => { currentPage = i; loadAndRender(); };
     nums.appendChild(b);
   }
@@ -271,13 +271,13 @@ function openEditModal(id) {
   editingId = id;
   $("#reservation-modal-title").textContent = "Editar Reservación";
 
-  $("#customer-name").value  = r.nomCliente || "";
+  $("#customer-name").value = r.nomCliente || "";
   $("#customer-phone").value = r.telefono || "";
-  $("#reservation-date").value      = toInputDate(getFecha(r));
-  $("#reservation-time").value      = toInputTime(getHoraI(r));
-  $("#reservation-end-time").value  = toInputTime(getHoraF(r));
-  $("#guest-count").value           = r.cantidadPersonas || 1;
-  $("#tipo-reserva-select").value   = r.idTipoReserva || "";
+  $("#reservation-date").value = toInputDate(getFecha(r));
+  $("#reservation-time").value = toInputTime(getHoraI(r));
+  $("#reservation-end-time").value = toInputTime(getHoraF(r));
+  $("#guest-count").value = r.cantidadPersonas || 1;
+  $("#tipo-reserva-select").value = r.idTipoReserva || "";
 
   selectedMesaId = getIdMesa(r);
   renderMesasGrid();
@@ -290,12 +290,12 @@ function resetForm() {
   renderMesasGrid();
   hideMsg();
 }
-function showModal(show){ 
+function showModal(show) {
   const m = $("#reservation-modal");
   show ? m.classList.remove("hidden") : m.classList.add("hidden");
   document.body.style.overflow = show ? "hidden" : "auto";
 }
-function closeModal(){ showModal(false); }
+function closeModal() { showModal(false); }
 
 /* ========= Grid de mesas ========= */
 function renderMesasGrid() {
@@ -328,30 +328,30 @@ function renderMesasGrid() {
 }
 
 /* ========= Estado (auto) ========= */
-function computeStatusKey(fReserva, horaI, horaF){
+function computeStatusKey(fReserva, horaI, horaF) {
   if (!fReserva || !horaI || !horaF) return "pending";
   const start = makeDT(toInputDate(fReserva), toInputTime(horaI));
-  const end   = makeDT(toInputDate(fReserva), toInputTime(horaF));
+  const end = makeDT(toInputDate(fReserva), toInputTime(horaF));
   const now = new Date();
   if (now < start) return "pending";
   if (now >= start && now <= end) return "in-progress";
   return "completed";
 }
-function statusPill(k){
+function statusPill(k) {
   const m = {
-    "pending":     {cls:"bg-yellow-100 text-yellow-800", icon:"fa-clock",    txt:"Pendiente"},
-    "in-progress": {cls:"bg-blue-100 text-blue-800",     icon:"fa-utensils", txt:"En curso"},
-    "completed":   {cls:"bg-green-100 text-green-800",   icon:"fa-check",    txt:"Completada"},
-  }[k] || {cls:"bg-gray-100 text-gray-800", icon:"fa-question", txt:"-"};
+    "pending": { cls: "bg-yellow-100 text-yellow-800", icon: "fa-clock", txt: "Pendiente" },
+    "in-progress": { cls: "bg-blue-100 text-blue-800", icon: "fa-utensils", txt: "En curso" },
+    "completed": { cls: "bg-green-100 text-green-800", icon: "fa-check", txt: "Completada" },
+  }[k] || { cls: "bg-gray-100 text-gray-800", icon: "fa-question", txt: "-" };
   return `<span class="px-3 py-1 rounded-full text-xs font-medium ${m.cls}">
             <i class="fas ${m.icon} mr-1"></i>${m.txt}
           </span>`;
 }
-function estadoIdDesdeClave(key){
+function estadoIdDesdeClave(key) {
   const candidatos = {
-    "pending":     ["pendiente", "espera"],
+    "pending": ["pendiente", "espera"],
     "in-progress": ["proceso", "en proceso"],
-    "completed":   ["finalizada", "finalizado", "completada", "completado"],
+    "completed": ["finalizada", "finalizado", "completada", "completado"],
   }[key] || [];
 
   for (const n of estados.keys()) {
@@ -366,18 +366,18 @@ async function submitForm(e) {
   e.preventDefault();
   hideMsg();
 
-  if (!validateName())  return showMsg("Nombre inválido. Solo letras y mínimo 2 palabras.");
+  if (!validateName()) return showMsg("Nombre inválido. Solo letras y mínimo 2 palabras.");
   if (!validatePhone()) return showMsg("Teléfono inválido. Formato: 0000-0000.");
-  if (!selectedMesaId)  return showMsg("Selecciona una mesa.");
+  if (!selectedMesaId) return showMsg("Selecciona una mesa.");
 
   const tipoSel = $("#tipo-reserva-select").value;
   if (!tipoSel) return showMsg("Seleccione un tipo de reserva.");
 
-  const f  = $("#reservation-date").value;                 // "yyyy-MM-dd"
-  const hi = ($("#reservation-time").value || "").slice(0,5);
-  const hf = ($("#reservation-end-time").value || "").slice(0,5);
+  const f = $("#reservation-date").value;                 // "yyyy-MM-dd"
+  const hi = ($("#reservation-time").value || "").slice(0, 5);
+  const hf = ($("#reservation-end-time").value || "").slice(0, 5);
 
-  if (!f)  return showMsg("La fecha es obligatoria.");
+  if (!f) return showMsg("La fecha es obligatoria.");
   if (!hi) return showMsg("La hora inicio es obligatoria.");
   if (!hf) return showMsg("La hora fin es obligatoria.");
   if (!validateTimes()) return;
@@ -386,7 +386,7 @@ async function submitForm(e) {
   await refreshEstados();
 
   const estadoKey = computeStatusKey(f, hi, hf);
-  const idEstado  = estadoIdDesdeClave(estadoKey);
+  const idEstado = estadoIdDesdeClave(estadoKey);
 
   const payload = {
     nomCliente: $("#customer-name").value.trim(),
@@ -402,7 +402,7 @@ async function submitForm(e) {
 
   try {
     if (editingId) await updateReserva(editingId, payload);
-    else           await createReserva(payload);
+    else await createReserva(payload);
     closeModal();
     await loadAndRender();
   } catch (err) {
@@ -449,7 +449,7 @@ function validatePhone() {
   toggleInvalid("customer-phone", !ok);
   return ok;
 }
-function validateTimes(){
+function validateTimes() {
   const s = $("#reservation-time").value;
   const e = $("#reservation-end-time").value;
   if (!s || !e) return true;
@@ -457,44 +457,44 @@ function validateTimes(){
 
   const [sh, sm] = s.split(":").map(Number);
   const [eh, em] = e.split(":").map(Number);
-  if ((eh*60+em) - (sh*60+sm) < 30) { showMsg("Duración mínima 30 minutos."); return false; }
+  if ((eh * 60 + em) - (sh * 60 + sm) < 30) { showMsg("Duración mínima 30 minutos."); return false; }
   hideMsg(); return true;
 }
-function ensureEndMin(){
+function ensureEndMin() {
   const start = $("#reservation-time").value;
   if (!start) return;
   const end = $("#reservation-end-time");
-  const [h,m] = start.split(":").map(Number);
-  const d = new Date(0,0,0,h,m+30);
+  const [h, m] = start.split(":").map(Number);
+  const d = new Date(0, 0, 0, h, m + 30);
   end.min = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
   if (end.value && end.value < end.min) end.value = end.min;
 }
-function toggleInvalid(id, bad){
+function toggleInvalid(id, bad) {
   const el = document.getElementById(id);
   if (!el) return;
   el.classList.toggle("invalid", !!bad);
 }
-function showMsg(msg){
+function showMsg(msg) {
   const m = $("#reservation-message");
   if (!m) return;
   m.textContent = msg;
   m.className = "block px-4 py-2 rounded-lg bg-red-50 text-red-700 border border-red-200";
 }
-function hideMsg(){
+function hideMsg() {
   const m = $("#reservation-message");
   if (!m) return;
   m.className = "hidden"; m.textContent = "";
 }
 
 /* ========= Estadísticas ========= */
-function updateStats(){
-  const total   = reservas.length;
+function updateStats() {
+  const total = reservas.length;
   const pending = reservas.filter(r => computeStatusKey(getFecha(r), getHoraI(r), getHoraF(r)) === "pending").length;
-  const inprog  = reservas.filter(r => computeStatusKey(getFecha(r), getHoraI(r), getHoraF(r)) === "in-progress").length;
-  const compl   = reservas.filter(r => computeStatusKey(getFecha(r), getHoraI(r), getHoraF(r)) === "completed").length;
+  const inprog = reservas.filter(r => computeStatusKey(getFecha(r), getHoraI(r), getHoraF(r)) === "in-progress").length;
+  const compl = reservas.filter(r => computeStatusKey(getFecha(r), getHoraI(r), getHoraF(r)) === "completed").length;
 
-  ($("#total-reservations")||{}).textContent = total;
-  ($("#pending-reservations")||{}).textContent = pending;
-  ($("#in-progress-reservations")||{}).textContent = inprog;
-  ($("#cancelled-reservations")||{}).textContent = 0;
+  ($("#total-reservations") || {}).textContent = total;
+  ($("#pending-reservations") || {}).textContent = pending;
+  ($("#in-progress-reservations") || {}).textContent = inprog;
+  ($("#cancelled-reservations") || {}).textContent = 0;
 }

@@ -22,10 +22,11 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
-        h3 { 
+        h3 {
 
             text-align: center;
         }
+
         body {
             width: 100%;
             height: 100vh;
