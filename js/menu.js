@@ -1,4 +1,3 @@
-// Datos iniciales con imágenes corregidas
 let categorias = [
     { id: 1, nombre: "Entradas" },
     { id: 2, nombre: "Platos Fuertes" },
@@ -11,230 +10,359 @@ let platillos = [
         id: 1,
         nombre: "Ceviche Clásico",
         categoriaId: 1,
-        descripcion: "Pescado marinado con jugo de limón y condimentos.",
+        descripcion: "Pescado marinado con jugo de limón y condimentos frescos.",
         precio: 25.90,
-        imagen: "https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
+        imagen: "https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80"
     },
     {
         id: 2,
         nombre: "Lomo Saltado",
         categoriaId: 2,
-        descripcion: "Carne salteada con verduras y papas fritas.",
+        descripcion: "Carne salteada con verduras y papas fritas al estilo peruano.",
         precio: 18.50,
-        imagen: "https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1138&q=80"
+        imagen: "https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-4.0.3&auto=format&fit=crop&w=1138&q=80"
     },
     {
         id: 3,
         nombre: "Tiramisú",
         categoriaId: 3,
-        descripcion: "Postre italiano de café y mascarpone.",
+        descripcion: "Postre italiano tradicional con café y mascarpone.",
         precio: 7.90,
-        imagen: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=627&q=80"
+        imagen: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=627&q=80"
     },
     {
         id: 4,
         nombre: "Limonada Natural",
         categoriaId: 4,
-        descripcion: "Bebida refrescante a base de limón natural.",
+        descripcion: "Bebida refrescante preparada con limones frescos.",
         precio: 3.50,
-        imagen: "https://images.unsplash.com/photo-1603569283847-aa295f0d016a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=764&q=80"
+        imagen: "https://images.unsplash.com/photo-1603569283847-aa295f0d016a?ixlib=rb-4.0.3&auto=format&fit=crop&w=764&q=80"
     }
 ];
 
-// Variables de estado
 let editingPlatilloId = null;
-let editingCategoriaId = null;
-let currentAction = 'add'; // 'add', 'edit', 'delete'
+let currentAction = 'add';
+let selectedPlatilloId = null;
 
-// Elementos del DOM
 const menuContainer = document.getElementById('menuContainer');
 const noResults = document.getElementById('noResults');
 const searchInput = document.getElementById('searchInput');
 const categoryFilter = document.getElementById('categoryFilter');
-const addCategoryBtn = document.getElementById('addCategoryBtn');
-const editCategoryBtn = document.getElementById('editCategoryBtn');
-const deleteCategoryBtn = document.getElementById('deleteCategoryBtn');
 
-// Modales
 const platilloModal = document.getElementById('platilloModal');
 const categoriaModal = document.getElementById('categoriaModal');
 const confirmModal = document.getElementById('confirmModal');
 
-// Formularios
-const platilloForm = document.getElementById('platilloForm');
-const categoriaForm = document.getElementById('categoriaForm');
-
-// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
-    renderCategorias();
-    renderPlatillos();
-    setupEventListeners();
+    initializeApp();
 });
 
-// Configurar event listeners
+function initializeApp() {
+    setupEventListeners();
+    setupMobileMenu();
+    setupUserMenu();
+    setupFAB();
+    renderCategorias();
+    renderPlatillos();
+}
+
 function setupEventListeners() {
-    // Filtros
-    searchInput.addEventListener('input', filterPlatillos);
-    categoryFilter.addEventListener('change', filterPlatillos);
-    
-    // Botones CRUD Platillos
-    document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('add-platillo-btn')) {
-            openPlatilloModal();
-        } else if (e.target.classList.contains('edit-platillo-btn')) {
-            const id = parseInt(e.target.closest('[data-id]').dataset.id);
-            openPlatilloModal(id);
-        } else if (e.target.classList.contains('delete-platillo-btn')) {
-            const id = parseInt(e.target.closest('[data-id]').dataset.id);
-            confirmDeletePlatillo(id);
-        }
+    let searchTimeout;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(filterPlatillos, 300);
     });
-    
-    // Botones CRUD Categorías
-    addCategoryBtn.addEventListener('click', () => {
+    categoryFilter.addEventListener('change', filterPlatillos);
+
+    document.getElementById('addCategoryBtn').addEventListener('click', () => {
         currentAction = 'add';
         openCategoriaModal();
     });
-    
-    editCategoryBtn.addEventListener('click', () => {
+
+    document.getElementById('editCategoryBtn').addEventListener('click', () => {
         if (categorias.length === 0) {
-            showCategoryError('No hay categorías para editar');
+            showToast('No hay categorías para editar', 'error');
             return;
         }
         currentAction = 'edit';
         openCategoriaModal();
     });
-    
-    deleteCategoryBtn.addEventListener('click', () => {
+
+    document.getElementById('deleteCategoryBtn').addEventListener('click', () => {
         if (categorias.length === 0) {
-            showCategoryError('No hay categorías para eliminar');
+            showToast('No hay categorías para eliminar', 'error');
             return;
         }
         currentAction = 'delete';
         openCategoriaModal();
     });
-    
-    // Formularios
-    platilloForm.addEventListener('submit', handlePlatilloSubmit);
-    categoriaForm.addEventListener('submit', handleCategoriaSubmit);
-    
-    // Botones de cancelar
+
+    document.addEventListener('click', handleClick);
+
+    document.getElementById('platilloForm').addEventListener('submit', handlePlatilloSubmit);
+    document.getElementById('categoriaForm').addEventListener('submit', handleCategoriaSubmit);
+
+    document.getElementById('closePlatilloModal').addEventListener('click', closePlatilloModal);
     document.getElementById('cancelPlatilloBtn').addEventListener('click', closePlatilloModal);
+    document.getElementById('closeCategoriaModal').addEventListener('click', closeCategoriaModal);
     document.getElementById('cancelCategoriaBtn').addEventListener('click', closeCategoriaModal);
     document.getElementById('cancelConfirmBtn').addEventListener('click', closeConfirmModal);
-    
-    // Botón de confirmación
     document.getElementById('acceptConfirmBtn').addEventListener('click', handleConfirmAction);
+
+    document.getElementById('platilloImagen').addEventListener('change', previewImage);
+    document.getElementById('platilloImagenUrl').addEventListener('input', previewImageUrl);
+
+    document.getElementById('platilloPrecio').addEventListener('input', (e) => formatPrice(e.target));
+
+    document.getElementById('platilloNombre').addEventListener('input', (e) => validateName(e.target));
+    document.getElementById('categoriaNombre').addEventListener('input', (e) => validateCategoryName(e.target));
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closePlatilloModal();
+            closeCategoriaModal();
+            closeConfirmModal();
+            closeFABMenu();
+        }
+    });
+
+    [platilloModal, categoriaModal, confirmModal].forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                if (modal === platilloModal) closePlatilloModal();
+                else if (modal === categoriaModal) closeCategoriaModal();
+                else if (modal === confirmModal) closeConfirmModal();
+            }
+        });
+    });
 }
 
-// Renderizar categorías en los selects
+function setupMobileMenu() {
+    const menuToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+        mobileOverlay.classList.toggle('active');
+    });
+
+    mobileOverlay.addEventListener('click', () => {
+        sidebar.classList.add('hidden');
+        mobileOverlay.classList.remove('active');
+    });
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            if (window.innerWidth < 1024) {
+                sidebar.classList.add('hidden');
+                mobileOverlay.classList.remove('active');
+            }
+        });
+    });
+}
+
+function setupUserMenu() {
+    const userMenuBtn = document.querySelector('.navbar-user-avatar');
+    const userDropdown = document.getElementById('userDropdown');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    userMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userDropdown.classList.toggle('show');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!userMenuBtn.contains(e.target)) {
+            userDropdown.classList.remove('show');
+        }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+        userDropdown.classList.remove('show');
+        showToast('Cerrando sesión...', 'info');
+        setTimeout(() => {
+            window.location.href = 'inicioSesion.html';
+        }, 1500);
+    });
+}
+
+function setupFAB() {
+    const fabMain = document.getElementById('fab-main');
+    const fabMenu = document.getElementById('fab-menu');
+    const addBtn = document.getElementById('add-platillo-btn');
+    const editBtn = document.getElementById('edit-platillo-btn');
+    const deleteBtn = document.getElementById('delete-platillo-btn');
+
+    fabMain.addEventListener('click', function () {
+        fabMenu.classList.toggle('hidden');
+        const icon = fabMain.querySelector('i');
+        if (fabMenu.classList.contains('hidden')) {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-plus');
+        } else {
+            icon.classList.remove('fa-plus');
+            icon.classList.add('fa-times');
+        }
+    });
+
+    addBtn.addEventListener('click', function () {
+        openPlatilloModal();
+        closeFABMenu();
+    });
+
+    editBtn.addEventListener('click', function () {
+        if (platillos.length === 0) {
+            showToast('No hay platillos para editar', 'error');
+            closeFABMenu();
+            return;
+        }
+        openEditPlatilloModal();
+        closeFABMenu();
+    });
+
+    deleteBtn.addEventListener('click', function () {
+        if (platillos.length === 0) {
+            showToast('No hay platillos para eliminar', 'error');
+            closeFABMenu();
+            return;
+        }
+        openDeletePlatilloModal();
+        closeFABMenu();
+    });
+}
+
+function closeFABMenu() {
+    const fabMenu = document.getElementById('fab-menu');
+    const fabMain = document.getElementById('fab-main');
+    fabMenu.classList.add('hidden');
+    const icon = fabMain.querySelector('i');
+    icon.classList.remove('fa-times');
+    icon.classList.add('fa-plus');
+}
+
 function renderCategorias() {
-    // Limpiar selects
     categoryFilter.innerHTML = '<option value="all">Todas las categorías</option>';
     document.getElementById('platilloCategoria').innerHTML = '<option value="">Seleccione una categoría</option>';
     document.getElementById('categoriaSelect').innerHTML = '<option value="">Seleccione una categoría</option>';
-    
-    // Llenar selects
+
     categorias.forEach(categoria => {
         const option1 = document.createElement('option');
         option1.value = categoria.id;
         option1.textContent = categoria.nombre;
         categoryFilter.appendChild(option1);
-        
+
         const option2 = document.createElement('option');
         option2.value = categoria.id;
         option2.textContent = categoria.nombre;
-        document.getElementById('platilloCategoria').appendChild(option2.cloneNode(true));
-        
+        document.getElementById('platilloCategoria').appendChild(option2);
+
         const option3 = document.createElement('option');
         option3.value = categoria.id;
         option3.textContent = categoria.nombre;
-        document.getElementById('categoriaSelect').appendChild(option3.cloneNode(true));
+        document.getElementById('categoriaSelect').appendChild(option3);
     });
 }
 
-// Renderizar platillos
 function renderPlatillos(platillosToRender = platillos) {
     menuContainer.innerHTML = '';
-    
+
     if (platillosToRender.length === 0) {
         noResults.classList.remove('hidden');
         return;
     }
-    
+
     noResults.classList.add('hidden');
-    
-    platillosToRender.forEach(platillo => {
+
+    platillosToRender.forEach((platillo, index) => {
         const categoria = categorias.find(c => c.id === platillo.categoriaId)?.nombre || 'Sin categoría';
-        
+
         const card = document.createElement('div');
-        card.className = 'platillo-card bg-white rounded-lg shadow-md overflow-hidden flex flex-col';
+        card.className = 'platillo-card glass card animate-fade-in';
+        card.style.animationDelay = `${index * 0.1}s`;
         card.dataset.id = platillo.id;
+
         card.innerHTML = `
-            <div class="relative">
-                <img src="${platillo.imagen || 'https://via.placeholder.com/300x200?text=Imagen+no+disponible'}" 
-                     alt="${platillo.nombre}" class="platillo-img w-full h-48 object-cover"
-                     onerror="this.onerror=null;this.src='https://via.placeholder.com/300x200?text=Imagen+no+disponible'">
-                <span class="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">${categoria}</span>
-            </div>
-            <div class="p-4 flex-1 flex flex-col">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="text-lg font-semibold text-gray-800">${platillo.nombre}</h3>
-                    <span class="text-lg font-bold text-blue-600">$${platillo.precio.toFixed(2)}</span>
-                </div>
-                <p class="text-gray-600 text-sm mb-4 flex-1">${platillo.descripcion || 'Sin descripción'}</p>
-                <div class="flex justify-end gap-2">
-                    <button class="edit-platillo-btn px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition" 
-                            data-id="${platillo.id}">
-                        <i class="fas fa-edit mr-1"></i> Editar
-                    </button>
-                    <button class="delete-platillo-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition" 
-                            data-id="${platillo.id}">
-                        <i class="fas fa-trash mr-1"></i> Eliminar
-                    </button>
-                </div>
-            </div>
-        `;
-        
+                    <div class="relative overflow-hidden">
+                        <img src="${platillo.imagen || 'https://via.placeholder.com/400x300/667eea/ffffff?text=Sin+Imagen'}" 
+                             alt="${platillo.nombre}" 
+                             class="platillo-img w-full"
+                             onerror="this.onerror=null;this.src='https://via.placeholder.com/400x300/667eea/ffffff?text=Sin+Imagen'">
+                        <div class="absolute top-4 right-4">
+                            <span class="category-badge">${categoria}</span>
+                        </div>
+                        <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <div class="flex space-x-3">
+                                <button class="edit-platillo-btn bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-colors">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="delete-platillo-btn bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-colors">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-bold text-gray-800 leading-tight">${platillo.nombre}</h3>
+                        </div>
+                        <p class="text-gray-600 mb-4 flex-1 leading-relaxed">${platillo.descripcion || 'Sin descripción disponible'}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="price-badge">${platillo.precio.toFixed(2)}</span>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                <span>4.8</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
         menuContainer.appendChild(card);
     });
+
+    const addCard = document.createElement('div');
+    addCard.className = 'glass card hover:scale-105 transition-all duration-300 cursor-pointer animate-fade-in';
+    addCard.style.animationDelay = `${platillosToRender.length * 0.1}s`;
+
+    addCard.innerHTML = `
+                <div class="p-8 text-center h-full flex flex-col items-center justify-center">
+                    <div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-plus text-4xl text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-700 mb-2">Agregar Platillo</h3>
+                    <p class="text-gray-500">Añade un nuevo platillo al menú</p>
+                </div>
+            `;
+
+    addCard.addEventListener('click', () => openPlatilloModal());
+    menuContainer.appendChild(addCard);
 }
 
-// Filtrar platillos
 function filterPlatillos() {
-    const searchTerm = searchInput.value.toLowerCase();
+    const searchTerm = searchInput.value.toLowerCase().trim();
     const selectedCategory = categoryFilter.value;
-    
+
     const filtered = platillos.filter(platillo => {
-        const matchesSearch = platillo.nombre.toLowerCase().includes(searchTerm) || 
-                             (platillo.descripcion && platillo.descripcion.toLowerCase().includes(searchTerm));
-        
-        const matchesCategory = selectedCategory === 'all' || platillo.categoriaId === parseInt(selectedCategory);
-        
+        const matchesSearch = !searchTerm ||
+            platillo.nombre.toLowerCase().includes(searchTerm) ||
+            (platillo.descripcion && platillo.descripcion.toLowerCase().includes(searchTerm));
+
+        const matchesCategory = selectedCategory === 'all' ||
+            platillo.categoriaId === parseInt(selectedCategory);
+
         return matchesSearch && matchesCategory;
     });
-    
+
     renderPlatillos(filtered);
 }
 
-// Modal Platillo
 function openPlatilloModal(id = null) {
-    // Resetear formulario
-    platilloForm.reset();
-    document.getElementById('platilloId').value = '';
-    document.getElementById('platilloImagenPreview').innerHTML = '<i class="fas fa-image text-4xl text-gray-300"></i>';
-    document.getElementById('platilloImagenUrl').value = '';
-    document.getElementById('platilloImagen').value = '';
-    
-    // Ocultar errores
-    document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.invalid-input').forEach(el => el.classList.remove('invalid-input'));
-    
+    resetPlatilloForm();
+
     if (id) {
-        // Modo edición
         editingPlatilloId = id;
         document.getElementById('platilloModalTitle').textContent = 'Editar Platillo';
-        
+
         const platillo = platillos.find(p => p.id === id);
         if (platillo) {
             document.getElementById('platilloId').value = platillo.id;
@@ -242,82 +370,152 @@ function openPlatilloModal(id = null) {
             document.getElementById('platilloCategoria').value = platillo.categoriaId;
             document.getElementById('platilloDescripcion').value = platillo.descripcion || '';
             document.getElementById('platilloPrecio').value = platillo.precio.toFixed(2);
-            
+
             if (platillo.imagen) {
                 document.getElementById('platilloImagenPreview').innerHTML = `
-                    <img src="${platillo.imagen}" alt="Preview" class="w-full h-full object-cover"
-                         onerror="this.onerror=null;this.parentElement.innerHTML='<i class=\\'fas fa-image text-4xl text-gray-300\\'></i>'">
-                `;
+                            <img src="${platillo.imagen}" alt="Preview" class="w-full h-full object-cover rounded-lg">
+                        `;
                 document.getElementById('platilloImagenUrl').value = platillo.imagen;
             }
         }
     } else {
-        // Modo agregar
         editingPlatilloId = null;
         document.getElementById('platilloModalTitle').textContent = 'Nuevo Platillo';
     }
-    
+
     platilloModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
 }
 
 function closePlatilloModal() {
     platilloModal.classList.add('hidden');
+    document.body.style.overflow = '';
 }
 
-// Modal Categoría
+function openEditPlatilloModal() {
+    openConfirmModal(
+        'Seleccionar Platillo',
+        'Selecciona el platillo que deseas editar:',
+        'selectPlatilloForEdit'
+    );
+
+    const messageElement = document.getElementById('confirmModalMessage');
+    messageElement.innerHTML = `
+                <p class="text-gray-600 mb-4">Selecciona el platillo que deseas editar:</p>
+                <div class="max-h-60 overflow-y-auto">
+                    ${platillos.map(platillo => `
+                        <div class="p-3 border-b border-gray-100 hover:bg-gray-50 rounded-lg cursor-pointer flex items-center justify-between platillo-select-item" data-id="${platillo.id}">
+                            <div class="flex items-center">
+                                <img src="${platillo.imagen}" alt="${platillo.nombre}" class="w-12 h-12 rounded-lg object-cover mr-3">
+                                <div>
+                                    <div class="font-medium text-gray-800">${platillo.nombre}</div>
+                                    <div class="text-sm text-gray-500">${categorias.find(c => c.id === platillo.categoriaId)?.nombre || 'Sin categoría'}</div>
+                                </div>
+                            </div>
+                            <div class="text-lg font-bold text-green-600">$${platillo.precio.toFixed(2)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+    setTimeout(() => {
+        document.querySelectorAll('.platillo-select-item').forEach(item => {
+            item.addEventListener('click', function () {
+                const id = parseInt(this.dataset.id);
+                closeConfirmModal();
+                openPlatilloModal(id);
+            });
+        });
+    }, 100);
+}
+
+function openDeletePlatilloModal() {
+    openConfirmModal(
+        'Seleccionar Platillo',
+        'Selecciona el platillo que deseas eliminar:',
+        'selectPlatilloForDelete'
+    );
+
+    const messageElement = document.getElementById('confirmModalMessage');
+    messageElement.innerHTML = `
+                <p class="text-gray-600 mb-4">Selecciona el platillo que deseas eliminar:</p>
+                <div class="max-h-60 overflow-y-auto">
+                    ${platillos.map(platillo => `
+                        <div class="p-3 border-b border-gray-100 hover:bg-gray-50 rounded-lg cursor-pointer flex items-center justify-between platillo-select-item" data-id="${platillo.id}">
+                            <div class="flex items-center">
+                                <img src="${platillo.imagen}" alt="${platillo.nombre}" class="w-12 h-12 rounded-lg object-cover mr-3">
+                                <div>
+                                    <div class="font-medium text-gray-800">${platillo.nombre}</div>
+                                    <div class="text-sm text-gray-500">${categorias.find(c => c.id === platillo.categoriaId)?.nombre || 'Sin categoría'}</div>
+                                </div>
+                            </div>
+                            <div class="text-lg font-bold text-green-600">$${platillo.precio.toFixed(2)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+    setTimeout(() => {
+        document.querySelectorAll('.platillo-select-item').forEach(item => {
+            item.addEventListener('click', function () {
+                const id = parseInt(this.dataset.id);
+                const platillo = platillos.find(p => p.id === id);
+                closeConfirmModal();
+
+                openConfirmModal(
+                    'Eliminar Platillo',
+                    `¿Estás seguro que deseas eliminar "${platillo.nombre}"? Esta acción no se puede deshacer.`,
+                    'deletePlatillo',
+                    id
+                );
+            });
+        });
+    }, 100);
+}
+
 function openCategoriaModal() {
-    // Resetear formulario
-    categoriaForm.reset();
-    const errorContainer = document.getElementById('categoriaErrorContainer');
-    if (errorContainer) {
-        errorContainer.remove();
-    }
-    
-    document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.invalid-input').forEach(el => el.classList.remove('invalid-input'));
-    
-    // Configurar según la acción
+    resetCategoriaForm();
+
     const selectContainer = document.getElementById('categoriaSelectContainer');
     const nombreContainer = document.getElementById('categoriaNombreContainer');
-    const submitBtn = categoriaForm.querySelector('button[type="submit"]');
-    
-    // Resetear el botón a estado por defecto
-    submitBtn.innerHTML = '<i class="fas fa-save"></i> Guardar';
-    submitBtn.className = 'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2';
-    
+    const submitBtn = document.getElementById('submitCategoriaBtn');
+
     if (currentAction === 'add') {
         document.getElementById('categoriaModalTitle').textContent = 'Nueva Categoría';
         selectContainer.classList.add('hidden');
         nombreContainer.classList.remove('hidden');
-        document.getElementById('categoriaNombre').value = '';
+        submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Guardar';
+        submitBtn.className = 'btn btn-primary px-6 py-3 flex items-center justify-center';
     } else if (currentAction === 'edit') {
         document.getElementById('categoriaModalTitle').textContent = 'Editar Categoría';
         selectContainer.classList.remove('hidden');
         nombreContainer.classList.remove('hidden');
-        document.getElementById('categoriaSelect').value = '';
-        document.getElementById('categoriaNombre').value = '';
+        submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Actualizar';
+        submitBtn.className = 'btn btn-primary px-6 py-3 flex items-center justify-center';
     } else if (currentAction === 'delete') {
         document.getElementById('categoriaModalTitle').textContent = 'Eliminar Categoría';
         selectContainer.classList.remove('hidden');
         nombreContainer.classList.add('hidden');
-        document.getElementById('categoriaSelect').value = '';
-        
-        // Cambiar el botón a estilo de eliminación
-        submitBtn.innerHTML = '<i class="fas fa-trash"></i> Eliminar';
-        submitBtn.className = 'px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2';
+        submitBtn.innerHTML = '<i class="fas fa-trash mr-2"></i>Eliminar';
+        submitBtn.className = 'btn btn-danger px-6 py-3 flex items-center justify-center';
     }
-    
+
     categoriaModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeCategoriaModal() {
     categoriaModal.classList.add('hidden');
+    document.body.style.overflow = '';
 }
 
-// Modal Confirmación
 function openConfirmModal(title, message, action, id = null) {
     document.getElementById('confirmModalTitle').textContent = title;
-    document.getElementById('confirmModalMessage').textContent = message;
+
+    if (typeof message === 'string') {
+        document.getElementById('confirmModalMessage').textContent = message;
+    }
+
     document.getElementById('acceptConfirmBtn').dataset.action = action;
     if (id) {
         document.getElementById('acceptConfirmBtn').dataset.id = id;
@@ -325,88 +523,45 @@ function openConfirmModal(title, message, action, id = null) {
         document.getElementById('acceptConfirmBtn').removeAttribute('data-id');
     }
     confirmModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeConfirmModal() {
     confirmModal.classList.add('hidden');
+    document.body.style.overflow = '';
 }
 
-function handleConfirmAction() {
-    const action = document.getElementById('acceptConfirmBtn').dataset.action;
-    const id = document.getElementById('acceptConfirmBtn').dataset.id ? 
-               parseInt(document.getElementById('acceptConfirmBtn').dataset.id) : null;
-    
-    if (action === 'deletePlatillo') {
-        deletePlatillo(id);
-        closeConfirmModal();
-    } else if (action === 'deleteCategoria') {
-        if (deleteCategoria(id)) {
-            closeConfirmModal();
-        }
-    } else {
-        closeConfirmModal();
-    }
-}
-
-// Manejar formulario de platillo
 function handlePlatilloSubmit(e) {
     e.preventDefault();
-    
-    // Validar campos
+
     const nombre = document.getElementById('platilloNombre');
     const categoria = document.getElementById('platilloCategoria');
     const precio = document.getElementById('platilloPrecio');
     const imagenUrl = document.getElementById('platilloImagenUrl');
     const imagenFile = document.getElementById('platilloImagen');
-    
+
     let isValid = true;
-    
-    // Validar nombre
-    if (!nombre.value.trim()) {
-        document.getElementById('platilloNombreError').style.display = 'block';
-        nombre.classList.add('invalid-input');
+
+    if (!validateField(nombre, 'platilloNombreError', nombre.value.trim() !== '')) {
         isValid = false;
-    } else {
-        document.getElementById(('platilloNombreError').style.display = 'none');
-        nombre.classList.remove('invalid-input');
     }
-    
-    // Validar categoría
-    if (!categoria.value) {
-        document.getElementById(('platilloCategoriaError').style.display = 'block');
-        categoria.classList.add('invalid-input');
+
+    if (!validateField(categoria, 'platilloCategoriaError', categoria.value !== '')) {
         isValid = false;
-    } else {
-        document.getElementById(('platilloCategoriaError').style.display = 'none');
-        categoria.classList.remove('invalid-input');
     }
-    
-    // Validar precio
-    if (!precio.value || !/^\d+(\.\d{1,2})?$/.test(precio.value)) {
-        document.getElementById(('platilloPrecioError').style.display = 'block');
-        precio.classList.add('invalid-input');
+
+    if (!validateField(precio, 'platilloPrecioError', /^\d+(\.\d{1,2})?$/.test(precio.value))) {
         isValid = false;
-    } else {
-        document.getElementById(('platilloPrecioError').style.display = 'none');
-        precio.classList.remove('invalid-input');
     }
-    
-    // Validar imagen (URL o archivo)
-    const hasImageUrl = imagenUrl.value.trim() !== '';
-    const hasImageFile = imagenFile.files.length > 0;
-    const preview = document.getElementById('platilloImagenPreview');
-    const hasImagePreview = preview.querySelector('img') !== null;
-    
-    if (!hasImageUrl && !hasImageFile && !hasImagePreview) {
-        document.getElementById(('platilloImagenError').style.display = 'block');
+
+    const hasImage = imagenUrl.value.trim() !== '' || imagenFile.files.length > 0 ||
+        document.getElementById('platilloImagenPreview').querySelector('img') !== null;
+    if (!validateField(imagenUrl, 'platilloImagenError', hasImage)) {
         isValid = false;
-    } else {
-        document.getElementById(('platilloImagenError').style.display = 'none');
     }
-    
+
     if (!isValid) return;
-    
-    // Crear/actualizar platillo
+
     const platilloData = {
         id: editingPlatilloId || Date.now(),
         nombre: nombre.value.trim(),
@@ -414,15 +569,13 @@ function handlePlatilloSubmit(e) {
         descripcion: document.getElementById('platilloDescripcion').value.trim(),
         precio: parseFloat(precio.value)
     };
-    
-    // Manejar imagen (prioridad: archivo > URL > imagen existente al editar)
-    if (hasImageFile) {
-        const file = imagenFile.files[0];
-        getBase64(file).then(base64 => {
+
+    if (imagenFile.files.length > 0) {
+        getBase64(imagenFile.files[0]).then(base64 => {
             platilloData.imagen = base64;
             savePlatillo(platilloData);
         });
-    } else if (hasImageUrl) {
+    } else if (imagenUrl.value.trim()) {
         platilloData.imagen = imagenUrl.value.trim();
         savePlatillo(platilloData);
     } else if (editingPlatilloId) {
@@ -434,160 +587,190 @@ function handlePlatilloSubmit(e) {
     }
 }
 
+function handleCategoriaSubmit(e) {
+    e.preventDefault();
+
+    let isValid = true;
+
+    if (currentAction === 'edit' || currentAction === 'delete') {
+        const select = document.getElementById('categoriaSelect');
+        if (!validateField(select, 'categoriaSelectError', select.value !== '')) {
+            isValid = false;
+        }
+    }
+
+    if (currentAction === 'add' || currentAction === 'edit') {
+        const nombre = document.getElementById('categoriaNombre');
+        const isDuplicate = categorias.some(c =>
+            c.nombre.toLowerCase() === nombre.value.trim().toLowerCase() &&
+            (currentAction === 'add' || c.id !== parseInt(document.getElementById('categoriaSelect').value))
+        );
+
+        if (!validateField(nombre, 'categoriaNombreError', nombre.value.trim() !== '' && !isDuplicate)) {
+            if (isDuplicate) {
+                document.getElementById('categoriaNombreError').textContent = 'Esta categoría ya existe';
+                document.getElementById('categoriaNombreError').style.display = 'block';
+            }
+            isValid = false;
+        }
+    }
+
+    if (!isValid) return;
+
+    if (currentAction === 'add') {
+        addCategoria();
+    } else if (currentAction === 'edit') {
+        editCategoria();
+    } else if (currentAction === 'delete') {
+        deleteCategoria();
+    }
+}
+
 function savePlatillo(platilloData) {
     if (editingPlatilloId) {
-        // Editar platillo existente
         const index = platillos.findIndex(p => p.id === editingPlatilloId);
         if (index !== -1) {
             platillos[index] = platilloData;
+            showToast('Platillo actualizado correctamente', 'success');
         }
     } else {
-        // Agregar nuevo platillo
         platillos.push(platilloData);
+        showToast('Platillo agregado correctamente', 'success');
     }
-    
+
     renderPlatillos();
     closePlatilloModal();
 }
 
-function confirmDeletePlatillo(id) {
+function deletePlatillo(id) {
     const platillo = platillos.find(p => p.id === id);
-    if (!platillo) return;
-    
+    platillos = platillos.filter(p => p.id !== id);
+    renderPlatillos();
+    showToast(`Platillo "${platillo.nombre}" eliminado correctamente`, 'success');
+}
+
+function addCategoria() {
+    const newCategoria = {
+        id: Date.now(),
+        nombre: document.getElementById('categoriaNombre').value.trim()
+    };
+
+    categorias.push(newCategoria);
+    renderCategorias();
+    renderPlatillos();
+    closeCategoriaModal();
+    showToast('Categoría agregada correctamente', 'success');
+}
+
+function editCategoria() {
+    const id = parseInt(document.getElementById('categoriaSelect').value);
+    const newName = document.getElementById('categoriaNombre').value.trim();
+
+    const index = categorias.findIndex(c => c.id === id);
+    if (index !== -1) {
+        const oldName = categorias[index].nombre;
+        categorias[index].nombre = newName;
+
+        renderCategorias();
+        renderPlatillos();
+        closeCategoriaModal();
+        showToast(`Categoría "${oldName}" actualizada a "${newName}"`, 'success');
+    }
+}
+
+function deleteCategoria() {
+    const id = parseInt(document.getElementById('categoriaSelect').value);
+    const categoria = categorias.find(c => c.id === id);
+
+    if (!categoria) return;
+
+    const platillosEnUso = platillos.filter(p => p.categoriaId === id);
+
+    if (platillosEnUso.length > 0) {
+        showCategoryError(`No se puede eliminar "${categoria.nombre}" porque está siendo usada por ${platillosEnUso.length} platillo(s).`);
+        return;
+    }
+
+    closeCategoriaModal();
     openConfirmModal(
-        'Eliminar Platillo',
-        `¿Estás seguro que deseas eliminar el platillo "${platillo.nombre}"?`,
-        'deletePlatillo',
+        'Eliminar Categoría',
+        `¿Estás seguro que deseas eliminar la categoría "${categoria.nombre}"? Esta acción no se puede deshacer.`,
+        'deleteCategoria',
         id
     );
 }
 
-function deletePlatillo(id) {
-    platillos = platillos.filter(p => p.id !== id);
+function executeDeleteCategoria(id) {
+    const categoria = categorias.find(c => c.id === id);
+    categorias = categorias.filter(c => c.id !== id);
+
+    renderCategorias();
     renderPlatillos();
+    showToast(`Categoría "${categoria.nombre}" eliminada correctamente`, 'success');
 }
 
-// Manejar formulario de categoría
-function handleCategoriaSubmit(e) {
-    e.preventDefault();
-    
-    let isValid = true;
-    
-    if (currentAction === 'add' || currentAction === 'edit') {
-        const nombre = document.getElementById('categoriaNombre');
-        
-        if (!nombre.value.trim()) {
-            document.getElementById(('categoriaNombreError').style.display = 'block');
-            nombre.classList.add('invalid-input');
-            isValid = false;
-        } else if (categorias.some(c => c.nombre.toLowerCase() === nombre.value.trim().toLowerCase() && 
-                                      (currentAction === 'add' || c.id !== editingCategoriaId))) {
-            document.getElementById('categoriaNombreError').textContent = 'Esta categoría ya existe';
-            document.getElementById(('categoriaNombreError').style.display = 'block');
-            nombre.classList.add('invalid-input');
-            isValid = false;
-        } else {
-            document.getElementById(('categoriaNombreError').style.display = 'none');
-            nombre.classList.remove('invalid-input');
-        }
-    }
-    
-    if (currentAction === 'edit' || currentAction === 'delete') {
-        const select = document.getElementById('categoriaSelect');
-        
-        if (!select.value) {
-            document.getElementById(('categoriaSelectError').style.display = 'block');
-            select.classList.add('invalid-input');
-            isValid = false;
-        } else {
-            document.getElementById(('categoriaSelectError').style.display = 'none');
-            select.classList.remove('invalid-input');
-        }
-    }
-    
-    if (!isValid) return;
-    
-    if (currentAction === 'add') {
-        const newCategoria = {
-            id: Date.now(),
-            nombre: document.getElementById('categoriaNombre').value.trim()
-        };
-        categorias.push(newCategoria);
-        renderCategorias();
-        renderPlatillos();
-        closeCategoriaModal();
-    } 
-    else if (currentAction === 'edit') {
-        const id = parseInt(document.getElementById('categoriaSelect').value);
-        const newName = document.getElementById('categoriaNombre').value.trim();
-        
-        const index = categorias.findIndex(c => c.id === id);
-        if (index !== -1) {
-            categorias[index].nombre = newName;
-            
-            // Actualizar platillos que usan esta categoría
-            platillos.forEach(p => {
-                if (p.categoriaId === id) {
-                    p.categoriaId = id;
-                }
-            });
-            
-            renderCategorias();
-            renderPlatillos();
-            closeCategoriaModal();
-        }
-    }
-    else if (currentAction === 'delete') {
-        const id = parseInt(document.getElementById('categoriaSelect').value);
-        const categoria = categorias.find(c => c.id === id);
-        
-        if (!categoria) {
-            showCategoryError('Categoría no encontrada');
-            return;
-        }
-        
-        // Verificar si la categoría está en uso
-        const platillosConCategoria = platillos.filter(p => p.categoriaId === id);
-        
-        if (platillosConCategoria.length > 0) {
-            // Mostrar mensaje de error en el modal
-            showCategoryError(`No se puede eliminar "${categoria.nombre}" porque está siendo usada por ${platillosConCategoria.length} platillo(s).`);
-        } else {
-            // Cerrar el modal de categoría primero
-            closeCategoriaModal();
-            // Luego abrir el modal de confirmación
-            openConfirmModal(
-                'Confirmar eliminación',
-                `¿Estás seguro que deseas eliminar la categoría "${categoria.nombre}"?`,
-                'deleteCategoria',
-                id
-            );
-        }
+function resetPlatilloForm() {
+    document.getElementById('platilloForm').reset();
+    document.getElementById('platilloId').value = '';
+    document.getElementById('platilloImagenPreview').innerHTML = '<i class="fas fa-image text-5xl text-gray-300"></i>';
+    hideAllErrors();
+}
+
+function resetCategoriaForm() {
+    document.getElementById('categoriaForm').reset();
+    document.getElementById('categoriaAction').value = currentAction;
+    hideAllErrors();
+    const errorContainer = document.getElementById('categoriaErrorContainer');
+    if (errorContainer) {
+        errorContainer.remove();
     }
 }
 
-// Función para mostrar errores en el modal de categoría
+function validateField(field, errorId, condition) {
+    const errorElement = document.getElementById(errorId);
+    if (condition) {
+        errorElement.style.display = 'none';
+        field.classList.remove('invalid-input');
+        return true;
+    } else {
+        errorElement.style.display = 'block';
+        field.classList.add('invalid-input');
+        return false;
+    }
+}
+
+function hideAllErrors() {
+    document.querySelectorAll('.error-message').forEach(el => {
+        el.style.display = 'none';
+    });
+    document.querySelectorAll('.invalid-input').forEach(el => {
+        el.classList.remove('invalid-input');
+    });
+}
+
 function showCategoryError(message) {
     let errorContainer = document.getElementById('categoriaErrorContainer');
-    
+
     if (!errorContainer) {
         errorContainer = document.createElement('div');
         errorContainer.id = 'categoriaErrorContainer';
-        errorContainer.className = 'bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded';
-        errorContainer.role = 'alert';
-        
+        errorContainer.className = 'bg-red-50 border border-red-200 text-red-700 p-4 mb-6 rounded-lg relative';
+
         const closeButton = document.createElement('button');
-        closeButton.className = 'float-right font-bold';
+        closeButton.className = 'absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold';
         closeButton.innerHTML = '&times;';
         closeButton.onclick = () => errorContainer.remove();
-        
-        const messageSpan = document.createElement('span');
-        messageSpan.className = 'block';
-        messageSpan.textContent = message;
-        
+
+        const messageSpan = document.createElement('div');
+        messageSpan.className = 'flex items-center';
+        messageSpan.innerHTML = `
+                    <i class="fas fa-exclamation-triangle mr-3"></i>
+                    <span>${message}</span>
+                `;
+
         errorContainer.appendChild(closeButton);
         errorContainer.appendChild(messageSpan);
-        
+
         const form = document.getElementById('categoriaForm');
         form.insertBefore(errorContainer, form.firstChild);
     } else {
@@ -595,44 +778,17 @@ function showCategoryError(message) {
     }
 }
 
-// Función para eliminar categoría
-function deleteCategoria(id) {
-    // Verificar nuevamente que no haya platillos usando esta categoría
-    const platillosConCategoria = platillos.filter(p => p.categoriaId === id);
-    if (platillosConCategoria.length > 0) {
-        console.error('Error: Intento de eliminar categoría en uso');
-        return false;
-    }
-    
-    const categoriaNombre = categorias.find(c => c.id === id)?.nombre || '';
-    categorias = categorias.filter(c => c.id !== id);
-    
-    renderCategorias();
-    renderPlatillos();
-    
-    // Mostrar notificación de éxito
-    showNotification(`Categoría "${categoriaNombre}" eliminada correctamente`, 'success');
-    return true;
-}
-
-function showNotification(message, type = 'info') {
-    // Implementar lógica para mostrar notificación
-    console.log(`${type.toUpperCase()}: ${message}`);
-    // Podrías usar Toastify, SweetAlert o similar aquí
-}
-
-// Funciones de utilidad
 function previewImage() {
     const file = document.getElementById('platilloImagen').files[0];
     if (!file) return;
-    
+
     const preview = document.getElementById('platilloImagenPreview');
     const reader = new FileReader();
-    
-    reader.onload = function(e) {
-        preview.innerHTML = `<img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover">`;
-    }
-    
+
+    reader.onload = function (e) {
+        preview.innerHTML = `<img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover rounded-lg">`;
+    };
+
     reader.readAsDataURL(file);
     document.getElementById('platilloImagenUrl').value = '';
 }
@@ -640,37 +796,30 @@ function previewImage() {
 function previewImageUrl() {
     const url = document.getElementById('platilloImagenUrl').value.trim();
     if (!url) return;
-    
+
     const preview = document.getElementById('platilloImagenPreview');
-    preview.innerHTML = `<img src="${url}" alt="Preview" class="w-full h-full object-cover" onerror="this.onerror=null;this.parentElement.innerHTML='<i class=\\'fas fa-image text-4xl text-gray-300\\'></i>';">`;
+    preview.innerHTML = `<img src="${url}" alt="Preview" class="w-full h-full object-cover rounded-lg" 
+                onerror="this.onerror=null;this.parentElement.innerHTML='<i class=\\'fas fa-image text-5xl text-gray-300\\'></i>';">`;
     document.getElementById('platilloImagen').value = '';
 }
 
 function formatPrice(input) {
-    // Permitir solo números y un punto decimal
-    input.value = input.value.replace(/[^0-9.]/g, '');
-    
-    // Asegurar que solo haya un punto decimal
-    if ((input.value.match(/\./g) || []).length > 1) {
-        input.value = input.value.substring(0, input.value.lastIndexOf('.'));
+    let value = input.value.replace(/[^0-9.]/g, '');
+    const parts = value.split('.');
+    if (parts.length > 2) {
+        value = parts[0] + '.' + parts.slice(1).join('');
     }
-    
-    // Limitar a 2 decimales
-    if (input.value.includes('.')) {
-        const parts = input.value.split('.');
-        if (parts[1].length > 2) {
-            input.value = parts[0] + '.' + parts[1].substring(0, 2);
-        }
+    if (parts[1] && parts[1].length > 2) {
+        value = parts[0] + '.' + parts[1].substring(0, 2);
     }
+    input.value = value;
 }
 
 function validateName(input) {
-    // Permitir letras, espacios y algunos caracteres especiales
     input.value = input.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s\-',.]/g, '');
 }
 
 function validateCategoryName(input) {
-    // Permitir letras, espacios y algunos caracteres especiales
     input.value = input.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s\-']/g, '');
 }
 
@@ -683,57 +832,96 @@ function getBase64(file) {
     });
 }
 
-// ------- Menú usuario navbar: se inyecta automáticamente --------
-document.addEventListener('DOMContentLoaded', function() {
-    // Encuentra el avatar del usuario en tu estructura específica
-    let userBtn = document.querySelector('header .relative button.flex.items-center');
-    
-    if (userBtn) {
-        // Crea el menú solo si no existe aún
-        if (!document.getElementById('userDropdown')) {
-            // Contenedor de dropdown
-            const dropdown = document.createElement('div');
-            dropdown.className = 'user-dropdown absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50';
-            dropdown.id = 'userDropdown';
-            dropdown.style.display = 'none'; // Oculto inicialmente
-            dropdown.innerHTML = `
-                <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="user-menu">
-                    <button class="user-dropdown-item block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" id="logoutBtn" role="menuitem">
-                        <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
-                    </button>
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    toast.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} mr-3"></i>
+                    <span>${message}</span>
                 </div>
             `;
-            
-            // Agrega el dropdown al DOM
-            userBtn.parentNode.appendChild(dropdown);
 
-            // Mostrar/ocultar menú al hacer click en el avatar
-            userBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const isShowing = dropdown.style.display === 'block';
-                dropdown.style.display = isShowing ? 'none' : 'block';
-            });
+    document.body.appendChild(toast);
 
-            // Cerrar si clic fuera
-            document.addEventListener('click', function(e) {
-                if (!userBtn.contains(e.target)) {
-                    dropdown.style.display = 'none';
-                }
-            });
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 100);
 
-            // Cerrar con Esc
-            document.addEventListener('keydown', function(ev) {
-                if (ev.key === "Escape") {
-                    dropdown.style.display = 'none';
-                }
-            });
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 400);
+    }, 4000);
+}
 
-            // Acción cerrar sesión
-            document.getElementById('logoutBtn').addEventListener('click', function() {
-                dropdown.style.display = 'none';
-                // Redirección a la página de inicio de sesión
-                window.location.href = "inicioSesion.html";
-            });
+function handleClick(e) {
+    if (e.target.closest('.edit-platillo-btn')) {
+        const card = e.target.closest('.platillo-card');
+        if (card) {
+            const id = parseInt(card.dataset.id);
+            openPlatilloModal(id);
         }
+    }
+
+    if (e.target.closest('.delete-platillo-btn')) {
+        const card = e.target.closest('.platillo-card');
+        if (card) {
+            const id = parseInt(card.dataset.id);
+            const platillo = platillos.find(p => p.id === id);
+
+            openConfirmModal(
+                'Eliminar Platillo',
+                `¿Estás seguro que deseas eliminar "${platillo.nombre}"? Esta acción no se puede deshacer.`,
+                'deletePlatillo',
+                id
+            );
+        }
+    }
+}
+
+function handleConfirmAction() {
+    const action = this.dataset.action;
+    const id = this.dataset.id ? parseInt(this.dataset.id) : null;
+
+    if (action === 'deletePlatillo' && id) {
+        deletePlatillo(id);
+    } else if (action === 'deleteCategoria' && id) {
+        executeDeleteCategoria(id);
+    }
+
+    closeConfirmModal();
+}
+
+document.getElementById('categoriaSelect').addEventListener('change', function () {
+    if (currentAction === 'edit' && this.value) {
+        const categoria = categorias.find(c => c.id === parseInt(this.value));
+        if (categoria) {
+            document.getElementById('categoriaNombre').value = categoria.nombre;
+        }
+    }
+});
+
+window.addEventListener('resize', () => {
+    const sidebar = document.getElementById('sidebar');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+
+    if (window.innerWidth >= 1024) {
+        sidebar.classList.remove('hidden');
+        mobileOverlay.classList.remove('active');
+    } else if (window.innerWidth < 1024 && !sidebar.classList.contains('hidden')) {
+        sidebar.classList.add('hidden');
+        mobileOverlay.classList.remove('active');
+    }
+});
+
+window.addEventListener('load', () => {
+    const sidebar = document.getElementById('sidebar');
+    if (window.innerWidth < 1024) {
+        sidebar.classList.add('hidden');
     }
 });

@@ -8,27 +8,26 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-   
+
 </head>
 
 <body class="bg-gray-50 font-sans overflow-x-hidden">
-    <!-- Overlay para mobile -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <!-- Barra lateral -->
     <div class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
         <div class="logo-container animate-fade-in">
             <div class="flex items-center justify-center">
                 <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
                     <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo w-10 h-10">
-                </div> 
+                </div>
                 <span class="logo-text ml-3 text-xl font-bold text-white">Orderly</span>
             </div>
         </div>
 
         <div class="flex-1 overflow-y-auto px-4">
             <div class="section-title">MAIN</div>
-            <a href="index.html" class="nav-item flex items-center p-3 rounded-xl mb-2 text-white hover:text-white active bg-gradient-to-r from-blue-500 to-blue-600">
+            <a href="index.html"
+                class="nav-item flex items-center p-3 rounded-xl mb-2 text-white hover:text-white active bg-gradient-to-r from-blue-500 to-blue-600">
                 <i class="fas fa-tachometer-alt w-6 text-center text-lg"></i>
                 <span class="nav-text ml-3 font-medium">Inicio</span>
             </a>
@@ -81,36 +80,40 @@
         </div>
     </div>
 
-    <!-- Contenido principal -->
     <div class="main-content flex flex-col min-h-screen">
-        <!-- Barra superior -->
         <header class="main-header flex items-center justify-between px-6 animate-fade-in">
             <div class="flex items-center">
-                <button id="sidebarToggle" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
+                <button id="sidebarToggle"
+                    class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
                     <i class="fas fa-bars text-lg"></i>
                 </button>
-                <button id="sidebarToggleDesktop" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
+                <button id="sidebarToggleDesktop"
+                    class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
                     <i class="fas fa-bars text-lg"></i>
                 </button>
                 <h1 class="text-2xl font-bold text-gray-800">Panel Principal</h1>
             </div>
-            
+
             <div class="flex items-center space-x-4">
                 <div class="relative">
-                    <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                    <button
+                        class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
                         <i class="fas fa-bell text-lg"></i>
                         <span class="notification-badge">3</span>
                     </button>
                 </div>
                 <div class="relative">
-                    <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                    <button
+                        class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
                         <i class="fas fa-envelope text-lg"></i>
                         <span class="notification-badge bg-blue-500">5</span>
                     </button>
                 </div>
                 <div class="relative">
-                    <button class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+                    <button
+                        class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
                             <i class="fas fa-user"></i>
                         </div>
                         <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
@@ -120,9 +123,7 @@
             </div>
         </header>
 
-        <!-- Contenido del Dashboard -->
         <main class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
-            <!-- Tarjetas de Estadísticas -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="stat-card p-6 hover-lift animate-fade-in" style="animation-delay: 0.1s">
                     <div class="flex items-center justify-between">
@@ -185,14 +186,13 @@
                 </div>
             </div>
 
-            <!-- Sección de Mesas y Órdenes -->
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
-                <!-- Estado de Mesas -->
                 <div class="xl:col-span-1">
                     <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.5s">
                         <div class="flex items-center justify-between mb-6">
                             <h2 class="text-xl font-bold text-gray-800">Estado de Mesas</h2>
-                            <a href="mesas.html" class="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
+                            <a href="mesas.html"
+                                class="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
                                 Ver Todas <i class="fas fa-arrow-right ml-1"></i>
                             </a>
                         </div>
@@ -237,12 +237,12 @@
                     </div>
                 </div>
 
-                <!-- Órdenes Actuales -->
                 <div class="xl:col-span-2">
                     <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.6s">
                         <div class="flex items-center justify-between mb-6">
                             <h2 class="text-xl font-bold text-gray-800">Órdenes Actuales</h2>
-                            <a href="ordenes.html" class="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
+                            <a href="ordenes.html"
+                                class="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
                                 Ver Todas <i class="fas fa-arrow-right ml-1"></i>
                             </a>
                         </div>
@@ -252,7 +252,7 @@
                                     <div class="flex-1">
                                         <div class="font-semibold text-gray-800 mb-1">Orden #1245</div>
                                         <div class="text-sm text-gray-500 flex items-center">
-                                            <i class="fas fa-chair mr-1"></i> Mesa 3 • 
+                                            <i class="fas fa-chair mr-1"></i> Mesa 3 •
                                             <i class="fas fa-user ml-2 mr-1"></i> Juan Pérez
                                         </div>
                                     </div>
@@ -281,7 +281,7 @@
                                     <div class="flex-1">
                                         <div class="font-semibold text-gray-800 mb-1">Orden #1244</div>
                                         <div class="text-sm text-gray-500 flex items-center">
-                                            <i class="fas fa-chair mr-1"></i> Mesa 5 • 
+                                            <i class="fas fa-chair mr-1"></i> Mesa 5 •
                                             <i class="fas fa-user ml-2 mr-1"></i> María García
                                         </div>
                                     </div>
@@ -310,7 +310,7 @@
                                     <div class="flex-1">
                                         <div class="font-semibold text-gray-800 mb-1">Orden #1243</div>
                                         <div class="text-sm text-gray-500 flex items-center">
-                                            <i class="fas fa-chair mr-1"></i> Mesa 8 • 
+                                            <i class="fas fa-chair mr-1"></i> Mesa 8 •
                                             <i class="fas fa-user ml-2 mr-1"></i> Carlos López
                                         </div>
                                     </div>
@@ -338,66 +338,13 @@
                 </div>
             </div>
 
-            <!-- Sección de Inventario y Reservaciones -->
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <!-- Artículos con Bajo Stock -->
-                <div class="xl:col-span-1">
-                    <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.7s">
-                        <div class="flex items-center justify-between mb-6">
-                            <h2 class="text-xl font-bold text-gray-800">Stock Bajo</h2>
-                            <a href="inventario.html" class="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
-                                Ver Todos <i class="fas fa-arrow-right ml-1"></i>
-                            </a>
-                        </div>
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-200">
-                                <div class="flex items-center">
-                                    <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-600">
-                                        <i class="fas fa-wine-bottle"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <div class="text-sm font-semibold text-gray-800">Vino Tinto</div>
-                                        <div class="text-xs text-gray-500">Bebidas</div>
-                                    </div>
-                                </div>
-                                <div class="text-red-600 text-sm font-bold">2 restantes</div>
-                            </div>
-
-                            <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-xl border border-yellow-200">
-                                <div class="flex items-center">
-                                    <div class="w-10 h-10 rounded-xl bg-yellow-100 flex items-center justify-center text-yellow-600">
-                                        <i class="fas fa-cheese"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <div class="text-sm font-semibold text-gray-800">Mozzarella</div>
-                                        <div class="text-xs text-gray-500">Lácteos</div>
-                                    </div>
-                                </div>
-                                <div class="text-yellow-600 text-sm font-bold">3 restantes</div>
-                            </div>
-
-                            <div class="flex items-center justify-between p-3 bg-orange-50 rounded-xl border border-orange-200">
-                                <div class="flex items-center">
-                                    <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600">
-                                        <i class="fas fa-bread-slice"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <div class="text-sm font-semibold text-gray-800">Baguette</div>
-                                        <div class="text-xs text-gray-500">Panadería</div>
-                                    </div>
-                                </div>
-                                <div class="text-orange-600 text-sm font-bold">5 restantes</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reservaciones de Hoy -->
                 <div class="xl:col-span-2">
                     <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.8s">
                         <div class="flex items-center justify-between mb-6">
                             <h2 class="text-xl font-bold text-gray-800">Reservaciones de Hoy</h2>
-                            <a href="reservas.html" class="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
+                            <a href="reservas.html"
+                                class="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
                                 Ver Todas <i class="fas fa-arrow-right ml-1"></i>
                             </a>
                         </div>
@@ -408,7 +355,8 @@
                                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Cliente</th>
                                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Hora</th>
                                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Mesa</th>
-                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Personas</th>
+                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Personas
+                                        </th>
                                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Estado</th>
                                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Acción</th>
                                     </tr>
@@ -417,7 +365,8 @@
                                     <tr class="hover:bg-gray-50 transition-colors">
                                         <td class="px-4 py-4">
                                             <div class="flex items-center">
-                                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white">
+                                                <div
+                                                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white">
                                                     <i class="fas fa-user"></i>
                                                 </div>
                                                 <div class="ml-3">
@@ -433,13 +382,15 @@
                                             <span class="status-confirmado text-xs font-semibold">Confirmado</span>
                                         </td>
                                         <td class="px-4 py-4">
-                                            <button class="text-blue-500 hover:text-blue-600 font-medium text-sm">Ver</button>
+                                            <button
+                                                class="text-blue-500 hover:text-blue-600 font-medium text-sm">Ver</button>
                                         </td>
                                     </tr>
                                     <tr class="hover:bg-gray-50 transition-colors">
                                         <td class="px-4 py-4">
                                             <div class="flex items-center">
-                                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white">
+                                                <div
+                                                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white">
                                                     <i class="fas fa-user"></i>
                                                 </div>
                                                 <div class="ml-3">
@@ -455,13 +406,15 @@
                                             <span class="status-pendiente text-xs font-semibold">Pendiente</span>
                                         </td>
                                         <td class="px-4 py-4">
-                                            <button class="text-blue-500 hover:text-blue-600 font-medium text-sm">Ver</button>
+                                            <button
+                                                class="text-blue-500 hover:text-blue-600 font-medium text-sm">Ver</button>
                                         </td>
                                     </tr>
                                     <tr class="hover:bg-gray-50 transition-colors">
                                         <td class="px-4 py-4">
                                             <div class="flex items-center">
-                                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white">
+                                                <div
+                                                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white">
                                                     <i class="fas fa-user"></i>
                                                 </div>
                                                 <div class="ml-3">
@@ -477,7 +430,8 @@
                                             <span class="status-confirmado text-xs font-semibold">Confirmado</span>
                                         </td>
                                         <td class="px-4 py-4">
-                                            <button class="text-blue-500 hover:text-blue-600 font-medium text-sm">Ver</button>
+                                            <button
+                                                class="text-blue-500 hover:text-blue-600 font-medium text-sm">Ver</button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -490,9 +444,9 @@
     </div>
 
 
-    
+
     <script src="js/script.js"></script>
-    
+
 </body>
 
 </html>

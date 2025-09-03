@@ -1,4 +1,93 @@
-// ===== Datos simulados =====
+document.addEventListener('DOMContentLoaded', function () {
+  let userBtn = document.querySelector('.navbar-user-avatar');
+  if (userBtn) {
+    userBtn.style.position = 'relative';
+
+    if (!document.getElementById('userDropdown')) {
+      const dropdown = document.createElement('div');
+      dropdown.className = 'user-dropdown';
+      dropdown.id = 'userDropdown';
+      dropdown.innerHTML = `
+                    <button class="user-dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
+                    </button>
+                `;
+      userBtn.parentNode.style.position = "relative";
+      userBtn.parentNode.appendChild(dropdown);
+
+      const overlay = document.createElement('div');
+      overlay.className = 'user-dropdown-overlay';
+      overlay.id = 'userDropdownOverlay';
+      document.body.appendChild(overlay);
+
+      userBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        dropdown.classList.toggle('show');
+        overlay.classList.toggle('active');
+      });
+
+      overlay.addEventListener('click', function () {
+        dropdown.classList.remove('show');
+        overlay.classList.remove('active');
+      });
+
+      document.addEventListener('keydown', function (ev) {
+        if (ev.key === "Escape") {
+          dropdown.classList.remove('show');
+          overlay.classList.remove('active');
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', function () {
+        dropdown.classList.remove('show');
+        overlay.classList.remove('active');
+        window.location.href = "inicioSesion.html";
+      });
+    }
+  }
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
+  const sidebar = document.getElementById('sidebar');
+  const mobileOverlay = document.getElementById('mobileOverlay');
+
+  if (sidebarToggle && sidebar) {
+    sidebarToggle.addEventListener('click', function () {
+      sidebar.classList.toggle('mobile-open');
+      mobileOverlay.classList.toggle('active');
+    });
+  }
+
+  if (sidebarToggleDesktop && sidebar) {
+    sidebarToggleDesktop.addEventListener('click', function () {
+      sidebar.classList.toggle('collapsed');
+    });
+  }
+
+  if (mobileOverlay) {
+    mobileOverlay.addEventListener('click', function () {
+      sidebar.classList.remove('mobile-open');
+      mobileOverlay.classList.remove('active');
+    });
+  }
+
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === "Escape") {
+      sidebar.classList.remove('mobile-open');
+      mobileOverlay.classList.remove('active');
+    }
+  });
+
+  window.addEventListener('resize', function () {
+    if (window.innerWidth >= 1024) {
+      sidebar.classList.remove('mobile-open');
+      mobileOverlay.classList.remove('active');
+    }
+  });
+});
+
 let historial = [
   {
     id: "H001",
@@ -50,250 +139,290 @@ let historial = [
       { nombre: "Cerveza", cantidad: 2, precioUnit: 6.00 }
     ],
     descuento: 0
-  },
-  {
-    id: "H004",
-    pedido: "P1004",
-    cliente: "Sofía Vargas",
-    mesero: "Ana Martínez",
-    mesa: "12",
-    fecha: "2023-06-13",
-    reserva: true,
-    factura: "FAC-2023-1004",
-    estado: "Entregado",
-    productos: [
-      { nombre: "Ensalada griega", cantidad: 1, precioUnit: 11.00 },
-      { nombre: "Filete de salmón", cantidad: 1, precioUnit: 22.00 },
-      { nombre: "Vino tinto", cantidad: 1, precioUnit: 15.00 },
-      { nombre: "Tarta de manzana", cantidad: 1, precioUnit: 8.00 }
-    ],
-    descuento: 0
   }
 ];
-const meseros = ["Juan Pérez","María García","Carlos López","Ana Martínez"];
-const mesas   = ["1","2","3","4","5","6","7","8","9","10","11","12"];
+
+const meseros = ["Juan Pérez", "María García", "Carlos López", "Ana Martínez"];
+const mesas = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 let editIdx = null;
 
-// Renderizar tabla
 function renderHistorial() {
   const tbody = document.getElementById("historial-tbody");
   tbody.innerHTML = "";
-  historial.forEach((h,i)=>{
-    const estadoColor = h.estado==="Entregado"
-      ? "bg-green-100 text-green-800"
-      : h.estado==="Cancelado"
-        ? "bg-red-100 text-red-800"
-        : "bg-yellow-100 text-yellow-800";
-    const reservaCheckbox = h.reserva
-      ? `<input type="checkbox" checked disabled>`
-      : `<input type="checkbox" disabled>`;
+
+  historial.forEach((h, i) => {
+    const estadoClass = h.estado === "Entregado"
+      ? "status-entregado"
+      : h.estado === "Cancelado"
+        ? "status-cancelado"
+        : "status-proceso-historial";
+
+    const reservaIcon = h.reserva
+      ? `<i class="fas fa-check-circle text-green-500" title="Con reserva"></i>`
+      : `<i class="fas fa-times-circle text-red-500" title="Sin reserva"></i>`;
+
     const facturaTxt = h.factura
-      ? `<span class="font-medium">${h.factura}</span>`
-      : `<span class="font-medium text-red-600">No generada</span>`;
+      ? `<span class="font-medium text-green-600">${h.factura}</span>`
+      : `<span class="font-medium text-red-500">No generada</span>`;
 
     tbody.innerHTML += `
-      <tr class="hover:bg-gray-50 transition-colors">
-        <td class="px-6 py-4">${h.id}</td>
-        <td class="px-6 py-4">${h.pedido}</td>
-        <td class="px-6 py-4">${h.cliente}</td>
-        <td class="px-6 py-4">${h.mesero}</td>
-        <td class="px-6 py-4">${h.mesa}</td>
-        <td class="px-6 py-4">${h.fecha}</td>
-        <td class="px-6 py-4">${reservaCheckbox}</td>
-        <td class="px-6 py-4">
-          <span class="px-2 inline-flex text-xs font-semibold rounded-full ${estadoColor}">${h.estado}</span>
-        </td>
-        <td class="px-6 py-4 text-blue-600 cursor-pointer toggle-details" data-target="details-${i}">
-          Detalles <i class="fas fa-chevron-down ml-2 text-xs"></i>
-        </td>
-        <td class="px-6 py-4">
-          <button class="edit-btn" data-idx="${i}" title="Editar">
-            <i class="fas fa-edit text-green-500"></i>
-          </button>
-          <button class="delete-btn ml-3" data-idx="${i}" title="Eliminar">
-            <i class="fas fa-trash text-red-500"></i>
-          </button>
-        </td>
-      </tr>
-      <tr>
-        <td colspan="10" class="p-0">
-          <div id="details-${i}" class="order-details bg-gray-50">
-            <div class="p-6">
-              <h4 class="font-medium mb-2">Productos:</h4>
-              <div class="grid grid-cols-4 gap-4 font-medium text-sm text-gray-500 mb-2">
-                <div>Producto</div><div class="text-right">Cant.</div><div class="text-right">P.Unit</div><div class="text-right">Total</div>
+          <tr class="table-row hover:bg-gray-50 transition-colors">
+            <td class="px-4 py-4 font-medium text-gray-900">${h.id}</td>
+            <td class="px-4 py-4 font-medium text-blue-600">${h.pedido}</td>
+            <td class="px-4 py-4">
+              <div class="font-medium text-gray-900">${h.cliente}</div>
+              <div class="md:hidden text-sm text-gray-500">
+                Mesa: ${h.mesa} | ${h.mesero} | ${h.fecha}
               </div>
-              ${h.productos.map(p=>`
-                <div class="grid grid-cols-4 gap-4 text-sm mb-1">
-                  <div>${p.nombre}</div>
-                  <div class="text-right">${p.cantidad}</div>
-                  <div class="text-right">$${p.precioUnit.toFixed(2)}</div>
-                  <div class="text-right">$${(p.cantidad*p.precioUnit).toFixed(2)}</div>
+            </td>
+            <td class="px-4 py-4 text-gray-700 hide-mobile">${h.mesero}</td>
+            <td class="px-4 py-4 text-gray-700 hide-mobile">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                Mesa ${h.mesa}
+              </span>
+            </td>
+            <td class="px-4 py-4 text-gray-700 hide-mobile">${h.fecha}</td>
+            <td class="px-4 py-4 hide-mobile">${reservaIcon}</td>
+            <td class="px-4 py-4">
+              <span class="status-badge ${estadoClass}">${h.estado}</span>
+            </td>
+            <td class="px-4 py-4">
+              <button class="text-blue-600 hover:text-blue-800 font-medium transition-colors toggle-details" data-target="details-${i}">
+                <i class="fas fa-eye mr-1"></i>
+                Ver detalles
+                <i class="fas fa-chevron-down ml-1 text-xs transition-transform"></i>
+              </button>
+            </td>
+            <td class="px-4 py-4">
+              <div class="flex items-center space-x-2">
+                <button class="p-2 rounded-lg hover:bg-green-100 edit-btn" data-idx="${i}" title="Editar">
+                  <i class="fas fa-edit text-green-500 text-lg"></i>
+                </button>
+                <button class="p-2 rounded-lg hover:bg-red-100 delete-btn" data-idx="${i}" title="Eliminar">
+                  <i class="fas fa-trash text-red-500 text-lg"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="10" class="p-0">
+              <div id="details-${i}" class="order-details">
+                <div class="space-y-4">
+                  <h4 class="font-semibold text-gray-800 text-lg mb-4">
+                    <i class="fas fa-list-ul mr-2 text-blue-500"></i>
+                    Detalles del Pedido
+                  </h4>
+                  
+                  <div class="bg-white rounded-lg p-4 shadow-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm mb-4 font-semibold text-gray-600 border-b pb-2">
+                      <div>Producto</div>
+                      <div class="text-right">Cantidad</div>
+                      <div class="text-right">Precio Unit.</div>
+                      <div class="text-right">Total</div>
+                    </div>
+                    ${h.productos.map(p => `
+                      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm py-2 border-b border-gray-100 hover:bg-gray-50 rounded">
+                        <div class="font-medium text-gray-800">${p.nombre}</div>
+                        <div class="text-right text-gray-600">${p.cantidad}</div>
+                        <div class="text-right text-gray-600">${p.precioUnit.toFixed(2)}</div>
+                        <div class="text-right font-semibold text-gray-800">${(p.cantidad * p.precioUnit).toFixed(2)}</div>
+                      </div>
+                    `).join("")}
+                  </div>
+                  
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
+                    <div class="text-center">
+                      <div class="text-sm text-gray-500 mb-1">Subtotal</div>
+                      <div class="text-lg font-bold text-gray-800">${getSubtotal(h).toFixed(2)}</div>
+                    </div>
+                    <div class="text-center">
+                      <div class="text-sm text-gray-500 mb-1">Propina (10%)</div>
+                      <div class="text-lg font-bold text-gray-800">${getPropina(h).toFixed(2)}</div>
+                    </div>
+                    <div class="text-center">
+                      <div class="text-sm text-gray-500 mb-1">Descuento</div>
+                      <div class="text-lg font-bold text-red-500">-${getDescuento(h).toFixed(2)}</div>
+                    </div>
+                    <div class="text-center">
+                      <div class="text-sm text-gray-500 mb-1">Total Final</div>
+                      <div class="text-xl font-bold text-blue-600">${getTotal(h).toFixed(2)}</div>
+                    </div>
+                  </div>
+                  
+                  <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="text-sm text-gray-500 mb-1">Estado de Factura:</div>
+                    <div>${facturaTxt}</div>
+                  </div>
                 </div>
-              `).join("")}
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t">
-                <div><span class="text-sm text-gray-500">Subtotal:</span><span class="block font-medium">$${getSubtotal(h).toFixed(2)}</span></div>
-                <div><span class="text-sm text-gray-500">Propina:</span><span class="block font-medium">$${getPropina(h).toFixed(2)}</span></div>
-                <div><span class="text-sm text-gray-500">Descuento:</span><span class="block font-medium">-$${getDescuento(h).toFixed(2)}</span></div>
-                <div><span class="text-sm text-gray-500">Total:</span><span class="block font-medium text-blue-600">$${getTotal(h).toFixed(2)}</span></div>
               </div>
-              <div class="mt-4 pt-4 border-t"><span class="text-sm text-gray-500">Factura:</span> ${facturaTxt}</div>
-            </div>
-          </div>
-        </td>
-      </tr>
-    `;
+            </td>
+          </tr>
+        `;
   });
+
   attachTableEvents();
 }
 
-// Búsqueda
-document.getElementById('searchInput').addEventListener('input', ()=> {
+document.getElementById('searchInput').addEventListener('input', () => {
   const term = document.getElementById('searchInput').value.toLowerCase();
-  document.querySelectorAll('#historial-tbody tr').forEach((row,idx)=>{
-    if(idx % 2 === 0){
+  document.querySelectorAll('#historial-tbody tr').forEach((row, idx) => {
+    if (idx % 2 === 0) {
       const visible = row.textContent.toLowerCase().includes(term);
       row.style.display = visible ? '' : 'none';
       const det = row.nextElementSibling;
-      if(det) det.style.display = visible ? '' : 'none';
+      if (det) det.style.display = visible ? '' : 'none';
     }
   });
 });
 
-// Filtros
-function applyFilters(){
+function applyFilters() {
   const w = document.getElementById('waiterFilter').value.toLowerCase();
   const d = document.getElementById('dateFilter').value;
   const s = document.getElementById('statusFilter').value.toLowerCase();
-  document.querySelectorAll('#historial-tbody tr').forEach((row,idx)=>{
-    if(idx%2===0){
+
+  document.querySelectorAll('#historial-tbody tr').forEach((row, idx) => {
+    if (idx % 2 === 0) {
       const cells = row.querySelectorAll('td');
-      const mw = cells[3].textContent.toLowerCase();
-      const dt = cells[5].textContent;
-      const st = cells[7].textContent.toLowerCase();
-      const ok = (!w||mw.includes(w)) && (!d||dt===d) && (!s||st.includes(s));
-      row.style.display = ok?'':'none';
+      const mw = cells[3] ? cells[3].textContent.toLowerCase() : '';
+      const dt = cells[5] ? cells[5].textContent : '';
+      const st = cells[7] ? cells[7].textContent.toLowerCase() : '';
+
+      const ok = (!w || mw.includes(w)) && (!d || dt === d) && (!s || st.includes(s));
+      row.style.display = ok ? '' : 'none';
       const det = row.nextElementSibling;
-      if(det) det.style.display = ok?'':'none';
+      if (det) det.style.display = ok ? '' : 'none';
     }
   });
 }
-['waiterFilter','dateFilter','statusFilter'].forEach(id=>{
+
+['waiterFilter', 'dateFilter', 'statusFilter'].forEach(id => {
   document.getElementById(id).addEventListener('change', applyFilters);
 });
 
-// Toggle detalles y CRUD
-function attachTableEvents(){
-  document.querySelectorAll('.toggle-details').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
+function attachTableEvents() {
+  document.querySelectorAll('.toggle-details').forEach(btn => {
+    btn.addEventListener('click', () => {
       const det = document.getElementById(btn.dataset.target);
+      const icon = btn.querySelector('.fa-chevron-down, .fa-chevron-up');
+
       det.classList.toggle('active');
-      const ic = btn.querySelector('i');
-      ic.classList.toggle('fa-chevron-down');
-      ic.classList.toggle('fa-chevron-up');
+      if (icon) {
+        icon.classList.toggle('fa-chevron-down');
+        icon.classList.toggle('fa-chevron-up');
+      }
     });
   });
-  document.querySelectorAll('.edit-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
+
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
       openEditHistorial(+btn.dataset.idx);
     });
   });
-  document.querySelectorAll('.delete-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      if(confirm('¿Eliminar este registro?')){
-        historial.splice(+btn.dataset.idx,1);
+
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (confirm('¿Está seguro de que desea eliminar este registro del historial?')) {
+        historial.splice(+btn.dataset.idx, 1);
         renderHistorial();
       }
     });
   });
 }
 
-// Cálculos
-const getSubtotal = h => h.productos.reduce((sum,p)=>sum + p.cantidad*p.precioUnit,0);
-const getPropina  = h => getSubtotal(h)*0.10;
-const getDescuento= h => getSubtotal(h)*(h.descuento||0);
-const getTotal    = h => getSubtotal(h) - getDescuento(h) + getPropina(h);
+const getSubtotal = h => h.productos.reduce((sum, p) => sum + p.cantidad * p.precioUnit, 0);
+const getPropina = h => getSubtotal(h) * 0.10;
+const getDescuento = h => getSubtotal(h) * (h.descuento || 0);
+const getTotal = h => getSubtotal(h) - getDescuento(h) + getPropina(h);
 
-// Abrir modal de edición
-function openEditHistorial(idx){
+function openEditHistorial(idx) {
   editIdx = idx;
   const h = historial[idx];
-  document.getElementById('edit-pedido-id').value = h.pedido;
-  document.getElementById('edit-cliente').value   = h.cliente;
-  document.getElementById('edit-fecha').value     = h.fecha;
-  document.getElementById('edit-reserva').value   = h.reserva? 'Sí':'No';
-  document.getElementById('edit-factura').value   = h.factura|| '';
-  document.getElementById('edit-estado').value    = h.estado;
 
-  // Carga meseros y mesas
+  document.getElementById('edit-pedido-id').value = h.pedido;
+  document.getElementById('edit-cliente').value = h.cliente;
+  document.getElementById('edit-fecha').value = h.fecha;
+  document.getElementById('edit-reserva').value = h.reserva ? 'Sí' : 'No';
+  document.getElementById('edit-factura').value = h.factura || '';
+  document.getElementById('edit-estado').value = h.estado;
+
   const selM = document.getElementById('edit-mesero');
   selM.innerHTML = '';
-  meseros.forEach(m=>{
-    selM.innerHTML += `<option ${m===h.mesero?'selected':''}>${m}</option>`;
+  meseros.forEach(m => {
+    selM.innerHTML += `<option ${m === h.mesero ? 'selected' : ''}>${m}</option>`;
   });
+
   const selT = document.getElementById('edit-mesa');
   selT.innerHTML = '';
-  mesas.forEach(m=>{
-    selT.innerHTML += `<option ${m===h.mesa?'selected':''}>${m}</option>`;
+  mesas.forEach(m => {
+    selT.innerHTML += `<option ${m === h.mesa ? 'selected' : ''}>${m}</option>`;
   });
 
-  // Productos (cantidad editable)
   const prodDiv = document.getElementById('edit-productos-list');
   prodDiv.innerHTML = '';
-  h.productos.forEach((p,i)=>{
+  h.productos.forEach((p, i) => {
     prodDiv.innerHTML += `
-      <div class="flex items-center gap-2">
-        <input type="text" class="w-32 border rounded px-2 py-1 bg-gray-100" value="${p.nombre}" readonly>
-        <input type="number" min="1" max="9999" id="prod-cant-${i}" class="w-20 border rounded px-2 py-1 prod-cant-input" value="${p.cantidad}">
-        <span class="text-gray-600 font-semibold ml-1">x $${p.precioUnit.toFixed(2)}</span>
-      </div>
-      <span class="text-xs text-red-500 hidden" id="prod-cant-${i}-error"></span>
-    `;
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-white rounded-lg border">
+            <div class="flex-1">
+              <input type="text" class="modern-input w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-700 font-medium" value="${p.nombre}" readonly>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="flex items-center">
+                <label class="text-sm font-medium text-gray-600 mr-2">Cant:</label>
+                <input type="number" min="1" max="9999" id="prod-cant-${i}" class="modern-input w-20 px-3 py-2 border rounded-lg prod-cant-input text-center font-semibold" value="${p.cantidad}">
+              </div>
+              <div class="text-gray-600 font-semibold whitespace-nowrap">× ${p.precioUnit.toFixed(2)}</div>
+            </div>
+            <span class="error-message hidden" id="prod-cant-${i}-error"></span>
+          </div>
+        `;
   });
 
-  // Descuento
-  document.getElementById('edit-descuento').value = h.descuento|| 0;
+  document.getElementById('edit-descuento').value = h.descuento || 0;
   recalcularModal();
 
-  // Mostrar modal
   document.getElementById('edit-historial-modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
 
-// Cerrar modal
-document.addEventListener('DOMContentLoaded', ()=>{
-  document.getElementById('edit-cancelar-btn').addEventListener('click', ()=>{
-    document.getElementById('edit-historial-modal').classList.add('hidden');
-    document.body.style.overflow = '';
-  });
-});
+function closeModal() {
+  document.getElementById('edit-historial-modal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
 
-// Recalcular totales en modal
-document.addEventListener('input', e=>{
-  if(e.target.classList.contains('prod-cant-input') || e.target.id==='edit-descuento'){
+document.addEventListener('input', e => {
+  if (e.target.classList.contains('prod-cant-input') || e.target.id === 'edit-descuento') {
     recalcularModal();
   }
 });
-function recalcularModal(){
-  if(editIdx===null) return;
+
+function recalcularModal() {
+  if (editIdx === null) return;
+
   const h = historial[editIdx];
   let sub = 0;
-  h.productos.forEach((p,i)=>{
-    const val = parseInt(document.getElementById('prod-cant-'+i).value)||0;
-    sub += val*p.precioUnit;
+
+  h.productos.forEach((p, i) => {
+    const val = parseInt(document.getElementById('prod-cant-' + i).value) || 0;
+    sub += val * p.precioUnit;
   });
-  const desc = sub * (parseFloat(document.getElementById('edit-descuento').value)||0);
-  const prop = sub*0.10;
+
+  const desc = sub * (parseFloat(document.getElementById('edit-descuento').value) || 0);
+  const prop = sub * 0.10;
+
   document.getElementById('edit-subtotal').textContent = `$${sub.toFixed(2)}`;
-  document.getElementById('edit-propina').textContent   = `$${prop.toFixed(2)}`;
-  document.getElementById('edit-total').textContent    = `$${(sub - desc + prop).toFixed(2)}`;
+  document.getElementById('edit-propina').textContent = `$${prop.toFixed(2)}`;
+  document.getElementById('edit-total').textContent = `$${(sub - desc + prop).toFixed(2)}`;
 }
 
-// Init
 document.addEventListener('DOMContentLoaded', () => {
   renderHistorial();
-  document.getElementById('sidebarToggle').addEventListener('click', ()=>{
-    document.querySelector('.sidebar').classList.toggle('collapsed');
-    document.querySelector('.main-content').classList.toggle('ml-64');
+
+  document.getElementById('edit-cancelar-btn').addEventListener('click', closeModal);
+  document.getElementById('edit-cancelar-btn-footer').addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
   });
 });

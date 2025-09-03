@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ofertas Especiales</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/ofertas.css">
 </head>
+
 <body class="bg-gray-50 font-sans overflow-x-hidden">
-  <!-- Overlay para mobile -->
   <div class="mobile-overlay" id="mobileOverlay"></div>
 
-  <!-- Sidebar (idéntico patrón al index) -->
   <aside class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
     <div class="logo-container animate-fade-in">
       <div class="flex items-center justify-center">
@@ -55,7 +55,8 @@
       </a>
 
       <div class="section-title">REPORTS</div>
-      <a href="ofertas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2 active bg-gradient-to-r from-blue-500 to-blue-600">
+      <a href="ofertas.html"
+        class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2 active bg-gradient-to-r from-blue-500 to-blue-600">
         <i class="fas fa-tags w-6 text-center text-lg"></i>
         <span class="nav-text ml-3 font-medium">Ofertas</span>
       </a>
@@ -78,31 +79,35 @@
     </div>
   </aside>
 
-  <!-- Contenido principal -->
   <div class="main-content flex flex-col min-h-screen">
-    <!-- Barra superior -->
     <header class="main-header flex items-center justify-between px-6 animate-fade-in">
       <div class="flex items-center">
-        <button id="sidebarToggle" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
+        <button id="sidebarToggle"
+          class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
           <i class="fas fa-bars text-lg"></i>
         </button>
-        <button id="sidebarToggleDesktop" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
+        <button id="sidebarToggleDesktop"
+          class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
           <i class="fas fa-bars text-lg"></i>
         </button>
         <h1 class="text-2xl font-bold text-gray-800">Ofertas Especiales</h1>
       </div>
-      
+
       <div class="flex items-center space-x-4">
-        <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors relative">
+        <button
+          class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors relative">
           <i class="fas fa-bell text-lg"></i>
           <span class="notification-badge">3</span>
         </button>
-        <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors relative">
+        <button
+          class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors relative">
           <i class="fas fa-envelope text-lg"></i>
           <span class="notification-badge bg-blue-500">5</span>
         </button>
-        <button class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+        <button
+          class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
             <i class="fas fa-user"></i>
           </div>
           <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
@@ -111,16 +116,13 @@
       </div>
     </header>
 
-    <!-- Page Content -->
     <main class="flex-1 p-6">
       <div class="max-w-7xl mx-auto">
-        <!-- Page Header -->
         <header class="page-header text-center">
           <h1>Ofertas Únicas del Restaurante</h1>
           <p>Descubre nuestras increíbles promociones y ahorra en tus platillos favoritos</p>
         </header>
 
-        <!-- Search and Filter -->
         <section class="search-container">
           <div class="flex flex-col md:flex-row gap-4">
             <div class="flex-1 search-input-wrapper">
@@ -139,10 +141,8 @@
           </div>
         </section>
 
-        <!-- Offers Grid -->
         <section id="offersContainer" class="offers-grid"></section>
-        
-        <!-- Empty State -->
+
         <section id="emptyState" class="empty-state hidden">
           <i class="fas fa-search"></i>
           <h3>No se encontraron ofertas</h3>
@@ -152,7 +152,6 @@
     </main>
   </div>
 
-  <!-- FAB Button -->
   <button id="fab" class="fab">
     <i class="fas fa-plus"></i>
   </button>
@@ -171,7 +170,7 @@
           <div id="img-preview" class="img-preview"></div>
           <div id="offer-image-err" class="error-text"></div>
         </div>
-        
+
         <div class="form-group">
           <label class="form-label">
             <i class="fas fa-tag mr-2"></i>
@@ -180,25 +179,27 @@
           <input id="offer-title" type="text" maxlength="80" class="form-input" placeholder="Ej: Pizza Familiar 2x1">
           <div id="offer-title-err" class="error-text"></div>
         </div>
-        
+
         <div class="form-group">
           <label class="form-label">
             <i class="fas fa-align-left mr-2"></i>
             Descripción
           </label>
-          <textarea id="offer-description" rows="3" maxlength="200" class="form-input form-textarea" placeholder="Describe los detalles de tu oferta..."></textarea>
+          <textarea id="offer-description" rows="3" maxlength="200" class="form-input form-textarea"
+            placeholder="Describe los detalles de tu oferta..."></textarea>
           <div id="offer-description-err" class="error-text"></div>
         </div>
-        
+
         <div class="form-group">
           <label class="form-label">
             <i class="fas fa-percent mr-2"></i>
             Descuento / Promoción breve
           </label>
-          <input id="offer-discount" type="text" maxlength="40" class="form-input" placeholder="Ej: 2x1, 20% dcto, etc.">
+          <input id="offer-discount" type="text" maxlength="40" class="form-input"
+            placeholder="Ej: 2x1, 20% dcto, etc.">
           <div id="offer-discount-err" class="error-text"></div>
         </div>
-        
+
         <div class="form-group">
           <label class="form-label">
             <i class="fas fa-calendar-plus mr-2"></i>
@@ -207,7 +208,7 @@
           <input id="offer-start" type="date" class="form-input">
           <div id="offer-start-err" class="error-text"></div>
         </div>
-        
+
         <div class="form-group">
           <label class="form-label">
             <i class="fas fa-calendar-times mr-2"></i>
@@ -216,7 +217,7 @@
           <input id="offer-end" type="date" class="form-input">
           <div id="offer-end-err" class="error-text"></div>
         </div>
-        
+
         <div class="modal-actions">
           <button type="button" id="offer-cancel-btn" class="btn-cancel">
             <i class="fas fa-times mr-2"></i>
@@ -231,8 +232,7 @@
     </div>
   </div>
 
-  <!-- JS -->
   <script src="js/ofertas.js"></script>
-  <script type="module" src="js/jsControllers/ControllerOfertas.js"></script>
 </body>
+
 </html>

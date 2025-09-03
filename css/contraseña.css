@@ -554,6 +554,7 @@
             text-align: left;
             /* Asegura que el texto del error esté alineado a la izquierda */
         }
+
         .error-message.show {
             opacity: 1;
             transform: translateY(0);

@@ -16,7 +16,6 @@
             <form class="sign-in" id="loginForm">
                 <h2>Iniciar Sesión</h2>
                 <span>Use su correo y contraseña</span>
-                
                 <div class="container-input">
                     <div class="input-wrapper" id="emailWrapper">
                         <ion-icon name="mail-outline"></ion-icon>
@@ -24,7 +23,6 @@
                     </div>
                     <div class="error-message" id="emailError"></div>
                 </div>
-                
                 <div class="container-input">
                     <div class="input-wrapper" id="passwordWrapper">
                         <ion-icon name="lock-closed-outline"></ion-icon>
@@ -33,62 +31,22 @@
                     </div>
                     <div class="error-message" id="passwordError"></div>
                 </div>
-                
                 <button type="submit" class="button" id="loginBtn">
                     <span class="btn-text">Iniciar Sesión</span>
                 </button>
             </form>
         </div>
-        
-        <div class="container-form">
-            <form class="sign-up" id="registerForm">
-                <h2>Registrarse</h2>
-                <span>Use su correo electrónico para registrarse</span>
-                
-                <div class="container-input">
-                    <div class="input-wrapper" id="nameWrapper">
-                        <ion-icon name="person-outline"></ion-icon>
-                        <input type="text" placeholder="Nombre Completo" id="txtNombre">
-                    </div>
-                    <div class="error-message" id="nameError"></div>
-                </div>
-                
-                <div class="container-input">
-                    <div class="input-wrapper" id="registerEmailWrapper">
-                        <ion-icon name="mail-outline"></ion-icon>
-                        <input type="email" placeholder="Correo Electrónico" id="txtCorreoE">
-                    </div>
-                    <div class="error-message" id="registerEmailError"></div>
-                </div>
-                
-                <div class="container-input">
-                    <div class="input-wrapper" id="registerPasswordWrapper">
-                        <ion-icon name="lock-closed-outline"></ion-icon>
-                        <input type="password" placeholder="Contraseña" id="txtPassr">
-                        <ion-icon name="eye-outline" id="toggleRegisterPassword" class="toggle-password"></ion-icon>
-                    </div>
-                    <div class="error-message" id="registerPasswordError"></div>
-                </div>
-                
-                <button type="submit" class="button" id="registerBtn">
-                    <span class="btn-text">Registrarse</span>
-                </button>
-            </form>
-        </div>
-
         <div class="container-welcome">
             <div class="welcome-sign-up welcome">
                 <h3>¿Olvidó su contraseña?</h3>
                 <p>Ingrese aquí para recuperar su contraseña</p>
-                <button class="button" id="btn-sign-up"><a href="recuperacion.html">Recuperacion</a></button>
+                <button class="button" id="btn-sign-up"><a href="recuperacion.html">Recuperación</a></button>
             </div>
         </div>
     </div>
-
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
     <script src="js/inicioSesion.js"></script>
-
-
 </body>
 </html>

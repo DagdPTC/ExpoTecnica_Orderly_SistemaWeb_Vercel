@@ -1,6 +1,6 @@
         /* Configuración personalizada de Tailwind */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
+
         * {
             font-family: 'Inter', sans-serif;
         }
@@ -23,28 +23,64 @@
 
         /* Animaciones personalizadas */
         @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
         }
 
-        .animate-slide-in { animation: slideIn 0.3s ease-out; }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
-        .animate-scale-in { animation: scaleIn 0.2s ease-out; }
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .animate-scale-in {
+            animation: scaleIn 0.2s ease-out;
+        }
 
         /* Layout responsive */
         .sidebar {
@@ -67,7 +103,7 @@
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
         }
 
-        .sidebar.collapsed + .main-content {
+        .sidebar.collapsed+.main-content {
             margin-left: var(--sidebar-collapsed);
         }
 
@@ -360,8 +396,15 @@
         }
 
         @keyframes dropdownEnter {
-            from { opacity: 0; transform: translateY(-10px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .user-dropdown.show {
@@ -438,7 +481,7 @@
                 margin-left: 0;
             }
 
-            .sidebar.collapsed + .main-content {
+            .sidebar.collapsed+.main-content {
                 margin-left: 0;
             }
 
@@ -473,7 +516,7 @@
         }
 
         @media (max-width: 640px) {
-            .main-content > main {
+            .main-content>main {
                 padding: 1rem !important;
             }
 
@@ -726,6 +769,7 @@
                 opacity: 0;
                 transform: translateY(50px) scale(0.95);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0) scale(1);
@@ -757,6 +801,7 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -768,6 +813,7 @@
                 opacity: 0;
                 transform: translateX(-30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -880,6 +926,14 @@
             opacity: 1;
         }
 
-        .fab-option:nth-child(1) { transition-delay: 0.1s; }
-        .fab-option:nth-child(2) { transition-delay: 0.2s; }
-        .fab-option:nth-child(3) { transition-delay: 0.3s; }
+        .fab-option:nth-child(1) {
+            transition-delay: 0.1s;
+        }
+
+        .fab-option:nth-child(2) {
+            transition-delay: 0.2s;
+        }
+
+        .fab-option:nth-child(3) {
+            transition-delay: 0.3s;
+        }

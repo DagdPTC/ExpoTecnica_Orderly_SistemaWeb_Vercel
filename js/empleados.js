@@ -1,468 +1,287 @@
-// Datos pre-registrados
-const employees = [
-  {
-    id: 1,
-    firstName: "Juan",
-    secondName: "Carlos",
-    lastNameP: "Pérez",
-    lastNameM: "Gómez",
-    birthDate: "1985-05-15",
-    phone: "+503 7890-1234",
-    docType: "DUI",
-    docNumber: "12345678-9",
-    role: "Administrador",
-    username: "jperez",
-    password: "Admin123#",
-    email: "juan_perez@orderly.com",
-    hireDate: "2020-01-10",
-    address: "Calle Principal #123, Colonia Centro"
-  },
-  {
-    id: 2,
-    firstName: "María",
-    secondName: "Isabel",
-    lastNameP: "Rodríguez",
-    lastNameM: "Martínez",
-    birthDate: "1990-08-22",
-    phone: "+503 6789-4321",
-    docType: "DUI",
-    docNumber: "98765432-1",
-    role: "Mesero",
-    username: "mrodriguez",
-    password: "Mesero123#",
-    email: "maria_rodriguez@orderly.com",
-    hireDate: "2021-03-15",
-    address: "Avenida Norte #456, Colonia Escalón"
-  },
-  {
-    id: 3,
-    firstName: "Pedro",
-    secondName: "Antonio",
-    lastNameP: "González",
-    lastNameM: "",
-    birthDate: "1995-11-30",
-    phone: "+503 7654-9876",
-    docType: "Licencia",
-    docNumber: "1234-567890-123-4",
-    role: "Cocinero",
-    username: "pgonzalez",
-    password: "Cocinero123#",
-    email: "pedro_gonzalez@orderly.com",
-    hireDate: "2022-05-20",
-    address: "Calle Oriente #789, Colonia San Benito"
-  }
-];
-
-let editingId = null;
-
-// DOM elements
-const employeeForm = document.getElementById('employeeForm');
-const addEmployeeBtn = document.getElementById('addEmployeeBtn');
-const employeeModal = document.getElementById('employeeModal');
-const cancelBtn = document.getElementById('cancelBtn');
-const togglePassword = document.getElementById('togglePassword');
-const passwordInput = document.getElementById('password');
-const emailInput = document.getElementById('email');
-const searchInput = document.getElementById('searchInput');
-const employeesTbody = document.getElementById('employees-tbody');
-const roleFilterButton = document.getElementById('roleFilterButton');
-const roleFilterDropdown = document.getElementById('roleFilterDropdown');
-const roleFilters = document.querySelectorAll('.role-filter');
-const docTypeSelect = document.getElementById('docType');
-const docNumberInput = document.getElementById('docNumber');
-const sidebarToggleBtn = document.getElementById('sidebarToggle');
-const sidebar = document.getElementById('sidebar');
-const mainContent = document.getElementById('mainContent');
-
-// Sidebar toggle
-sidebarToggleBtn.addEventListener('click', () => {
-  sidebar.classList.toggle('collapsed');
-  mainContent.classList.toggle('collapsed');
-});
-
-// User dropdown
-document.addEventListener('DOMContentLoaded', () => {
-  const userBtn = document.getElementById('navbarUserBtn');
+document.addEventListener('DOMContentLoaded', function () {
+  let userBtn = document.querySelector('.navbar-user-avatar');
   if (userBtn) {
+    userBtn.style.position = 'relative';
+
     if (!document.getElementById('userDropdown')) {
       const dropdown = document.createElement('div');
       dropdown.className = 'user-dropdown';
       dropdown.id = 'userDropdown';
       dropdown.innerHTML = `
-        <button class="user-dropdown-item" id="logoutBtn">
-          <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
-        </button>`;
+                        <button class="user-dropdown-item" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
+                        </button>
+                    `;
+      userBtn.parentNode.style.position = "relative";
       userBtn.parentNode.appendChild(dropdown);
-      userBtn.addEventListener('click', e => {
+
+      const overlay = document.createElement('div');
+      overlay.className = 'user-dropdown-overlay';
+      overlay.id = 'userDropdownOverlay';
+      document.body.appendChild(overlay);
+
+      userBtn.addEventListener('click', function (e) {
         e.stopPropagation();
         dropdown.classList.toggle('show');
+        overlay.classList.toggle('active');
       });
-      document.addEventListener('click', () => dropdown.classList.remove('show'));
-      document.getElementById('logoutBtn').addEventListener('click', () => {
-        window.location.href = 'inicioSesion.html';
+
+      overlay.addEventListener('click', function () {
+        dropdown.classList.remove('show');
+        overlay.classList.remove('active');
+      });
+
+      document.addEventListener('keydown', function (ev) {
+        if (ev.key === "Escape") {
+          dropdown.classList.remove('show');
+          overlay.classList.remove('active');
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', function () {
+        dropdown.classList.remove('show');
+        overlay.classList.remove('active');
+        window.location.href = "inicioSesion.html";
       });
     }
   }
 });
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  addEmployeeBtn.addEventListener('click', () => openForm());
-  cancelBtn.addEventListener('click', () => closeForm());
-  togglePassword.addEventListener('click', togglePasswordVisibility);
-  document.getElementById('firstName').addEventListener('input', updateEmail);
-  document.getElementById('lastNameP').addEventListener('input', updateEmail);
-  searchInput.addEventListener('input', renderTable);
-  roleFilterButton.addEventListener('click', () => roleFilterDropdown.classList.toggle('hidden'));
-  roleFilters.forEach(cb => cb.addEventListener('change', renderTable));
-  docTypeSelect.addEventListener('change', updateDocNumberPattern);
-  employeeForm.addEventListener('submit', handleFormSubmit);
-  renderTable();
-});
+document.addEventListener('DOMContentLoaded', function () {
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
+  const sidebar = document.getElementById('sidebar');
+  const mobileOverlay = document.getElementById('mobileOverlay');
 
-// Validation helpers
-function validateNameInput(input) {
-  const re = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/;
-  const valid = re.test(input.value);
-  if (!valid) input.value = input.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
-  input.classList.toggle('invalid-input', !valid && input.value);
-  document.getElementById(input.id + 'Error').style.display = (!valid && input.value) ? 'block' : 'none';
-}
-
-function formatPhone(input) {
-  let v = input.value.replace(/\D/g,'');
-  if (v.length>4) v=v.slice(0,4)+'-'+v.slice(4,8);
-  input.value=v;
-  const ok=v.length===9;
-  input.classList.toggle('invalid-input', !ok && v);
-  document.getElementById('phoneError').style.display = (!ok && v) ? 'block':'none';
-}
-
-function formatDocNumber(input) {
-  const docType = docTypeSelect.value;
-  let v = input.value.replace(/\D/g,'');
-  
-  if (docType === 'DUI') {
-    if (v.length > 8) v = v.slice(0,8) + '-' + v.slice(8,9);
-    input.value = v;
-    const ok = v.length === 10;
-    input.classList.toggle('invalid-input', !ok && v);
-    document.getElementById('docNumberError').style.display = (!ok && v) ? 'block' : 'none';
-  } 
-  else if (docType === 'Licencia') {
-    // Formato: xxxx-xxxxxx-xxx-x (4-6-3-1)
-    if (v.length > 4) v = v.slice(0,4) + '-' + v.slice(4,10);
-    if (v.length > 11) v = v.slice(0,11) + '-' + v.slice(11,14);
-    if (v.length > 15) v = v.slice(0,15) + '-' + v.slice(15,16);
-    input.value = v;
-    const ok = v.length === 16;
-    input.classList.toggle('invalid-input', !ok && v);
-    document.getElementById('docNumberError').style.display = (!ok && v) ? 'block' : 'none';
-  }
-}
-
-function validateUsername(input) {
-  const re=/^[A-Za-z0-9]*$/;
-  const ok=re.test(input.value);
-  if (!ok) input.value=input.value.replace(/[^A-Za-z0-9]/g,'');
-  input.classList.toggle('invalid-input', !ok && input.value);
-  document.getElementById(input.id+'Error').style.display = (!ok&&input.value)?'block':'none';
-}
-
-function validateBirthDate() {
-  const bd = document.getElementById('birthDate');
-  const d = new Date(bd.value);
-  const t = new Date();
-  
-  if (!bd.value) {
-    bd.classList.add('invalid-input');
-    document.getElementById('birthDateError').style.display = 'block';
-    return false;
-  }
-
-  // Validar que no sea fecha futura
-  if (d > t) {
-    bd.classList.add('invalid-input');
-    document.getElementById('birthDateError').textContent = 'La fecha no puede ser futura';
-    document.getElementById('birthDateError').style.display = 'block';
-    return false;
-  }
-
-  // Calcular edad (18-85 años)
-  let age = t.getFullYear() - d.getFullYear();
-  const monthDiff = t.getMonth() - d.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && t.getDate() < d.getDate())) {
-    age--;
-  }
-
-  const ok = age >= 18 && age <= 85;
-  bd.classList.toggle('invalid-input', !ok);
-  document.getElementById('birthDateError').textContent = 'El empleado debe tener entre 18 y 85 años';
-  document.getElementById('birthDateError').style.display = !ok ? 'block' : 'none';
-  return ok;
-}
-
-function validateHireDate() {
-  const hd = document.getElementById('hireDate');
-  const h = new Date(hd.value);
-  const t = new Date();
-  const bd = new Date(document.getElementById('birthDate').value);
-
-  if (!hd.value) {
-    hd.classList.add('invalid-input');
-    document.getElementById('hireDateError').style.display = 'block';
-    return false;
-  }
-
-  // Validar que no sea fecha futura
-  if (h > t) {
-    hd.classList.add('invalid-input');
-    document.getElementById('hireDateError').textContent = 'La fecha no puede ser futura';
-    document.getElementById('hireDateError').style.display = 'block';
-    return false;
-  }
-
-  // Validar que sea posterior a la fecha de nacimiento + 18 años
-  if (bd) {
-    const minHireDate = new Date(bd);
-    minHireDate.setFullYear(minHireDate.getFullYear() + 18);
-    
-    if (h < minHireDate) {
-      hd.classList.add('invalid-input');
-      document.getElementById('hireDateError').textContent = 'La fecha debe ser posterior a los 18 años de edad';
-      document.getElementById('hireDateError').style.display = 'block';
-      return false;
-    }
-  }
-
-  hd.classList.remove('invalid-input');
-  document.getElementById('hireDateError').style.display = 'none';
-  return true;
-}
-
-function validateAddress(input) {
-  const re=/^[A-Za-z0-9 #ÁÉÍÓÚáéíóúÑñ,.\s]*$/;
-  const ok=re.test(input.value)&&input.value.length<=160;
-  if (!ok) input.value=input.value.replace(/[^A-Za-z0-9 #ÁÉÍÓÚáéíóúÑñ,.\s]/g,'');
-  input.classList.toggle('invalid-input', !ok&&input.value);
-  document.getElementById(input.id+'Error').style.display = (!ok&&input.value)?'block':'none';
-}
-
-function togglePasswordVisibility() {
-  if (passwordInput.type==='password') {
-    passwordInput.type='text';
-    togglePassword.innerHTML='<i class="fas fa-eye-slash"></i>';
-  } else {
-    passwordInput.type='password';
-    togglePassword.innerHTML='<i class="fas fa-eye"></i>';
-  }
-}
-
-function updateDocNumberPattern() {
-  docNumberInput.value='';
-  docNumberInput.classList.remove('invalid-input');
-  document.getElementById('docNumberError').style.display='none';
-  
-  if (docTypeSelect.value==='DUI') {
-    docNumberInput.placeholder='xxxxxxxx-x';
-    docNumberInput.maxLength=10;
-  } 
-  else if (docTypeSelect.value==='Licencia') {
-    docNumberInput.placeholder='xxxx-xxxxxx-xxx-x';
-    docNumberInput.maxLength=16;
-  } 
-  else {
-    docNumberInput.placeholder='';
-    docNumberInput.removeAttribute('maxLength');
-  }
-  
-  // Actualizar el evento de input según el tipo de documento
-  docNumberInput.removeEventListener('input', formatDocNumber);
-  docNumberInput.addEventListener('input', function() {
-    formatDocNumber(this);
-  });
-}
-
-function updateEmail() {
-  const fn=getValue('firstName').toLowerCase().replace(/\s/g,''), lp=getValue('lastNameP').toLowerCase().replace(/\s/g,'');
-  emailInput.value = fn&&lp ? `${fn}_${lp}@orderly.com` : '';
-}
-
-// Form handlers
-function openForm(emp=null) {
-  document.getElementById('modalTitle').textContent = emp?'Editar Empleado':'Nuevo Empleado';
-  document.querySelectorAll('.error-message').forEach(e=>e.style.display='none');
-  document.querySelectorAll('.invalid-input').forEach(e=>e.classList.remove('invalid-input'));
-  if (emp) {
-    editingId=emp.id;
-    ['firstName','secondName','lastNameP','lastNameM','birthDate','phone','docNumber','role','username','password','hireDate','address'].forEach(f=>{
-      const el=document.getElementById(f);
-      let v= emp[f] || '';
-      if (f==='phone') v=v.replace('+503 ','');
-      el.value=v;
+  if (sidebarToggle && sidebar) {
+    sidebarToggle.addEventListener('click', function () {
+      sidebar.classList.toggle('mobile-open');
+      mobileOverlay.classList.toggle('active');
     });
-    docTypeSelect.value=emp.docType;
-    updateDocNumberPattern();
-    emailInput.value=emp.email;
-  } else {
-    editingId=null;
-    employeeForm.reset();
-    emailInput.value='';
-    updateDocNumberPattern();
   }
-  employeeModal.classList.remove('hidden');
-  document.body.style.overflow='hidden';
-}
 
-function closeForm() {
-  employeeModal.classList.add('hidden');
-  document.body.style.overflow='';
-  editingId=null;
-  employeeForm.reset();
-  emailInput.value='';
-  document.querySelectorAll('.invalid-input').forEach(e=>e.classList.remove('invalid-input'));
-  document.querySelectorAll('.error-message').forEach(e=>e.style.display='none');
-}
-
-function handleFormSubmit(e) {
-  e.preventDefault();
-  if (!validateForm()) return;
-  const emp = {
-    id: editingId||Date.now(),
-    firstName:getValue('firstName').trim(),
-    secondName:getValue('secondName').trim(),
-    lastNameP:getValue('lastNameP').trim(),
-    lastNameM:getValue('lastNameM').trim(),
-    birthDate:getValue('birthDate'),
-    phone:`+503 ${getValue('phone')}`,
-    docType:getValue('docType'),
-    docNumber:getValue('docNumber').trim(),
-    role:getValue('role'),
-    username:getValue('username').trim(),
-    password:getValue('password').trim(),
-    email:emailInput.value,
-    hireDate:getValue('hireDate'),
-    address:getValue('address').trim()
-  };
-  if (editingId) {
-    const idx=employees.findIndex(x=>x.id===editingId);
-    employees[idx]=emp;
-  } else {
-    employees.push(emp);
+  if (sidebarToggleDesktop && sidebar) {
+    sidebarToggleDesktop.addEventListener('click', function () {
+      sidebar.classList.toggle('collapsed');
+    });
   }
-  closeForm();
-  renderTable();
-}
 
-function validateForm() {
-  let ok = true;
-  
-  // Validar campos requeridos
-  ['firstName','lastNameP','birthDate','phone','docNumber','role','username','password','hireDate','address'].forEach(f=>{
-    const el = document.getElementById(f);
-    const err = document.getElementById(f+'Error');
-    if (!el.value.trim()) {
-      el.classList.add('invalid-input'); 
-      err.style.display='block'; 
-      ok=false;
+  if (mobileOverlay) {
+    mobileOverlay.addEventListener('click', function () {
+      sidebar.classList.remove('mobile-open');
+      mobileOverlay.classList.remove('active');
+    });
+  }
+
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === "Escape") {
+      sidebar.classList.remove('mobile-open');
+      mobileOverlay.classList.remove('active');
     }
   });
 
-  // Validar fechas
-  if (!validateBirthDate()) ok = false;
-  if (!validateHireDate()) ok = false;
-
-  return ok;
-}
-
-// Render tabla
-function renderTable() {
-  employeesTbody.innerHTML='';
-  const term=searchInput.value.toLowerCase();
-  const roles=Array.from(document.querySelectorAll('.role-filter:checked')).map(cb=>cb.value);
-  employees.filter(emp=>{
-    const matchSearch=[emp.firstName,emp.lastNameP,emp.username,emp.email].join(' ').toLowerCase().includes(term);
-    const matchRole=roles.includes('all')||roles.includes(emp.role);
-    return matchSearch&&matchRole;
-  }).forEach((emp,i)=>{
-    const tr=document.createElement('tr');
-    tr.className='hover:bg-gray-50';
-    tr.innerHTML=`
-      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${emp.firstName} ${emp.lastNameP}</td>
-      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${emp.username}</td>
-      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${emp.email}</td>
-      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${emp.role}</td>
-      <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 cursor-pointer toggle-details" data-target="details-${i+1}">
-        Detalles <i class="fas fa-chevron-down ml-1 text-xs"></i>
-      </td>
-      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-        <button class="employee-action-edit mr-2" onclick="openForm(employees[${i}])" title="Editar">
-          <i class="fas fa-edit"></i>
-        </button>
-        <button class="employee-action-delete" onclick="deleteEmployee(${i})" title="Eliminar">
-          <i class="fas fa-trash"></i>
-        </button>
-      </td>
-    `;
-    const detailTr=document.createElement('tr');
-    detailTr.innerHTML=`
-      <td colspan="6" class="px-0 py-0">
-        <div id="details-${i+1}" class="order-details">
-          <div class="details-content px-6 py-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div><span class="font-medium">Segundo Nombre:</span> ${emp.secondName||'N/A'}</div>
-              <div><span class="font-medium">Apellido Materno:</span> ${emp.lastNameM||'N/A'}</div>
-              <div><span class="font-medium">Fecha Nac.:</span> ${formatDate(emp.birthDate)}</div>
-              <div><span class="font-medium">Teléfono:</span> ${emp.phone}</div>
-              <div><span class="font-medium">Documento:</span> ${emp.docType} ${emp.docNumber}</div>
-              <div><span class="font-medium">Fecha Contr.:</span> ${formatDate(emp.hireDate)}</div>
-              <div class="col-span-2"><span class="font-medium">Dirección:</span> ${emp.address}</div>
-              <div class="col-span-2">
-                <span class="font-medium">Contraseña:</span>
-                <span id="pw-${emp.id}">••••••••</span>
-                <button onclick="togglePwd(${emp.id},'${emp.password}')" class="text-gray-500 ml-1">
-                  <i class="fas fa-eye"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </td>
-    `;
-    employeesTbody.appendChild(tr);
-    employeesTbody.appendChild(detailTr);
+  window.addEventListener('resize', function () {
+    if (window.innerWidth >= 1024) {
+      sidebar.classList.remove('mobile-open');
+      mobileOverlay.classList.remove('active');
+    }
   });
-  attachEvents();
-}
+});
 
-// Helpers
-function getValue(id){return document.getElementById(id).value}
-function formatDate(s){return new Date(s).toLocaleDateString('es-ES')}
+document.addEventListener('DOMContentLoaded', function () {
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
 
-// Attach events for details & delete
-function attachEvents() {
-  document.querySelectorAll('.toggle-details').forEach(btn=>{
-    btn.onclick=()=>{
-      const tgt=document.getElementById(btn.dataset.target);
-      tgt.classList.toggle('active');
-      btn.querySelector('i').classList.toggle('fa-chevron-down');
-      btn.querySelector('i').classList.toggle('fa-chevron-up');
+  const observer = new IntersectionObserver(function (entries) {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.animate-fade-in').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+    observer.observe(el);
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  const tableStatus = document.querySelectorAll('.table-status');
+
+  tableStatus.forEach(table => {
+    table.addEventListener('mouseenter', function () {
+      this.style.transform = 'scale(1.05) rotate(2deg)';
+    });
+
+    table.addEventListener('mouseleave', function () {
+      this.style.transform = 'scale(1) rotate(0deg)';
+    });
+
+    table.addEventListener('click', function () {
+      this.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        this.style.transform = 'scale(1.05) rotate(2deg)';
+      }, 150);
+    });
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    });
+  });
+});
+
+const employees = [
+  { id: 1, firstName: "Juan", secondName: "Carlos", lastNameP: "Pérez", lastNameM: "Gómez", birthDate: "1985-05-15", phone: "+503 7890-1234", docType: "DUI", docNumber: "12345678-9", role: "Administrador", username: "jperez", password: "Admin123#", email: "juan_perez@orderly.com", hireDate: "2020-01-10", address: "Calle Principal #123, Colonia Centro" },
+  { id: 2, firstName: "María", secondName: "Isabel", lastNameP: "Rodríguez", lastNameM: "Martínez", birthDate: "1990-08-22", phone: "+503 6789-4321", docType: "DUI", docNumber: "98765432-1", role: "Mesero", username: "mrodriguez", password: "Mesero123#", email: "maria_rodriguez@orderly.com", hireDate: "2021-03-15", address: "Avenida Norte #456, Colonia Escalón" },
+  { id: 3, firstName: "Pedro", secondName: "Antonio", lastNameP: "González", lastNameM: "", birthDate: "1995-11-30", phone: "+503 7654-9876", docType: "Licencia", docNumber: "1234-567890-123-4", role: "Cocinero", username: "pgonzalez", password: "Cocinero123#", email: "pedro_gonzalez@orderly.com", hireDate: "2022-05-20", address: "Calle Oriente #789, Colonia San Benito" }
+];
+
+const searchInput = document.getElementById('searchInput');
+const tbody = document.getElementById('employees-tbody');
+const roleBtn = document.getElementById('roleBtn');
+const roleMenu = document.getElementById('roleMenu');
+roleBtn.addEventListener('click', (e) => { e.stopPropagation(); roleMenu.classList.toggle('hidden'); });
+document.addEventListener('click', () => roleMenu.classList.add('hidden'));
+roleMenu.querySelectorAll('input.role-filter').forEach(cb => cb.addEventListener('change', renderTable));
+searchInput.addEventListener('input', renderTable);
+
+function chipClass(role) { return role === 'Administrador' ? 'admin' : role === 'Mesero' ? 'mesero' : role === 'Cocinero' ? 'cocinero' : role === 'Cajero' ? 'cajero' : role === 'Limpieza' ? 'limpieza' : ''; }
+function formatDate(s) { return new Date(s).toLocaleDateString('es-ES'); }
+
+function renderTable() {
+  const term = (searchInput.value || '').toLowerCase();
+  const roles = Array.from(document.querySelectorAll('.role-filter:checked')).map(x => x.value);
+  const filtered = employees.filter(e => {
+    const t = [e.firstName, e.lastNameP, e.username, e.email].join(' ').toLowerCase();
+    const okText = t.includes(term);
+    const okRole = roles.includes('all') || roles.includes(e.role);
+    return okText && okRole;
+  });
+
+  tbody.innerHTML = '';
+  filtered.forEach(emp => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+                    <td><div class="font-semibold text-slate-800">${emp.firstName} ${emp.lastNameP}</div></td>
+                    <td>${emp.username}</td>
+                    <td class="hidden sm:table-cell">${emp.email}</td>
+                    <td><span class="chip ${chipClass(emp.role)}">${emp.role}</span></td>
+                    <td class="hidden lg:table-cell"><button class="text-blue-600 hover:text-blue-800 text-sm toggle-details" data-target="d-${emp.id}">Detalles <i class="fa-solid fa-chevron-down text-xs ml-1"></i></button></td>
+                    <td>
+                        <div class="flex gap-2">
+                            <button class="px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50" onclick='openForm(${JSON.stringify(emp)})' title="Editar"><i class="fa-solid fa-pen"></i></button>
+                            <button class="px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50" onclick="deleteEmployee(${emp.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>`;
+    const tr2 = document.createElement('tr');
+    tr2.innerHTML = `
+                    <td colspan="6" class="p-0">
+                        <div id="d-${emp.id}" class="hidden border-t border-slate-200 bg-slate-50/50">
+                            <div class="px-6 py-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                                <div><div class="font-semibold">Segundo Nombre</div><div>${emp.secondName || 'N/A'}</div></div>
+                                <div><div class="font-semibold">Apellido Materno</div><div>${emp.lastNameM || 'N/A'}</div></div>
+                                <div><div class="font-semibold">Fecha de Nacimiento</div><div>${formatDate(emp.birthDate)}</div></div>
+                                <div><div class="font-semibold">Teléfono</div><div>${emp.phone}</div></div>
+                                <div><div class="font-semibold">Documento</div><div>${emp.docType} ${emp.docNumber}</div></div>
+                                <div><div class="font-semibold">Fecha Contratación</div><div>${formatDate(emp.hireDate)}</div></div>
+                                <div class="lg:col-span-3"><div class="font-semibold">Dirección</div><div>${emp.address}</div></div>
+                            </div>
+                        </div>
+                    </td>`;
+    tbody.appendChild(tr); tbody.appendChild(tr2);
+  });
+
+  document.querySelectorAll('.toggle-details').forEach(btn => {
+    btn.onclick = () => {
+      const tgt = document.getElementById(btn.dataset.target);
+      tgt.classList.toggle('hidden');
+      const icon = btn.querySelector('i');
+      icon.style.transform = tgt.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
     };
   });
 }
+renderTable();
 
-function deleteEmployee(idx){
-  if(confirm('¿Eliminar empleado?')){
-    employees.splice(idx,1);
-    renderTable();
+const addEmployeeBtn = document.getElementById('addEmployeeBtn');
+const modalWrap = document.getElementById('employeeModal');
+const modalTitle = document.getElementById('modalTitle');
+const cancelBtn = document.getElementById('cancelBtn');
+const employeeForm = document.getElementById('employeeForm');
+const togglePassword = document.getElementById('togglePassword');
+const emailInput = document.getElementById('email');
+let editingId = null;
+
+addEmployeeBtn.addEventListener('click', () => openForm());
+cancelBtn.addEventListener('click', closeForm);
+modalWrap.addEventListener('click', e => { if (e.target === modalWrap) closeForm(); });
+employeeForm.addEventListener('submit', submitForm);
+document.getElementById('firstName').addEventListener('input', updateEmail);
+document.getElementById('lastNameP').addEventListener('input', updateEmail);
+togglePassword.addEventListener('click', () => {
+  const input = document.getElementById('password'); const isPass = input.type === 'password';
+  input.type = isPass ? 'text' : 'password';
+  togglePassword.innerHTML = isPass ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-eye"></i>';
+});
+
+function openForm(emp = null) {
+  modalTitle.textContent = emp ? 'Editar Empleado' : 'Nuevo Empleado';
+  document.querySelectorAll('.err').forEach(e => e.style.display = 'none');
+  document.querySelectorAll('.invalid').forEach(e => e.classList.remove('invalid'));
+  if (emp) {
+    editingId = emp.id;
+    ['firstName', 'secondName', 'lastNameP', 'lastNameM', 'birthDate', 'phone', 'docNumber', 'role', 'username', 'password', 'hireDate', 'address']
+      .forEach(id => { const el = document.getElementById(id); let v = emp[id] || ''; if (id === 'phone') v = v.replace('+503 ', ''); el.value = v; });
+    document.getElementById('docType').value = emp.docType; updateDocNumberPattern();
+    emailInput.value = emp.email;
+  } else {
+    editingId = null; employeeForm.reset(); emailInput.value = ''; updateDocNumberPattern();
   }
+  modalWrap.classList.add('show'); document.body.style.overflow = 'hidden';
+}
+function closeForm() { modalWrap.classList.remove('show'); document.body.style.overflow = ''; editingId = null; employeeForm.reset(); emailInput.value = ''; }
+function submitForm(e) {
+  e.preventDefault();
+  if (!validateBirthDate() || !validateHireDate()) return;
+
+  const emp = {
+    id: editingId || Date.now(),
+    firstName: val('firstName'), secondName: val('secondName'),
+    lastNameP: val('lastNameP'), lastNameM: val('lastNameM'),
+    birthDate: val('birthDate'), phone: `+503 ${val('phone')}`,
+    docType: val('docType'), docNumber: val('docNumber'),
+    role: val('role'), username: val('username'),
+    password: val('password'), email: emailInput.value,
+    hireDate: val('hireDate'), address: val('address')
+  };
+  if (editingId) { const i = employees.findIndex(x => x.id === editingId); if (i > -1) employees[i] = emp; } else { employees.push(emp); }
+  closeForm(); renderTable();
 }
 
-window.togglePwd = function(id,pw){
-  const span=document.getElementById(`pw-${id}`), icon=span.nextElementSibling.querySelector('i');
-  if(span.textContent==='••••••••'){
-    span.textContent=pw; icon.classList.replace('fa-eye','fa-eye-slash');
-  } else {
-    span.textContent='••••••••'; icon.classList.replace('fa-eye-slash','fa-eye');
-  }
-};
+function val(id) { return document.getElementById(id).value.trim(); }
+function validateNameInput(el) { const re = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/; const ok = re.test(el.value); if (!ok) el.value = el.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, ''); el.classList.toggle('invalid', !ok && el.value); const e = document.getElementById(el.id + 'Error'); if (e) e.style.display = (!ok && el.value) ? 'block' : 'none'; }
+function validateUsername(el) { const re = /^[A-Za-z0-9]*$/; const ok = re.test(el.value); if (!ok) el.value = el.value.replace(/[^A-Za-z0-9]/g, ''); el.classList.toggle('invalid', !ok && el.value); document.getElementById('usernameError').style.display = (!ok && el.value) ? 'block' : 'none'; }
+function formatPhone(el) { let v = el.value.replace(/\D/g, ''); if (v.length > 4) v = v.slice(0, 4) + '-' + v.slice(4, 8); el.value = v; const ok = v.length === 9; el.classList.toggle('invalid', !ok && v); document.getElementById('phoneError').style.display = (!ok && v) ? 'block' : 'none'; }
+function updateDocNumberPattern() { const el = document.getElementById('docNumber'); const type = document.getElementById('docType').value; el.value = ''; el.classList.remove('invalid'); document.getElementById('docNumberError').style.display = 'none'; if (type === 'DUI') { el.placeholder = 'xxxxxxxx-x'; el.maxLength = 10; } else { el.placeholder = 'xxxx-xxxxxx-xxx-x'; el.maxLength = 16; } }
+function formatDocNumber(el) { const t = document.getElementById('docType').value; let v = el.value.replace(/\D/g, ''); if (t === 'DUI') { if (v.length > 8) v = v.slice(0, 8) + '-' + v.slice(8, 9); el.value = v; const ok = v.length === 10; el.classList.toggle('invalid', !ok && v); document.getElementById('docNumberError').style.display = (!ok && v) ? 'block' : 'none'; } else { if (v.length > 4) v = v.slice(0, 4) + '-' + v.slice(4, 10); if (v.length > 11) v = v.slice(0, 11) + '-' + v.slice(11, 14); if (v.length > 15) v = v.slice(0, 15) + '-' + v.slice(15, 16); el.value = v; const ok = v.length === 16; el.classList.toggle('invalid', !ok && v); document.getElementById('docNumberError').style.display = (!ok && v) ? 'block' : 'none'; } }
+function validateBirthDate() { const el = document.getElementById('birthDate'); if (!el.value) { el.classList.add('invalid'); document.getElementById('birthDateError').style.display = 'block'; return false; } const d = new Date(el.value), now = new Date(); if (d > now) { el.classList.add('invalid'); document.getElementById('birthDateError').textContent = 'La fecha no puede ser futura'; document.getElementById('birthDateError').style.display = 'block'; return false; } let age = now.getFullYear() - d.getFullYear(); const m = now.getMonth() - d.getMonth(); if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--; const ok = age >= 18 && age <= 85; el.classList.toggle('invalid', !ok); document.getElementById('birthDateError').textContent = 'El empleado debe tener entre 18 y 85 años'; document.getElementById('birthDateError').style.display = ok ? 'none' : 'block'; return ok; }
+function validateHireDate() { const el = document.getElementById('hireDate'); if (!el.value) { el.classList.add('invalid'); document.getElementById('hireDateError').style.display = 'block'; return false; } const h = new Date(el.value), now = new Date(); if (h > now) { el.classList.add('invalid'); document.getElementById('hireDateError').textContent = 'La fecha no puede ser futura'; document.getElementById('hireDateError').style.display = 'block'; return false; } const bdv = document.getElementById('birthDate').value; if (bdv) { const bd = new Date(bdv); const min = new Date(bd); min.setFullYear(min.getFullYear() + 18); if (h < min) { el.classList.add('invalid'); document.getElementById('hireDateError').textContent = 'Debe ser posterior a los 18 años'; document.getElementById('hireDateError').style.display = 'block'; return false; } } el.classList.remove('invalid'); document.getElementById('hireDateError').style.display = 'none'; return true; }
+function validateAddress(el) { const re = /^[A-Za-z0-9 #ÁÉÍÓÚáéíóúÑñ,.\s]*$/; const ok = re.test(el.value) && el.value.length <= 160; if (!ok) el.value = el.value.replace(/[^A-Za-z0-9 #ÁÉÍÓÚáéíóúÑñ,.\s]/g, ''); el.classList.toggle('invalid', !ok && el.value); document.getElementById('addressError').style.display = (!ok && el.value) ? 'block' : 'none'; }
+function updateEmail() { const fn = (document.getElementById('firstName').value || '').toLowerCase().replace(/\s/g, ''); const lp = (document.getElementById('lastNameP').value || '').toLowerCase().replace(/\s/g, ''); emailInput.value = fn && lp ? `${fn}_${lp}@orderly.com` : ''; }
+function deleteEmployee(id) { if (confirm('¿Eliminar este empleado?')) { const i = employees.findIndex(e => e.id === id); if (i > -1) { employees.splice(i, 1); renderTable(); } } }

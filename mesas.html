@@ -8,19 +8,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/mesas.css">
-   
 </head>
 
 <body class="bg-gray-50 font-sans overflow-x-hidden">
-    <!-- Overlay para mobile -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <!-- Barra lateral -->
     <div class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
         <div class="logo-container animate-fade-in">
             <div class="flex items-center justify-center">
                 <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
-                    <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo w-10 h-10">
+                    <img src="https://via.placeholder.com/48/0ea5e9/ffffff?text=O" alt="Logo Orderly"
+                        class="logo w-10 h-10">
                 </div>
                 <span class="logo-text ml-3 text-xl font-bold text-white">Orderly</span>
             </div>
@@ -34,7 +32,8 @@
             </a>
 
             <div class="section-title">OPERATIONS</div>
-            <a href="mesas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2 active bg-gradient-to-r from-blue-500 to-blue-600">
+            <a href="mesas.html"
+                class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2 active bg-gradient-to-r from-blue-500 to-blue-600">
                 <i class="fas fa-chair w-6 text-center text-lg"></i>
                 <span class="nav-text ml-3 font-medium">Mesas</span>
             </a>
@@ -81,36 +80,40 @@
         </div>
     </div>
 
-    <!-- Contenido principal -->
     <div class="main-content flex flex-col min-h-screen">
-        <!-- Barra superior -->
         <header class="main-header flex items-center justify-between px-6 animate-fade-in">
             <div class="flex items-center">
-                <button id="sidebarToggle" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
+                <button id="sidebarToggle"
+                    class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
                     <i class="fas fa-bars text-lg"></i>
                 </button>
-                <button id="sidebarToggleDesktop" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
+                <button id="sidebarToggleDesktop"
+                    class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
                     <i class="fas fa-bars text-lg"></i>
                 </button>
                 <h1 class="text-2xl font-bold text-gray-800">Gestión de Mesas</h1>
             </div>
-            
+
             <div class="flex items-center space-x-4">
                 <div class="relative">
-                    <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                    <button
+                        class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
                         <i class="fas fa-bell text-lg"></i>
                         <span class="notification-badge">3</span>
                     </button>
                 </div>
                 <div class="relative">
-                    <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                    <button
+                        class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
                         <i class="fas fa-envelope text-lg"></i>
                         <span class="notification-badge bg-blue-500">5</span>
                     </button>
                 </div>
                 <div class="relative">
-                    <button class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+                    <button
+                        class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
                             <i class="fas fa-user"></i>
                         </div>
                         <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
@@ -120,35 +123,37 @@
             </div>
         </header>
 
-        <!-- Contenido del Dashboard -->
         <main class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
-            <!-- Filter Buttons -->
             <div class="mb-8 animate-fade-in">
                 <div class="flex flex-wrap gap-3">
-                    <button onclick="filterTables('all')" class="btn-modern px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl font-medium shadow-lg active-filter">
+                    <button onclick="filterTables('all')"
+                        class="btn-modern px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl font-medium shadow-lg active-filter">
                         <i class="fas fa-th mr-2"></i>
                         Todas las mesas
                     </button>
-                    <button onclick="filterTables('libre')" class="btn-modern px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-medium shadow-lg">
+                    <button onclick="filterTables('libre')"
+                        class="btn-modern px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-medium shadow-lg">
                         <i class="fas fa-check-circle mr-2"></i>
                         Disponibles
                     </button>
-                    <button onclick="filterTables('ocupada')" class="btn-modern px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-medium shadow-lg">
+                    <button onclick="filterTables('ocupada')"
+                        class="btn-modern px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-medium shadow-lg">
                         <i class="fas fa-users mr-2"></i>
                         Ocupadas
                     </button>
-                    <button onclick="filterTables('reservada')" class="btn-modern px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium shadow-lg">
+                    <button onclick="filterTables('reservada')"
+                        class="btn-modern px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium shadow-lg">
                         <i class="fas fa-bookmark mr-2"></i>
                         Reservadas
                     </button>
-                    <button onclick="filterTables('limpieza')" class="btn-modern px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium shadow-lg">
+                    <button onclick="filterTables('limpieza')"
+                        class="btn-modern px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium shadow-lg">
                         <i class="fas fa-broom mr-2"></i>
                         En limpieza
                     </button>
                 </div>
             </div>
 
-            <!-- Stats Cards -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fade-in">
                 <div class="counter stat-card p-6 hover-lift">
                     <div class="flex items-center justify-between">
@@ -223,12 +228,9 @@
                 </div>
             </div>
 
-            <!-- Tables Grid -->
             <div id="mesas-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <!-- Las mesas se generarán dinámicamente aquí -->
             </div>
 
-            <!-- Empty State -->
             <div id="empty-state" class="hidden col-span-full text-center py-16">
                 <div class="mx-auto w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
                     <i class="fas fa-search text-3xl text-slate-400"></i>
@@ -239,29 +241,30 @@
         </main>
     </div>
 
-    <!-- FAB -->
     <div class="fab">
         <button id="fab-main" class="fab-main flex items-center justify-center text-white focus:outline-none">
             <i class="fas fa-plus text-xl"></i>
         </button>
-        
+
         <div id="fab-menu" class="absolute bottom-16 right-0 space-y-3 hidden">
-            <button id="add-btn" class="fab-option flex items-center bg-emerald-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-emerald-600 transition-all transform hover:scale-105">
+            <button id="add-btn"
+                class="fab-option flex items-center bg-emerald-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-emerald-600 transition-all transform hover:scale-105">
                 <i class="fas fa-plus mr-2"></i>
                 <span class="font-medium">Agregar Mesa</span>
             </button>
-            <button id="edit-btn" class="fab-option flex items-center bg-amber-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-amber-600 transition-all transform hover:scale-105">
+            <button id="edit-btn"
+                class="fab-option flex items-center bg-amber-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-amber-600 transition-all transform hover:scale-105">
                 <i class="fas fa-edit mr-2"></i>
                 <span class="font-medium">Editar Mesa</span>
             </button>
-            <button id="delete-btn" class="fab-option flex items-center bg-red-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-red-600 transition-all transform hover:scale-105">
+            <button id="delete-btn"
+                class="fab-option flex items-center bg-red-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-red-600 transition-all transform hover:scale-105">
                 <i class="fas fa-trash mr-2"></i>
                 <span class="font-medium">Eliminar Mesa</span>
             </button>
         </div>
     </div>
 
-    <!-- Modal Agregar -->
     <div id="add-modal" class="modal fixed inset-0 z-50 hidden">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div class="modal-content w-full max-w-md p-8">
@@ -276,26 +279,28 @@
                 <form class="space-y-6">
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Número de Mesa</label>
-                        <input id="add-numero" type="number" min="1" max="99" 
-                               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                               placeholder="Ej: 15">
+                        <input id="add-numero" type="number" min="1" max="99"
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                            placeholder="Ej: 15">
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Capacidad</label>
                         <input id="add-capacidad" type="number" min="1" max="20"
-                               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                               placeholder="Ej: 4 personas">
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                            placeholder="Ej: 4 personas">
                     </div>
 
                     <div id="add-message" class="text-center text-sm"></div>
                 </form>
 
                 <div class="flex space-x-4 mt-8">
-                    <button onclick="closeAdd()" class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
+                    <button onclick="closeAdd()"
+                        class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
                         Cancelar
                     </button>
-                    <button onclick="addMesa()" class="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all font-medium shadow-lg">
+                    <button onclick="addMesa()"
+                        class="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all font-medium shadow-lg">
                         Crear Mesa
                     </button>
                 </div>
@@ -303,7 +308,6 @@
         </div>
     </div>
 
-    <!-- Modal Buscar Mesa -->
     <div id="update-modal-step1" class="modal fixed inset-0 z-50 hidden">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div class="modal-content w-full max-w-md p-8">
@@ -319,18 +323,20 @@
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Número de Mesa</label>
                         <input id="update-search-numero" type="number" min="1" max="99"
-                               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-                               placeholder="Buscar mesa...">
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                            placeholder="Buscar mesa...">
                     </div>
 
                     <div id="update-message-step1" class="text-center text-sm"></div>
                 </form>
 
                 <div class="flex space-x-4 mt-8">
-                    <button onclick="closeUpdate()" class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
+                    <button onclick="closeUpdate()"
+                        class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
                         Cancelar
                     </button>
-                    <button onclick="nextUpdate()" class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-medium shadow-lg">
+                    <button onclick="nextUpdate()"
+                        class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-medium shadow-lg">
                         Buscar Mesa
                     </button>
                 </div>
@@ -338,7 +344,6 @@
         </div>
     </div>
 
-    <!-- Modal Editar Mesa -->
     <div id="update-modal-step2" class="modal fixed inset-0 z-50 hidden">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div class="modal-content w-full max-w-md p-8">
@@ -354,23 +359,25 @@
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Número de Mesa</label>
                         <input id="update-numero" type="number" min="1" max="99"
-                               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all">
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all">
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Capacidad</label>
                         <input id="update-capacidad" type="number" min="1" max="20"
-                               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all">
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all">
                     </div>
 
                     <div id="update-message-step2" class="text-center text-sm"></div>
                 </form>
 
                 <div class="flex space-x-4 mt-8">
-                    <button onclick="closeUpdate()" class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
+                    <button onclick="closeUpdate()"
+                        class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
                         Cancelar
                     </button>
-                    <button onclick="updateMesa()" class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-medium shadow-lg">
+                    <button onclick="updateMesa()"
+                        class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-medium shadow-lg">
                         Actualizar
                     </button>
                 </div>
@@ -378,7 +385,6 @@
         </div>
     </div>
 
-    <!-- Modal Eliminar -->
     <div id="delete-modal" class="modal fixed inset-0 z-50 hidden">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div class="modal-content w-full max-w-md p-8">
@@ -394,18 +400,20 @@
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Número de Mesa</label>
                         <input id="delete-numero" type="number" min="1" max="99"
-                               class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-                               placeholder="Mesa a eliminar">
+                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+                            placeholder="Mesa a eliminar">
                     </div>
 
                     <div id="delete-message" class="text-center text-sm"></div>
                 </form>
 
                 <div class="flex space-x-4 mt-8">
-                    <button onclick="closeDelete()" class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
+                    <button onclick="closeDelete()"
+                        class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
                         Cancelar
                     </button>
-                    <button onclick="deleteMesa()" class="flex-1 py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all font-medium shadow-lg">
+                    <button onclick="deleteMesa()"
+                        class="flex-1 py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all font-medium shadow-lg">
                         Eliminar Mesa
                     </button>
                 </div>
@@ -413,6 +421,7 @@
         </div>
     </div>
 
-    <script type="module" src="./controllers/mesasController.js"></script>
+    <script src="js/mesas.js"></script>
 </body>
+
 </html>
