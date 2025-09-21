@@ -184,9 +184,7 @@
     </div>
 
     <div class="fab">
-        <button id="fab-main" class="fab-main flex items-center justify-center text-white focus:outline-none">
-            <i class="fas fa-plus text-xl"></i>
-        </button>
+    
 
         <div id="fab-menu" class="absolute bottom-16 right-0 space-y-3 hidden">
             <button id="add-platillo-btn"
@@ -229,8 +227,8 @@
                                 <i class="fas fa-upload mr-2"></i>
                                 Subir Imagen
                             </button>
-                            <input type="url" id="platilloImagenUrl" placeholder="O pegar URL de imagen"
-                                class="form-input flex-1 py-3 px-4">
+                            <input type="url" id="platilloImagenUrl" placeholder="URL de imagen"
+                                class="form-input flex-1 py-3 px-4 cursor-not-allowed" readonly>
                         </div>
                         <div id="platilloImagenPreview"
                             class="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
@@ -368,8 +366,9 @@
             </div>
         </div>
     </div>
+    
+    <script type="module" src="js/jsControllers/menuController.js"></script>
 
-    <script src="js/menu.js"></script>
 </body>
 
 </html>
