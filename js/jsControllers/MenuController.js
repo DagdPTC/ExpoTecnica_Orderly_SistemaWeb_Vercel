@@ -494,6 +494,29 @@ function setupEventListeners() {
       if (urlInput) urlInput.value = "";
     }
   });
+
+  // —— Vista previa de precio con IVA mientras escribe ——
+  const precioInput = document.getElementById("platilloPrecio");
+  const ivaHint = document.getElementById("ivaHint") || (() => {
+    const s = document.createElement("div");
+    s.id = "ivaHint";
+    s.className = "text-sm text-gray-500 mt-1";
+    precioInput?.parentElement?.appendChild(s);
+    return s;
+  })();
+
+  function updateIvaHint() {
+    const raw = (precioInput?.value || "").trim();
+    const num = Number(String(raw).replace(",", ".").replace(/[^0-9.]/g, ""));
+    if (Number.isFinite(num) && num > 0) {
+      ivaHint.textContent = `Con IVA (13%): $${precioConIVA(num).toFixed(2)}`;
+    } else {
+      ivaHint.textContent = "";
+    }
+  }
+
+  precioInput?.addEventListener("input", updateIvaHint);
+  precioInput?.addEventListener("blur", updateIvaHint);
 }
 
 /* ================= Handlers ================= */
@@ -598,7 +621,16 @@ function makePlatilloDTO({ nombre, descripcion, precio, idCategoria, imagenUrl, 
   };
 }
 
-/* ======== Guardar / Actualizar Platillo ======== */
+/* === IVA helpers (forzar suma) === */
+function round2(n) {
+  return Math.round(Number(n) * 100) / 100;
+}
+function precioConIVA(precioBase, tasa = 0.13) {
+  const base = Number(String(precioBase).replace(/[^0-9.]/g, "")); // limpia $ y comas
+  return round2(base * (1 + tasa));
+}
+
+/* ======== Guardar / Actualizar Platillo (FORZAR +13% SIEMPRE) ======== */
 async function handlePlatilloSubmit(e) {
   e.preventDefault();
 
@@ -618,16 +650,30 @@ async function handlePlatilloSubmit(e) {
   if (!nombre) return showToast("El nombre del platillo es requerido", "error");
   const idCategoria = parseInt(idCateStr);
   if (!idCategoria) return showToast("La categoría (Id) es requerida", "error");
-  const precio = Number(precioStr);
-  if (!Number.isFinite(precio) || precio < 0.01) {
-    return showToast("El precio debe ser ≥ 0.01", "error");
-  }
   if (!descripcion) return showToast("La descripción no puede ser nula", "error");
 
-  const dto = makePlatilloDTO({ nombre, descripcion, precio, idCategoria, imagenUrl: imagenUrlIn || null, publicId: null });
+  // Normaliza precio ingresado (acepta $ y coma decimal)
+  const precioBaseNum = Number(String(precioStr).replace(",", ".").replace(/[^0-9.]/g, ""));
+  if (!Number.isFinite(precioBaseNum) || precioBaseNum < 0.01) {
+    return showToast("El precio debe ser ≥ 0.01", "error");
+  }
+
+  // APLICAR IVA SIEMPRE (crear y editar)
+  const precioFinal = precioConIVA(precioBaseNum, 0.13);
+
+  const dto = makePlatilloDTO({
+    nombre,
+    descripcion,
+    precio: precioFinal,
+    idCategoria,
+    imagenUrl: imagenUrlIn || null,
+    publicId: null
+  });
+
+  // Diagnóstico
+  console.log("[DTO a enviar]", dto);
 
   try {
-    // Si ya tenemos URL (acabamos de subir) no enviamos archivo
     const hasUploadedUrl = !!imagenUrlIn;
 
     if (isEdit) {
@@ -636,14 +682,14 @@ async function handlePlatilloSubmit(e) {
       } else {
         await actualizarPlatillo(id, dto);                // JSON
       }
-      showToast("Platillo actualizado correctamente", "success");
+      showToast(`Platillo actualizado (con IVA: $${precioFinal.toFixed(2)})`, "success");
     } else {
       if (file && !hasUploadedUrl) {
         await crearPlatilloConImagen(dto, file);          // multipart
       } else {
         await crearPlatillo(dto);                         // JSON
       }
-      showToast("Platillo agregado correctamente", "success");
+      showToast(`Platillo agregado (con IVA: $${precioFinal.toFixed(2)})`, "success");
     }
 
     await cargarPlatillos();
