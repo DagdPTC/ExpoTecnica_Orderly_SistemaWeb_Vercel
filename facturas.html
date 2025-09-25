@@ -7,6 +7,32 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/factura.css">
+
+  <!-- FIX modal overlay centrado -->
+  <style>
+    .modal-overlay{
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(2px);
+      padding: 1rem;
+      z-index: 9999;
+    }
+    .modal-overlay:not(.hidden){ display:flex; }
+    .modal-overlay .modal-content{
+      width: 100%;
+      max-width: 960px;
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,.25);
+      max-height: 85vh;
+      overflow: auto;
+      padding: 1.25rem;
+    }
+  </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen font-sans bg-pattern overflow-x-hidden">
@@ -188,7 +214,7 @@
   </main>
 
   <!-- MODAL: Detalles -->
-  <div id="detailsModal" class="modal-overlay hidden">
+  <div id="detailsModal" class="modal-overlay hidden flex items-center justify-center">
     <div class="modal-content animate-fade-in">
       <div class="flex items-center mb-6">
         <div class="w-12 h-12 rounded-xl gradient-button flex items-center justify-center text-white mr-4">
@@ -240,109 +266,6 @@
       <button id="closeModalBtn" class="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 rounded-xl btn-animate">
         <i class="fas fa-times mr-2"></i> Cerrar
       </button>
-    </div>
-  </div>
-
-  <!-- MODAL: Editar Factura (descuento %) -->
-  <div id="editModal" class="modal-overlay hidden">
-    <div class="modal-content animate-fade-in max-w-3xl">
-      <div class="flex items-center mb-6">
-        <div class="w-12 h-12 rounded-xl gradient-button flex items-center justify-center text-white mr-4">
-          <i class="fas fa-edit"></i>
-        </div>
-        <h2 class="text-2xl font-bold text-gray-800">Editar Factura</h2>
-      </div>
-
-      <input type="hidden" id="editFacturaId">
-      <input type="hidden" id="editPedidoId">
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">#Factura</label>
-          <input id="editFacturaNum" type="text" class="modern-input w-full border-2 px-4 py-3 rounded-xl" readonly>
-        </div>
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">#Orden</label>
-          <input id="editPedidoNum" type="text" class="modern-input w-full border-2 px-4 py-3 rounded-xl" readonly>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">Platillo</label>
-          <div class="relative">
-            <select id="editPlatilloSelect"
-                    class="modern-input w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              <option value="">Cargando...</option>
-            </select>
-            <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-          </div>
-          <div class="text-xs text-gray-500 mt-1">Precio Unit.: <span id="editPrecioUnit">—</span></div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">Cantidad</label>
-          <input id="editCantidad" type="number" min="1" step="1"
-                 class="modern-input w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="1">
-        </div>
-
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">Descuento (%)</label>
-          <input id="editDescuento" type="number" min="0" max="100" step="0.01"
-                 class="modern-input w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="0">
-          <div class="text-xs text-gray-500 mt-1">Monto calculado: <span id="editDescuentoMonto">$0.00</span></div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-        <div class="bg-blue-50 rounded-lg p-4 text-center">
-          <div class="text-sm text-gray-600 font-medium">Subtotal</div>
-          <div id="editPreviewSubtotal" class="text-2xl font-bold text-blue-600">$0.00</div>
-        </div>
-        <div class="bg-green-50 rounded-lg p-4 text-center">
-          <div class="text-sm text-gray-600 font-medium">Propina (10%)</div>
-          <div id="editPreviewPropina" class="text-2xl font-bold text-green-600">$0.00</div>
-        </div>
-        <div class="bg-purple-50 rounded-lg p-4 text-center">
-          <div class="text-sm text-gray-600 font-medium">Total Pedido</div>
-          <div id="editPreviewTotalPedido" class="text-2xl font-bold text-purple-600">$0.00</div>
-        </div>
-        <div class="bg-fuchsia-50 rounded-lg p-4 text-center">
-          <div class="text-sm text-gray-600 font-medium">Total Factura</div>
-          <div id="editPreviewTotalFactura" class="text-2xl font-bold text-fuchsia-600">$0.00</div>
-        </div>
-      </div>
-
-      <div class="flex gap-4 mt-8">
-        <button id="saveInvoiceBtn" class="flex-1 gradient-success text-white font-bold py-4 rounded-xl btn-animate shadow-lg">
-          <i class="fas fa-save mr-2"></i> Guardar Cambios
-        </button>
-        <button id="cancelEditBtn" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 rounded-xl btn-animate">
-          <i class="fas fa-times mr-2"></i> Cancelar
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: confirmación borrado -->
-  <div id="confirmModal" class="modal-overlay hidden">
-    <div class="modal-content animate-fade-in max-w-md">
-      <div class="text-center mb-6">
-        <div class="w-20 h-20 rounded-full gradient-danger flex items-center justify-center text-white mx-auto mb-4 shadow-lg">
-          <i class="fas fa-trash-alt text-2xl"></i>
-        </div>
-        <h2 class="text-2xl font-bold text-gray-800">Confirmar Eliminación</h2>
-        <p class="text-gray-600">¿Estás seguro que deseas eliminar esta factura? Esta acción no se puede deshacer.</p>
-      </div>
-
-      <div class="flex gap-4">
-        <button id="confirmDeleteBtn" class="flex-1 gradient-danger text-white font-bold py-4 rounded-xl btn-animate shadow-lg">
-          <i class="fas fa-trash mr-2"></i> Eliminar
-        </button>
-        <button id="cancelDeleteBtn" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 rounded-xl btn-animate">
-          <i class="fas fa-times mr-2"></i> Cancelar
-        </button>
-      </div>
     </div>
   </div>
 

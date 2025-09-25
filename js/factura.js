@@ -1,4 +1,3 @@
-// js/Factura.js
 // SOLO diseño/UX (sidebar, dropdown usuario, animaciones, cierres de modal, etc.)
 
 // Dropdown usuario
@@ -171,14 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Botones de modal estáticos
-  const cancelEditBtn = document.getElementById('cancelEditBtn');
-  if (cancelEditBtn) cancelEditBtn.onclick = () => document.getElementById('editModal').classList.add('hidden');
-
   const closeModalBtn = document.getElementById('closeModalBtn');
   if (closeModalBtn) closeModalBtn.onclick = () => document.getElementById('detailsModal').classList.add('hidden');
-
-  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-  if (cancelDeleteBtn) cancelDeleteBtn.onclick = () => document.getElementById('confirmModal').classList.add('hidden');
 });
 
 // ——— Animaciones para campana y correo ———

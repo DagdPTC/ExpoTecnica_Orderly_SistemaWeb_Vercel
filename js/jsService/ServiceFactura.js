@@ -49,7 +49,7 @@ export async function getPlatillos(page = 0, size = 100) {
   try { return JSON.parse(text); } catch { throw new Error(text); }
 }
 
-// (Opcional) buscar platillo puntual por ID. Si tu API no lo tiene, el controlador lo usa de forma segura.
+// (Opcional) buscar platillo puntual por ID.
 export async function getPlatilloById(id) {
   const res = await fetch(`${API_PLATILLO}/getPlatilloById/${id}`);
   if (!res.ok) throw new Error(await res.text());
