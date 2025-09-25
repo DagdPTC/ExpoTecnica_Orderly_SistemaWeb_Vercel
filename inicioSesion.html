@@ -3,50 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión - Login</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Login</title>
     <link rel="stylesheet" href="css/inicioSesion.css">
-    
 </head>
 <body>
     <div class="container">
-        <div class="container-form">
-            <form class="sign-in" id="loginForm">
+        <!-- Panel de Iniciar Sesión (Parte blanca) -->
+        <div class="container-form" id="login-form">
+            <form class="sign-in">
                 <h2>Iniciar Sesión</h2>
                 <span>Use su correo y contraseña</span>
                 <div class="container-input">
-                    <div class="input-wrapper" id="emailWrapper">
-                        <ion-icon name="mail-outline"></ion-icon>
-                        <input type="email" placeholder="Correo Electrónico" id="txtUser">
-                    </div>
-                    <div class="error-message" id="emailError"></div>
+                    <ion-icon name="mail-outline"></ion-icon>
+                    <input type="text" placeholder="Correo Electronico" id="txtUser">
                 </div>
                 <div class="container-input">
-                    <div class="input-wrapper" id="passwordWrapper">
-                        <ion-icon name="lock-closed-outline"></ion-icon>
-                        <input id="password" type="password" placeholder="Contraseña">
-                        <ion-icon name="eye-outline" id="togglePassword" class="toggle-password"></ion-icon>
-                    </div>
-                    <div class="error-message" id="passwordError"></div>
+                    <ion-icon name="lock-closed-outline"></ion-icon>
+                    <input id="password" type="password" placeholder="Contraseña">
+                    <ion-icon name="eye-outline" id="togglePassword" class="toggle-password"></ion-icon>
                 </div>
-                <button type="submit" class="button" id="loginBtn">
-                    <span class="btn-text">Iniciar Sesión</span>
-                </button>
+                <a href="recuperacion.html">¿Olvidaste tu contraseña?</a>
+                <button class="button">Iniciar Sesión</button>
             </form>
         </div>
+
+        <!-- Panel de Recuperación de Contraseña (Reemplazando Registro) -->
+        <div class="container-form hidden" id="recover-form">
+            <form class="sign-up">
+                <h2>Recuperar Contraseña</h2>
+                <span>Introduce tu correo para recuperar la contraseña</span>
+                <div class="container-input">
+                    <ion-icon name="mail-outline"></ion-icon>
+                    <input type="text" placeholder="Correo Electronico" id="txtCorreoE">
+                </div>
+                <button class="button">Enviar enlace</button>
+            </form>
+        </div>
+
         <div class="container-welcome">
-            <div class="welcome-sign-up welcome">
-                <h3>¿Olvidó su contraseña?</h3>
-                <p>Ingrese aquí para recuperar su contraseña</p>
-                <button class="button" id="btn-sign-up"><a href="recuperacion.html">Recuperación</a></button>
+            <div class="welcome-sign-in welcome">
+                <h3>Hola!</h3>
+                <p>Ingresa tus datos para acceder a tu cuenta.</p>
+                <button class="button" id="btn-sign-in" onclick="Iniciar()">Iniciar Sesión</button>
             </div>
         </div>
     </div>
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 
     <script src="js/inicioSesion.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </body>
 </html>
