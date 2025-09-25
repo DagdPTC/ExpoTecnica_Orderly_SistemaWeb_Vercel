@@ -1,98 +1,82 @@
-// jsService/ServiceMesas.js
-const API_URL = "http://localhost:8080/apiMesa";
+// js/services/mesasService.js
 
-async function jsonFetch(url, options = {}) {
-  const res = await fetch(url, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
-  if (!res.ok) {
-    let txt = "";
-    try { txt = await res.text(); } catch {}
-    console.error(`HTTP ${res.status} ${res.statusText} - ${url}\n${txt}`);
-    return null;
-  }
-  const ct = res.headers.get("content-type") || "";
-  return ct.includes("application/json") ? res.json() : null;
-}
+const API_HOST = "http://localhost:8080"; // Cambia esta URL según tu configuración
 
-export async function getMesas(page = 0, size = 100) {
-  return jsonFetch(`${API_URL}/getDataMesa?page=${page}&size=${size}`);
-}
+// js/services/mesasService.js
 
-export async function createMesa(data) {
-  // data esperado: { NumMesa, Capacidad, ... }
-  return jsonFetch(`${API_URL}/createMesa`, {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
+// js/services/mesasService.js
 
-export async function updateMesa(id, data) {
-  // PUT /modificarMesa/{id}
-  return jsonFetch(`${API_URL}/modificarMesa/${encodeURIComponent(id)}`, {
-    method: "PUT",
-    body: JSON.stringify(data),
-  });
-}
+const getMesas = async (page = 0, size = 20) => {
+    try {
+        const token = localStorage.getItem("authToken");  // Asegúrate de que el token esté guardado en el localStorage
+        const response = await fetch(`${API_HOST}/apiMesa/getDataMesa?page=${page}&size=${size}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`, // Incluyendo el token en la cabecera
+            },
+            credentials: "include"
+        });
 
-export async function deleteMesa(id) {
-  // DELETE /eliminarMesa/{id}
-  return jsonFetch(`${API_URL}/eliminarMesa/${encodeURIComponent(id)}`, {
-    method: "DELETE",
-  });
-}
+        // Si la respuesta no es ok, lanza un error
+        if (!response.ok) throw new Error("Error fetching mesas");
 
-/**
- * Utilidad: busca una mesa por su número dentro de una lista
- */
-export function findMesaByNumero(mesas, numero) {
-  const toNum = (v) => Number(String(v ?? "").trim());
-  const getNumero = (m) =>
-    m?.NumMesa ?? m?.numMesa ?? m?.numero ?? m?.Numero ?? m?.nomMesa ?? m?.NomMesa ?? null;
+        // Intentamos obtener la respuesta en formato JSON
+        const data = await response.json();
+        console.log("Data received from API:", data); // Imprime la respuesta de la API para depuración
 
-  return (mesas || []).find((m) => toNum(getNumero(m)) === toNum(numero)) || null;
-}
+        // Accede a la propiedad 'content' que contiene las mesas
+        const mesas = data.content || [];  // Si 'content' no existe, retornamos un arreglo vacío
+        return mesas;
+    } catch (error) {
+        console.error("Error fetching mesas:", error);
+        return [];  // Si hay un error, retornamos un arreglo vacío para evitar el segundo error
+    }
+};
 
-/**
- * Extrae el ID interno (PK) de la mesa, tolerante a diferentes nombres
- */
-export function getMesaId(mesa) {
-  return mesa?.IdMesa ?? mesa?.idMesa ?? mesa?.id ?? mesa?.ID ?? null;
-}
 
-/**
- * Devuelve un objeto { key, label } para el estado de la mesa.
- * - Si el backend manda el nombre del estado, lo usa.
- * - Si solo hay ID, hace un mapeo básico de emergencia.
- */
-export function getEstadoMesa(mesa) {
-  const rawName =
-    mesa?.NomEstadoMesa ??
-    mesa?.nomEstadoMesa ??
-    mesa?.EstadoMesa?.NomEstadoMesa ??
-    mesa?.estado?.nombre ??
-    mesa?.estado ?? null;
 
-  const rawId =
-    mesa?.IdEstadoMesa ?? mesa?.idEstadoMesa ?? mesa?.EstadoMesa?.IdEstadoMesa ?? mesa?.estadoId ?? null;
+const createMesa = async (mesaData) => {
+    try {
+        const response = await fetch(`${BASE_URL}/createMesa`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(mesaData),
+            credentials:"include",
+        });
+        if (!response.ok) throw new Error("Error creating mesa");
+        return await response.json();
+    } catch (error) {
+        console.error(error);
+    }
+};
 
-  const normalizar = (s) => String(s || "").toLowerCase();
+const updateMesa = async (id, mesaData) => {
+    try {
+        const response = await fetch(`${BASE_URL}/modificarMesa/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(mesaData),
+        });
+        if (!response.ok) throw new Error("Error updating mesa");
+        return await response.json();
+    } catch (error) {
+        console.error(error);
+    }
+};
 
-  if (rawName) {
-    const n = normalizar(rawName);
-    if (n.includes("libre") || n.includes("dispon")) return { key: "libre", label: "Disponible" };
-    if (n.includes("ocup")) return { key: "ocupada", label: "Ocupada" };
-    if (n.includes("reserv")) return { key: "reservada", label: "Reservada" };
-    if (n.includes("limp")) return { key: "limpieza", label: "En limpieza" };
-  }
+const deleteMesa = async (id) => {
+    try {
+        const response = await fetch(`${BASE_URL}/eliminarMesa/${id}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) throw new Error("Error deleting mesa");
+        return await response.json();
+    } catch (error) {
+        console.error(error);
+    }
+};
 
-  // Fallback por ID (ajusta si tu catálogo usa otros IDs)
-  switch (Number(rawId)) {
-    case 1: return { key: "libre", label: "Disponible" };
-    case 2: return { key: "ocupada", label: "Ocupada" };
-    case 3: return { key: "reservada", label: "Reservada" };
-    case 4: return { key: "limpieza", label: "En limpieza" };
-    default: return { key: "libre", label: "Disponible" };
-  }
-}
+export { getMesas, createMesa, updateMesa, deleteMesa };
