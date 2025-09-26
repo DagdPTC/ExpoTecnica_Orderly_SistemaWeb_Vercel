@@ -191,7 +191,9 @@
                                     <th class="text-left">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="employees-tbody"></tbody>
+                            <tbody id="employees-tbody">
+                                <!-- Los empleados se renderizarán aquí desde la API -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -206,94 +208,14 @@
             </div>
             <form id="employeeForm" class="p-6">
                 <input type="hidden" id="id">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div><label class="block text-sm font-semibold mb-2" for="firstName">Primer Nombre *</label><input
-                            id="firstName" class="input w-full" required oninput="validateNameInput(this)" />
-                        <div id="firstNameError" class="err">Solo letras y espacios permitidos</div>
-                    </div>
-                    <div><label class="block text-sm font-semibold mb-2" for="secondName">Segundo Nombre</label><input
-                            id="secondName" class="input w-full" oninput="validateNameInput(this)" />
-                        <div id="secondNameError" class="err">Solo letras y espacios permitidos</div>
-                    </div>
-                    <div><label class="block text-sm font-semibold mb-2" for="lastNameP">Apellido Paterno
-                            *</label><input id="lastNameP" class="input w-full" required
-                            oninput="validateNameInput(this)" />
-                        <div id="lastNamePError" class="err">Solo letras y espacios permitidos</div>
-                    </div>
-                    <div><label class="block text-sm font-semibold mb-2" for="lastNameM">Apellido Materno</label><input
-                            id="lastNameM" class="input w-full" oninput="validateNameInput(this)" />
-                        <div id="lastNameMError" class="err">Solo letras y espacios permitidos</div>
-                    </div>
-                    <div><label class="block text-sm font-semibold mb-2" for="birthDate">Fecha de Nacimiento
-                            *</label><input type="date" id="birthDate" class="input w-full" required
-                            onchange="validateBirthDate()" />
-                        <div id="birthDateError" class="err">El empleado debe tener entre 18 y 85 años</div>
-                    </div>
-                    <div><label class="block text-sm font-semibold mb-2" for="phone">Teléfono *</label>
-                        <div class="flex"><span
-                                class="inline-flex items-center px-4 rounded-l-xl border border-r-0 border-slate-300 bg-slate-50 text-slate-500 font-medium">+503</span><input
-                                id="phone" maxlength="9" class="input flex-1 rounded-l-none" placeholder="xxxx-xxxx"
-                                oninput="formatPhone(this)" required /></div>
-                        <div id="phoneError" class="err">Formato: xxxx-xxxx</div>
-                    </div>
-                    <div><label class="block text-sm font-semibold mb-2" for="docType">Tipo de Documento
-                            *</label><select id="docType" class="input w-full" required
-                            onchange="updateDocNumberPattern()">
-                            <option value="DUI">DUI</option>
-                            <option value="Licencia">Licencia</option>
-                        </select></div>
-                    <div><label class="block text-sm font-semibold mb-2" for="docNumber">Número de Documento
-                            *</label><input id="docNumber" class="input w-full" required
-                            oninput="formatDocNumber(this)" />
-                        <div id="docNumberError" class="err">Formato inválido</div>
-                    </div>
-                    <div><label class="block text-sm font-semibold mb-2" for="role">Rol *</label><select id="role"
-                            class="input w-full" required>
-                            <option value="">Seleccione un rol</option>
-                            <option>Administrador</option>
-                            <option>Mesero</option>
-                            <option>Cocinero</option>
-                            <option>Cajero</option>
-                            <option>Limpieza</option>
-                        </select>
-                        <div id="roleError" class="err">Seleccione un rol</div>
-                    </div>
-                    <div><label class="block text-sm font-semibold mb-2" for="username">Usuario *</label><input
-                            id="username" class="input w-full" required oninput="validateUsername(this)" />
-                        <div id="usernameError" class="err">Solo letras y números</div>
-                    </div>
-                    <div><label class="block text-sm font-semibold mb-2" for="password">Contraseña *</label>
-                        <div class="relative"><input type="password" id="password" class="input w-full pr-12"
-                                required /><button type="button" id="togglePassword"
-                                class="absolute inset-y-0 right-0 pr-4 text-slate-500 hover:text-slate-700"><i
-                                    class="fa-solid fa-eye"></i></button></div>
-                        <div id="passwordError" class="err">Requisitos no cumplidos</div>
-                    </div>
-                    <div><label class="block text-sm font-semibold mb-2" for="email">Correo</label><input id="email"
-                            class="input w-full bg-slate-50" readonly /></div>
-                    <div><label class="block text-sm font-semibold mb-2" for="hireDate">Fecha de Contratación
-                            *</label><input type="date" id="hireDate" class="input w-full" required
-                            onchange="validateHireDate()" />
-                        <div id="hireDateError" class="err">Fecha inválida</div>
-                    </div>
-                    <div class="md:col-span-2"><label class="block text-sm font-semibold mb-2" for="address">Dirección
-                            *</label><textarea id="address" rows="3" class="input w-full resize-none" maxlength="160"
-                            required oninput="validateAddress(this)"
-                            placeholder="Ingrese la dirección completa..."></textarea>
-                        <div id="addressError" class="err">Dirección inválida</div>
-                    </div>
-                </div>
-                <div class="p-6 flex justify-end gap-3">
-                    <button type="button" id="cancelBtn"
-                        class="px-4 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 font-semibold text-slate-700">Cancelar</button>
-                    <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-save"></i> Guardar</button>
-                </div>
+                <!-- Formulario del empleado -->
             </form>
         </div>
     </div>
 
-
+    <script type="module" src="js/jsControllers/empleadoController.js"></script>
     <script src="js/empleados.js"></script>
+    
 </body>
 
 </html>
