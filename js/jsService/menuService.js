@@ -1,6 +1,28 @@
 // js/services/menuService.js
 const API_BASE = "http://localhost:8080";
 
+/* ================= Auth helpers ================= */
+/** Guarda el token (p.ej., después de /auth/login) */
+export function setAuthToken(token) {
+  if (!token) localStorage.removeItem("AUTH_TOKEN");
+  else localStorage.setItem("AUTH_TOKEN", token);
+}
+/** Lee el token actual */
+export function getAuthToken() {
+  return localStorage.getItem("AUTH_TOKEN");
+}
+/** fetch que adjunta Authorization: Bearer <token> si existe */
+async function authFetch(url, options = {}) {
+  const headers = new Headers(options.headers || {});
+  const token = getAuthToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+
+  // Si tu backend usa cookies de sesión, descomenta:
+  // return fetch(url, { ...options, headers, credentials: "include" });
+
+  return fetch(url, { ...options, headers });
+}
+
 /* ================= Helpers ================= */
 async function safeJson(res) {
   if (res.status === 204) return null;
@@ -12,6 +34,21 @@ async function safeJson(res) {
 async function jsonOrThrow(res) {
   if (!res.ok) {
     const text = await res.text().catch(() => "");
+
+    // Manejo especial de 401
+    if (res.status === 401) {
+      // si quieres, limpia token para forzar nuevo login
+      localStorage.removeItem("AUTH_TOKEN");
+      // intenta extraer mensaje del backend
+      try {
+        const j = text ? JSON.parse(text) : null;
+        const msg = j?.message || j?.error || "No autorizado. Inicia sesión para continuar.";
+        throw new Error(msg);
+      } catch {
+        throw new Error("No autorizado. Inicia sesión para continuar.");
+      }
+    }
+
     try {
       const j = text ? JSON.parse(text) : null;
       const msg = j?.message || j?.error || j?.status || `${res.status} ${res.statusText}`;
@@ -66,7 +103,7 @@ function normalizePlatillo(raw) {
 /* ================= Categorías ================= */
 export async function getCategorias(page = 0, size = 50) {
   const url = `${API_BASE}/apiCategoria/getDataCategoria?page=${page}&size=${size}`;
-  const data = await jsonOrThrow(await fetch(url));
+  const data = await jsonOrThrow(await authFetch(url));
   let list = [];
   if (Array.isArray(data?.content)) list = data.content;
   else if (Array.isArray(data?.data?.content)) list = data.data.content;
@@ -76,7 +113,7 @@ export async function getCategorias(page = 0, size = 50) {
 
 export async function crearCategoria({ nombre }) {
   const url = `${API_BASE}/apiCategoria/createCategoria`;
-  return jsonOrThrow(await fetch(url, {
+  return jsonOrThrow(await authFetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nomCategoria: nombre, nombre }),
@@ -85,7 +122,7 @@ export async function crearCategoria({ nombre }) {
 
 export async function actualizarCategoria(id, { nombre }) {
   const url = `${API_BASE}/apiCategoria/modificarCategoria/${id}`;
-  return jsonOrThrow(await fetch(url, {
+  return jsonOrThrow(await authFetch(url, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, nomCategoria: nombre, nombre }),
@@ -94,7 +131,7 @@ export async function actualizarCategoria(id, { nombre }) {
 
 export async function eliminarCategoria(id) {
   const url = `${API_BASE}/apiCategoria/eliminarCategoria/${id}`;
-  const res = await fetch(url, { method: "DELETE" });
+  const res = await authFetch(url, { method: "DELETE" });
   if (!res.ok && res.status !== 404) {
     const text = await res.text().catch(() => "");
     throw new Error(`${res.status} ${res.statusText}${text ? " - " + text : ""}`);
@@ -105,7 +142,7 @@ export async function eliminarCategoria(id) {
 /* ================= Platillos ================= */
 export async function getPlatillos(page = 0, size = 50) {
   const url = `${API_BASE}/apiPlatillo/getDataPlatillo?page=${page}&size=${size}`;
-  const data = await jsonOrThrow(await fetch(url));
+  const data = await jsonOrThrow(await authFetch(url));
   let list = [];
   if (Array.isArray(data?.content)) list = data.content;
   else if (Array.isArray(data?.data?.content)) list = data.data.content;
@@ -116,7 +153,7 @@ export async function getPlatillos(page = 0, size = 50) {
 // (Opcional) si tienes endpoint de detalle
 export async function getPlatilloById(id) {
   const url = `${API_BASE}/apiPlatillo/getPlatillo/${id}`;
-  const data = await jsonOrThrow(await fetch(url));
+  const data = await jsonOrThrow(await authFetch(url));
   const raw = data?.data ?? data;
   return normalizePlatillo(raw);
 }
@@ -136,7 +173,7 @@ function buildPlatilloBackendDTO({ nombre, descripcion, precio, idCategoria, ima
 export async function crearPlatillo({ nombre, descripcion, precio, idCategoria, imagenUrl = null, publicId = null }) {
   const url = `${API_BASE}/apiPlatillo/createPlatillo`;
   const dto = buildPlatilloBackendDTO({ nombre, descripcion, precio, idCategoria, imagenUrl, publicId });
-  return jsonOrThrow(await fetch(url, {
+  return jsonOrThrow(await authFetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(dto),
@@ -146,7 +183,7 @@ export async function crearPlatillo({ nombre, descripcion, precio, idCategoria, 
 export async function actualizarPlatillo(id, { nombre, descripcion, precio, idCategoria, imagenUrl = null, publicId = null }) {
   const url = `${API_BASE}/apiPlatillo/modificarPlatillo/${id}`;
   const dto = buildPlatilloBackendDTO({ id, nombre, descripcion, precio, idCategoria, imagenUrl, publicId });
-  return jsonOrThrow(await fetch(url, {
+  return jsonOrThrow(await authFetch(url, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(dto),
@@ -165,18 +202,18 @@ function buildFormDataPlatillo({ nombre, descripcion, precio, idCategoria, image
 export async function crearPlatilloConImagen({ nombre, descripcion, precio, idCategoria, imagenUrl = null, publicId = null }, file) {
   const url = `${API_BASE}/apiPlatillo/createPlatilloWithImage`;
   const fd = buildFormDataPlatillo({ nombre, descripcion, precio, idCategoria, imagenUrl, publicId }, file);
-  return jsonOrThrow(await fetch(url, { method: "POST", body: fd }));
+  return jsonOrThrow(await authFetch(url, { method: "POST", body: fd }));
 }
 
 export async function actualizarPlatilloConImagen(id, { nombre, descripcion, precio, idCategoria, imagenUrl = null, publicId = null }, file) {
   const url = `${API_BASE}/apiPlatillo/updatePlatilloWithImage/${id}`;
   const fd = buildFormDataPlatillo({ id, nombre, descripcion, precio, idCategoria, imagenUrl, publicId }, file);
-  return jsonOrThrow(await fetch(url, { method: "PUT", body: fd }));
+  return jsonOrThrow(await authFetch(url, { method: "PUT", body: fd }));
 }
 
 export async function eliminarPlatillo(id) {
   const url = `${API_BASE}/apiPlatillo/eliminarPlatillo/${id}`;
-  const res = await fetch(url, { method: "DELETE" });
+  const res = await authFetch(url, { method: "DELETE" });
   if (!res.ok && res.status !== 404) {
     const text = await res.text().catch(() => "");
     throw new Error(`${res.status} ${res.statusText}${text ? " - " + text : ""}`);
@@ -203,7 +240,7 @@ export async function subirImagen(file, folder = "menu") {
     fd.append("image", file);
     fd.append("folder", folder);
 
-    const res = await fetch(`${API_BASE}/apiImage/upload-to-folder`, { method: "POST", body: fd });
+    const res = await authFetch(`${API_BASE}/apiImage/upload-to-folder`, { method: "POST", body: fd });
     if (res.ok) {
       const data = await res.json().catch(() => ({}));
       const url = pickUrl(data);
@@ -222,7 +259,7 @@ export async function subirImagen(file, folder = "menu") {
   const fd2 = new FormData();
   fd2.append("image", file);
 
-  const res2 = await fetch(`${API_BASE}/apiImage/upload`, { method: "POST", body: fd2 });
+  const res2 = await authFetch(`${API_BASE}/apiImage/upload`, { method: "POST", body: fd2 });
   const text = await res2.text().catch(() => "");
   if (!res2.ok) {
     throw new Error(`${res2.status} ${res2.statusText}${text ? " - " + text : ""}`);
