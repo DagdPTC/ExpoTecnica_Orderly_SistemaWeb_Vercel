@@ -183,8 +183,4 @@ function renderTable(empleados) {
   });
 }
 
-// Llamada a la API para cargar los empleados al iniciar
-document.addEventListener('DOMContentLoaded', async () => {
-  const empleados = await getEmpleados();
-  renderTable(empleados);
-});
+
