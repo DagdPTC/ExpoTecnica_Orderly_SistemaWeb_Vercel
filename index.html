@@ -1,452 +1,237 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión de Restaurante</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema de Gestión de Restaurante</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
 </head>
 
 <body class="bg-gray-50 font-sans overflow-x-hidden">
-    <div class="mobile-overlay" id="mobileOverlay"></div>
+  <!-- Overlay móvil -->
+  <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <div class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
-        <div class="logo-container animate-fade-in">
-            <div class="flex items-center justify-center">
-                <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
-                    <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo w-10 h-10">
-                </div>
-                <span class="logo-text ml-3 text-xl font-bold text-white">Orderly</span>
-            </div>
+  <!-- Sidebar -->
+  <aside class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
+    <div class="logo-container animate-fade-in">
+      <div class="flex items-center justify-center">
+        <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
+          <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo w-10 h-10">
         </div>
-
-        <div class="flex-1 overflow-y-auto px-4">
-            <div class="section-title">MAIN</div>
-            <a href="index.html"
-                class="nav-item flex items-center p-3 rounded-xl mb-2 text-white hover:text-white active bg-gradient-to-r from-blue-500 to-blue-600">
-                <i class="fas fa-tachometer-alt w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Inicio</span>
-            </a>
-
-            <div class="section-title">OPERATIONS</div>
-            <a href="mesas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-                <i class="fas fa-chair w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Mesas</span>
-            </a>
-            <a href="menu.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-                <i class="fas fa-book w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Menú</span>
-            </a>
-            <a href="reservas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-                <i class="fas fa-calendar-check w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Reservaciones</span>
-            </a>
-
-            <div class="section-title">MANAGEMENT</div>
-            <a href="empleados.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-                <i class="fas fa-users w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Empleados</span>
-            </a>
-            <a href="facturas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-                <i class="fas fa-file-invoice-dollar w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Facturas</span>
-            </a>
-
-            <div class="section-title">REPORTS</div>
-            <a href="ofertas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-                <i class="fas fa-chart-line w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Ofertas</span>
-            </a>
-            <a href="historial.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-                <i class="fas fa-history w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Historial</span>
-            </a>
-        </div>
-
-        <div class="p-4 border-t border-white/20">
-            <div class="flex items-center glass-effect rounded-xl p-3">
-                <div class="user-info-icon w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                    <i class="fas fa-user text-white"></i>
-                </div>
-                <div class="user-info-text ml-3">
-                    <div class="text-sm font-semibold text-white">Admin User</div>
-                    <div class="text-xs text-white/70">Administrator</div>
-                </div>
-            </div>
-        </div>
+        <span class="logo-text ml-3 text-xl font-bold text-white">Orderly</span>
+      </div>
     </div>
 
-    <div class="main-content flex flex-col min-h-screen">
-        <header class="main-header flex items-center justify-between px-6 animate-fade-in">
-            <div class="flex items-center">
-                <button id="sidebarToggle"
-                    class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
-                    <i class="fas fa-bars text-lg"></i>
-                </button>
-                <button id="sidebarToggleDesktop"
-                    class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
-                    <i class="fas fa-bars text-lg"></i>
-                </button>
-                <h1 class="text-2xl font-bold text-gray-800">Panel Principal</h1>
-            </div>
+    <nav class="flex-1 overflow-y-auto px-4">
+      <div class="section-title">MAIN</div>
+      <a href="index.html"
+         class="nav-item flex items-center p-3 rounded-xl mb-2 text-white hover:text-white active bg-gradient-to-r from-blue-500 to-blue-600">
+        <i class="fas fa-tachometer-alt w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Inicio</span>
+      </a>
 
-            <div class="flex items-center space-x-4">
-                <div class="relative">
-                    <button
-                        class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
-                        <i class="fas fa-bell text-lg"></i>
-                        <span class="notification-badge">3</span>
-                    </button>
-                </div>
-                <div class="relative">
-                    <button
-                        class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
-                        <i class="fas fa-envelope text-lg"></i>
-                        <span class="notification-badge bg-blue-500">5</span>
-                    </button>
-                </div>
-                <div class="relative">
-                    <button
-                        class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
-                        <div
-                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
-                        <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
-                    </button>
-                </div>
-            </div>
-        </header>
+      <div class="section-title">OPERATIONS</div>
+      <a href="mesas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-chair w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Mesas</span>
+      </a>
+      <a href="menu.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-book w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Menú</span>
+      </a>
+      <a href="reservas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-calendar-check w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Reservaciones</span>
+      </a>
 
-        <main class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="stat-card p-6 hover-lift animate-fade-in" style="animation-delay: 0.1s">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm font-medium mb-1">Órdenes Totales</p>
-                            <h3 class="text-3xl font-bold text-gray-800 mb-2">124</h3>
-                            <p class="text-green-500 text-sm font-medium flex items-center">
-                                <i class="fas fa-arrow-up mr-1"></i> 12% desde ayer
-                            </p>
-                        </div>
-                        <div class="stat-icon w-14 h-14 flex items-center justify-center text-white">
-                            <i class="fas fa-shopping-bag text-xl"></i>
-                        </div>
-                    </div>
-                </div>
+      <div class="section-title">MANAGEMENT</div>
+      <a href="empleados.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-users w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Empleados</span>
+      </a>
+      <a href="facturas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-file-invoice-dollar w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Facturas</span>
+      </a>
 
-                <div class="stat-card p-6 hover-lift animate-fade-in" style="animation-delay: 0.2s">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm font-medium mb-1">Ingresos</p>
-                            <h3 class="text-3xl font-bold text-gray-800 mb-2">$3,245</h3>
-                            <p class="text-green-500 text-sm font-medium flex items-center">
-                                <i class="fas fa-arrow-up mr-1"></i> 8% desde ayer
-                            </p>
-                        </div>
-                        <div class="stat-icon w-14 h-14 flex items-center justify-center text-white">
-                            <i class="fas fa-dollar-sign text-xl"></i>
-                        </div>
-                    </div>
-                </div>
+      <div class="section-title">REPORTS</div>
+      <a href="ofertas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-chart-line w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Ofertas</span>
+      </a>
+      <a href="historial.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-history w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Historial</span>
+      </a>
+    </nav>
 
-                <div class="stat-card p-6 hover-lift animate-fade-in" style="animation-delay: 0.3s">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm font-medium mb-1">Mesas Activas</p>
-                            <h3 class="text-3xl font-bold text-gray-800 mb-2">8/12</h3>
-                            <p class="text-red-500 text-sm font-medium flex items-center">
-                                <i class="fas fa-arrow-down mr-1"></i> 2% desde ayer
-                            </p>
-                        </div>
-                        <div class="stat-icon w-14 h-14 flex items-center justify-center text-white">
-                            <i class="fas fa-chair text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stat-card p-6 hover-lift animate-fade-in" style="animation-delay: 0.4s">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm font-medium mb-1">Reservaciones</p>
-                            <h3 class="text-3xl font-bold text-gray-800 mb-2">15</h3>
-                            <p class="text-green-500 text-sm font-medium flex items-center">
-                                <i class="fas fa-arrow-up mr-1"></i> 20% desde ayer
-                            </p>
-                        </div>
-                        <div class="stat-icon w-14 h-14 flex items-center justify-center text-white">
-                            <i class="fas fa-calendar-check text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
-                <div class="xl:col-span-1">
-                    <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.5s">
-                        <div class="flex items-center justify-between mb-6">
-                            <h2 class="text-xl font-bold text-gray-800">Estado de Mesas</h2>
-                            <a href="mesas.html"
-                                class="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
-                                Ver Todas <i class="fas fa-arrow-right ml-1"></i>
-                            </a>
-                        </div>
-                        <div class="grid grid-cols-3 gap-3">
-                            <div class="table-status status-libre p-4 text-center cursor-pointer">
-                                <div class="text-2xl font-bold mb-1">1</div>
-                                <div class="text-xs font-medium">Disponible</div>
-                            </div>
-                            <div class="table-status status-reservada p-4 text-center cursor-pointer">
-                                <div class="text-2xl font-bold mb-1">2</div>
-                                <div class="text-xs font-medium">Reservada</div>
-                            </div>
-                            <div class="table-status status-ocupada p-4 text-center cursor-pointer">
-                                <div class="text-2xl font-bold mb-1">3</div>
-                                <div class="text-xs font-medium">Ocupada</div>
-                            </div>
-                            <div class="table-status status-libre p-4 text-center cursor-pointer">
-                                <div class="text-2xl font-bold mb-1">4</div>
-                                <div class="text-xs font-medium">Disponible</div>
-                            </div>
-                            <div class="table-status status-ocupada p-4 text-center cursor-pointer">
-                                <div class="text-2xl font-bold mb-1">5</div>
-                                <div class="text-xs font-medium">Ocupada</div>
-                            </div>
-                            <div class="table-status status-libre p-4 text-center cursor-pointer">
-                                <div class="text-2xl font-bold mb-1">6</div>
-                                <div class="text-xs font-medium">Disponible</div>
-                            </div>
-                            <div class="table-status status-reservada p-4 text-center cursor-pointer">
-                                <div class="text-2xl font-bold mb-1">7</div>
-                                <div class="text-xs font-medium">Reservada</div>
-                            </div>
-                            <div class="table-status status-ocupada p-4 text-center cursor-pointer">
-                                <div class="text-2xl font-bold mb-1">8</div>
-                                <div class="text-xs font-medium">Ocupada</div>
-                            </div>
-                            <div class="table-status status-libre p-4 text-center cursor-pointer">
-                                <div class="text-2xl font-bold mb-1">9</div>
-                                <div class="text-xs font-medium">Disponible</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="xl:col-span-2">
-                    <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.6s">
-                        <div class="flex items-center justify-between mb-6">
-                            <h2 class="text-xl font-bold text-gray-800">Órdenes Actuales</h2>
-                            <a href="ordenes.html"
-                                class="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
-                                Ver Todas <i class="fas fa-arrow-right ml-1"></i>
-                            </a>
-                        </div>
-                        <div class="space-y-4">
-                            <div class="order-card p-4 hover-lift">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <div class="font-semibold text-gray-800 mb-1">Orden #1245</div>
-                                        <div class="text-sm text-gray-500 flex items-center">
-                                            <i class="fas fa-chair mr-1"></i> Mesa 3 •
-                                            <i class="fas fa-user ml-2 mr-1"></i> Juan Pérez
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <span class="status-proceso text-xs px-3 py-1 font-medium">En Proceso</span>
-                                        <span class="text-lg font-bold text-gray-800">$45.20</span>
-                                    </div>
-                                </div>
-                                <div class="mt-4 flex items-center justify-between text-sm text-gray-500">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="flex items-center">
-                                            <i class="far fa-clock mr-1 text-blue-500"></i>
-                                            <span>Hace 12 min</span>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <i class="fas fa-utensils mr-1 text-green-500"></i>
-                                            <span>3 artículos</span>
-                                        </div>
-                                    </div>
-                                    <button class="text-blue-500 hover:text-blue-600 font-medium">Ver detalles</button>
-                                </div>
-                            </div>
-
-                            <div class="order-card p-4 hover-lift">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <div class="font-semibold text-gray-800 mb-1">Orden #1244</div>
-                                        <div class="text-sm text-gray-500 flex items-center">
-                                            <i class="fas fa-chair mr-1"></i> Mesa 5 •
-                                            <i class="fas fa-user ml-2 mr-1"></i> María García
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <span class="status-preparacion text-xs px-3 py-1 font-medium">Preparando</span>
-                                        <span class="text-lg font-bold text-gray-800">$32.50</span>
-                                    </div>
-                                </div>
-                                <div class="mt-4 flex items-center justify-between text-sm text-gray-500">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="flex items-center">
-                                            <i class="far fa-clock mr-1 text-blue-500"></i>
-                                            <span>Hace 8 min</span>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <i class="fas fa-utensils mr-1 text-green-500"></i>
-                                            <span>2 artículos</span>
-                                        </div>
-                                    </div>
-                                    <button class="text-blue-500 hover:text-blue-600 font-medium">Ver detalles</button>
-                                </div>
-                            </div>
-
-                            <div class="order-card p-4 hover-lift">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <div class="font-semibold text-gray-800 mb-1">Orden #1243</div>
-                                        <div class="text-sm text-gray-500 flex items-center">
-                                            <i class="fas fa-chair mr-1"></i> Mesa 8 •
-                                            <i class="fas fa-user ml-2 mr-1"></i> Carlos López
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <span class="status-listo text-xs px-3 py-1 font-medium">Listo</span>
-                                        <span class="text-lg font-bold text-gray-800">$68.75</span>
-                                    </div>
-                                </div>
-                                <div class="mt-4 flex items-center justify-between text-sm text-gray-500">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="flex items-center">
-                                            <i class="far fa-clock mr-1 text-blue-500"></i>
-                                            <span>Hace 25 min</span>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <i class="fas fa-utensils mr-1 text-green-500"></i>
-                                            <span>5 artículos</span>
-                                        </div>
-                                    </div>
-                                    <button class="text-blue-500 hover:text-blue-600 font-medium">Ver detalles</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div class="xl:col-span-2">
-                    <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.8s">
-                        <div class="flex items-center justify-between mb-6">
-                            <h2 class="text-xl font-bold text-gray-800">Reservaciones de Hoy</h2>
-                            <a href="reservas.html"
-                                class="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
-                                Ver Todas <i class="fas fa-arrow-right ml-1"></i>
-                            </a>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full">
-                                <thead>
-                                    <tr class="border-b border-gray-200">
-                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Cliente</th>
-                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Hora</th>
-                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Mesa</th>
-                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Personas
-                                        </th>
-                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Estado</th>
-                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100">
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-4 py-4">
-                                            <div class="flex items-center">
-                                                <div
-                                                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white">
-                                                    <i class="fas fa-user"></i>
-                                                </div>
-                                                <div class="ml-3">
-                                                    <div class="text-sm font-semibold text-gray-800">Miguel Brown</div>
-                                                    <div class="text-xs text-gray-500">miguel@ejemplo.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-4 py-4 text-sm text-gray-800 font-medium">7:30 PM</td>
-                                        <td class="px-4 py-4 text-sm text-gray-800 font-medium">2</td>
-                                        <td class="px-4 py-4 text-sm text-gray-800 font-medium">4</td>
-                                        <td class="px-4 py-4">
-                                            <span class="status-confirmado text-xs font-semibold">Confirmado</span>
-                                        </td>
-                                        <td class="px-4 py-4">
-                                            <button
-                                                class="text-blue-500 hover:text-blue-600 font-medium text-sm">Ver</button>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-4 py-4">
-                                            <div class="flex items-center">
-                                                <div
-                                                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white">
-                                                    <i class="fas fa-user"></i>
-                                                </div>
-                                                <div class="ml-3">
-                                                    <div class="text-sm font-semibold text-gray-800">Sara Johnson</div>
-                                                    <div class="text-xs text-gray-500">sara@ejemplo.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-4 py-4 text-sm text-gray-800 font-medium">8:00 PM</td>
-                                        <td class="px-4 py-4 text-sm text-gray-800 font-medium">5</td>
-                                        <td class="px-4 py-4 text-sm text-gray-800 font-medium">2</td>
-                                        <td class="px-4 py-4">
-                                            <span class="status-pendiente text-xs font-semibold">Pendiente</span>
-                                        </td>
-                                        <td class="px-4 py-4">
-                                            <button
-                                                class="text-blue-500 hover:text-blue-600 font-medium text-sm">Ver</button>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-4 py-4">
-                                            <div class="flex items-center">
-                                                <div
-                                                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white">
-                                                    <i class="fas fa-user"></i>
-                                                </div>
-                                                <div class="ml-3">
-                                                    <div class="text-sm font-semibold text-gray-800">David Wilson</div>
-                                                    <div class="text-xs text-gray-500">david@ejemplo.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-4 py-4 text-sm text-gray-800 font-medium">6:45 PM</td>
-                                        <td class="px-4 py-4 text-sm text-gray-800 font-medium">7</td>
-                                        <td class="px-4 py-4 text-sm text-gray-800 font-medium">6</td>
-                                        <td class="px-4 py-4">
-                                            <span class="status-confirmado text-xs font-semibold">Confirmado</span>
-                                        </td>
-                                        <td class="px-4 py-4">
-                                            <button
-                                                class="text-blue-500 hover:text-blue-600 font-medium text-sm">Ver</button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+    <div class="p-4 border-t border-white/20">
+      <div class="flex items-center glass-effect rounded-xl p-3">
+        <div class="user-info-icon w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+          <i class="fas fa-user text-white"></i>
+        </div>
+        <div class="user-info-text ml-3">
+          <!-- Actualizado por JS -->
+          <div id="sidebarUserName" class="text-sm font-semibold text-white">Admin User</div>
+          <div class="text-xs text-white/70">Administrator</div>
+        </div>
+      </div>
     </div>
+  </aside>
 
+  <!-- Main -->
+  <div class="main-content flex flex-col min-h-screen">
+    <!-- Header -->
+    <header class="main-header flex items-center justify-between px-6 animate-fade-in relative">
+      <div class="flex items-center">
+        <button id="sidebarToggle"
+                class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
+          <i class="fas fa-bars text-lg"></i>
+        </button>
+        <button id="sidebarToggleDesktop"
+                class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
+          <i class="fas fa-bars text-lg"></i>
+        </button>
+        <h1 class="text-2xl font-bold text-gray-800">Panel Principal</h1>
+      </div>
 
+      <div class="flex items-center space-x-4">
+        <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+          <i class="fas fa-bell text-lg"></i>
+          <span class="notification-badge">0</span>
+        </button>
+        <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+          <i class="fas fa-envelope text-lg"></i>
+          <span class="notification-badge bg-blue-500">0</span>
+        </button>
 
-    <script src="js/script.js"></script>
+        <!-- Botón usuario -->
+        <button id="userMenuBtn"
+                class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+            <i class="fas fa-user"></i>
+          </div>
+          <!-- Nombre del usuario (JS lo actualiza) -->
+          <span id="topUserName" class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
+          <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
+        </button>
 
+<!-- Menú desplegable -->
+        <div id="userMenu"
+             class="hidden absolute right-6 top-16 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+          <div class="px-4 py-3 border-b border-gray-100">
+            <p class="text-xs text-gray-500">Sesión iniciada como</p>
+            <p id="userMenuName" class="text-sm font-semibold text-gray-800 truncate">Admin</p>
+          </div>
+          <button id="btnLogout" type="button"
+                  class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
+            <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
+          </button>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
+      <!-- Cards -->
+      <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Órdenes Totales -->
+        <article class="stat-card p-6 hover-lift animate-fade-in" style="animation-delay: 0.1s">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm font-medium mb-1">Órdenes Totales</p>
+              <h3 class="text-3xl font-bold text-gray-800 mb-2" id="cardPedidosCount">0</h3>
+            </div>
+            <div class="stat-icon w-14 h-14 flex items-center justify-center text-white">
+              <i class="fas fa-shopping-bag text-xl"></i>
+            </div>
+          </div>
+        </article>
+
+        <!-- Mesas -->
+        <article class="stat-card p-6 hover-lift animate-fade-in" style="animation-delay: 0.3s">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm font-medium mb-1">Mesas</p>
+              <h3 class="text-3xl font-bold text-gray-800 mb-2" id="cardMesasCount">0</h3>
+            </div>
+            <div class="stat-icon w-14 h-14 flex items-center justify-center text-white">
+              <i class="fas fa-chair text-xl"></i>
+            </div>
+          </div>
+        </article>
+
+        <!-- Reservaciones -->
+        <article class="stat-card p-6 hover-lift animate-fade-in" style="animation-delay: 0.4s">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm font-medium mb-1">Reservaciones</p>
+              <h3 class="text-3xl font-bold text-gray-800 mb-2" id="cardReservasCount">0</h3>
+            </div>
+            <div class="stat-icon w-14 h-14 flex items-center justify-center text-white">
+              <i class="fas fa-calendar-check text-xl"></i>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Mesas + Órdenes -->
+      <section class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+        <!-- Estado de Mesas -->
+        <article class="xl:col-span-1">
+          <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.5s">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-bold text-gray-800">Estado de Mesas</h2>
+              <a href="mesas.html" class="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
+                Ver Todas <i class="fas fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+            <div id="listMesas" class="grid grid-cols-1 gap-3"></div>
+            <div id="mesasPagination"></div>
+          </div>
+        </article>
+
+        <!-- Órdenes actuales -->
+        <article class="xl:col-span-2">
+          <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.6s">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-bold text-gray-800">Órdenes Actuales</h2>
+              <a href="historial.html" class="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
+                Ver Todas <i class="fas fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+            <div id="listPedidos" class="space-y-4"></div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Reservaciones -->
+      <section class="grid grid-cols-1 gap-6">
+        <article>
+          <div class="stat-card p-6 h-full animate-fade-in" style="animation-delay: 0.8s">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-bold text-gray-800">Reservaciones de Hoy</h2>
+              <a href="reservas.html" class="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center transition-colors">
+                Ver Todas <i class="fas fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+            <div id="listReservas"></div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast de errores -->
+  <div id="appToast"
+       class="hidden opacity-0 fixed bottom-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg shadow transition-opacity">
+  </div>
+
+  <!-- Tu script de UI (dropdown, sidebar, animaciones, etc.) -->
+  <script src="js/script.js"></script>
+
+  <!-- Punto de entrada del dashboard -->
+  <script type="module" src="js/main.js"></script>
 </body>
-
 </html>

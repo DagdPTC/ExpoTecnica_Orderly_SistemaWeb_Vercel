@@ -1,52 +1,9 @@
-document.addEventListener('DOMContentLoaded', function () {
-  let userBtn = document.querySelector('.navbar-user-avatar');
-  if (userBtn) {
-    userBtn.style.position = 'relative';
+// ============================================
+// BLOQUE DEL MENÚ DE USUARIO ELIMINADO
+// Ya está manejado por ControllerScript.js
+// ============================================
 
-    if (!document.getElementById('userDropdown')) {
-      const dropdown = document.createElement('div');
-      dropdown.className = 'user-dropdown';
-      dropdown.id = 'userDropdown';
-      dropdown.innerHTML = `
-                        <button class="user-dropdown-item" id="logoutBtn">
-                            <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
-                        </button>
-                    `;
-      userBtn.parentNode.style.position = "relative";
-      userBtn.parentNode.appendChild(dropdown);
-
-      const overlay = document.createElement('div');
-      overlay.className = 'user-dropdown-overlay';
-      overlay.id = 'userDropdownOverlay';
-      document.body.appendChild(overlay);
-
-      userBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        dropdown.classList.toggle('show');
-        overlay.classList.toggle('active');
-      });
-
-      overlay.addEventListener('click', function () {
-        dropdown.classList.remove('show');
-        overlay.classList.remove('active');
-      });
-
-      document.addEventListener('keydown', function (ev) {
-        if (ev.key === "Escape") {
-          dropdown.classList.remove('show');
-          overlay.classList.remove('active');
-        }
-      });
-
-      document.getElementById('logoutBtn').addEventListener('click', function () {
-        dropdown.classList.remove('show');
-        overlay.classList.remove('active');
-        window.location.href = "inicioSesion.html";
-      });
-    }
-  }
-});
-
+// Toggle del Sidebar (Mobile y Desktop)
 document.addEventListener('DOMContentLoaded', function () {
   const sidebarToggle = document.getElementById('sidebarToggle');
   const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
@@ -88,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
+// Animaciones de entrada (Fade-in con Intersection Observer)
 document.addEventListener('DOMContentLoaded', function () {
   const observerOptions = {
     threshold: 0.1,
@@ -111,6 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
+// Animaciones hover para tarjetas de mesas
 document.addEventListener('DOMContentLoaded', function () {
   const tableStatus = document.querySelectorAll('.table-status');
 
@@ -132,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
+// Smooth scroll para enlaces internos
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
