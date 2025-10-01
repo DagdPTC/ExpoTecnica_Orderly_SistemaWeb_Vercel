@@ -40,6 +40,7 @@ export {
   createPersona,
   createUsuario,
   createEmpleado,
+  updateEmpleado,
 };
 
 // ===== Helpers de auth/headers =====
@@ -71,15 +72,7 @@ async function getEmpleadoById(id) {
   return await res.json();
 }
 
-async function deleteEmpleado(id) {
-  const res = await fetch(URL_EMPLEADO_DELETE(id), {
-    method: "DELETE",
-    headers: buildHeaders(),
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error("No se pudo eliminar");
-  return true;
-}
+
 
 // ===== Catálogos =====
 async function getTiposDocumento() {
@@ -221,7 +214,55 @@ async function createEmpleado({ idPersona, idUsuario, hireDate }) {
   return payload?.data ?? payload;
 }
 
+// ===== UPDATE (PUT) =====
+async function updateEmpleado(id, payload) {
+  const res = await fetch(`${BASE_EMPLEADOS}/modificarEmpleado/${id}`, {
+    method: "PUT",
+    headers: buildHeaders(),
+    credentials: "include",
+    body: JSON.stringify(payload), // { username?, email?, firstName?, ..., hireDate?, rolId? }
+  });
 
+  const text = await res.text();
+  let body = {};
+  try { body = text ? JSON.parse(text) : {}; } catch { body = {}; }
+
+  if (!res.ok) {
+    // Propaga el detalle textual para toasts amigables
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+  return body?.data ?? body;
+}
+
+// ===== DELETE empleado (hard delete en backend) =====
+async function deleteEmpleado(id) {
+  const res = await fetch(`${API_HOST}/apiEmpleado/eliminarEmpleado/${id}`, {
+    method: "DELETE",
+    headers: buildHeaders(),
+    credentials: "include",
+  });
+
+  const text = await res.text();
+  let payload = {};
+  try { payload = text ? JSON.parse(text) : {}; } catch { payload = {}; }
+
+  if (!res.ok) {
+    const status = res.status;
+    if (status === 401 || status === 403) {
+      throw new Error("No tienes permisos para eliminar este empleado.");
+    }
+    if (status === 404) {
+      throw new Error("El empleado no existe o ya fue eliminado.");
+    }
+    if (status === 409) {
+      // típico: tiene pedidos/facturas referenciando
+      throw new Error(payload?.error || "No se puede eliminar: el empleado tiene registros relacionados.");
+    }
+    throw new Error(payload?.error || payload?.message || "No se pudo eliminar el empleado.");
+  }
+
+  return payload?.data ?? true;
+}
 
 
 
