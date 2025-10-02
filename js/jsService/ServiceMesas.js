@@ -1,81 +1,85 @@
-// mesasService.js
+// ==========================
+// ServiceMesas.js (API layer)
+// ==========================
 
-const API_URL = 'http://localhost:8080/api/mesas'; // Asegúrate de que la URL de tu API sea la correcta
+const API_BASE = "http://localhost:8080"; // Ajusta si tu API está en otro host
 
-// Obtener todas las mesas
-export async function getMesas() {
-    try {
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error('Error al obtener las mesas');
-        const mesas = await response.json();
-        return mesas;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
+const ENDPOINTS = {
+  mesas: {
+    list: `${API_BASE}/apiMesa/getDataMesa`,
+    create: `${API_BASE}/apiMesa/createMesa`,
+    update: (id) => `${API_BASE}/apiMesa/modificarMesa/${id}`,
+    remove: (id) => `${API_BASE}/apiMesa/eliminarMesa/${id}`,
+  },
+  estadosMesa: {
+    list: `${API_BASE}/apiEstadoMesa/getDataEstadoMesa`,
+  },
+};
+
+function baseHeaders() {
+  return { "Content-Type": "application/json" };
 }
 
-// Obtener una mesa por su ID
-export async function getMesaById(id) {
+async function parseResponse(resp) {
+  if (!resp.ok) {
+    let msg = `Error ${resp.status}`;
     try {
-        const response = await fetch(`${API_URL}/${id}`);
-        if (!response.ok) throw new Error('Error al obtener la mesa');
-        const mesa = await response.json();
-        return mesa;
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
+      const j = await resp.json();
+      if (j?.message) msg = j.message;
+    } catch (_) {}
+    throw new Error(msg);
+  }
+  const text = await resp.text();
+  return text ? JSON.parse(text) : null;
 }
 
-// Agregar una nueva mesa
-export async function addMesa(mesa) {
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(mesa),
-        });
+const ServiceMesas = {
+  async getEstadosMesa() {
+    const r = await fetch(ENDPOINTS.estadosMesa.list, {
+      method: "GET",
+      headers: baseHeaders(),
+      credentials: "include",
+    });
+    return parseResponse(r);
+  },
 
-        if (!response.ok) throw new Error('Error al agregar la mesa');
-        const newMesa = await response.json();
-        return newMesa;
-    } catch (error) {
-        console.error(error);
-    }
-}
+  async getMesas() {
+    const r = await fetch(ENDPOINTS.mesas.list, {
+      method: "GET",
+      headers: baseHeaders(),
+      credentials: "include",
+    });
+    return parseResponse(r);
+  },
 
-// Actualizar una mesa existente
-export async function updateMesa(id, updatedMesa) {
-    try {
-        const response = await fetch(`${API_URL}/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updatedMesa),
-        });
+  async createMesa(payload) {
+    const r = await fetch(ENDPOINTS.mesas.create, {
+      method: "POST",
+      headers: baseHeaders(),
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+    return parseResponse(r);
+  },
 
-        if (!response.ok) throw new Error('Error al actualizar la mesa');
-        const mesa = await response.json();
-        return mesa;
-    } catch (error) {
-        console.error(error);
-    }
-}
+  async updateMesa(id, payload) {
+    const r = await fetch(ENDPOINTS.mesas.update(id), {
+      method: "PUT",
+      headers: baseHeaders(),
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+    return parseResponse(r);
+  },
 
-// Eliminar una mesa
-export async function deleteMesa(id) {
-    try {
-        const response = await fetch(`${API_URL}/${id}`, {
-            method: 'DELETE',
-        });
+  async deleteMesa(id) {
+    const r = await fetch(ENDPOINTS.mesas.remove(id), {
+      method: "DELETE",
+      headers: baseHeaders(),
+      credentials: "include",
+    });
+    return parseResponse(r);
+  },
+};
 
-        if (!response.ok) throw new Error('Error al eliminar la mesa');
-        return id;
-    } catch (error) {
-        console.error(error);
-    }
-}
+export default ServiceMesas;

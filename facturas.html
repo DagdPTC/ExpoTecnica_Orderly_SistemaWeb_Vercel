@@ -1,49 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Facturas - Orderly</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/factura.css">
 
-  <!-- FIX modal overlay centrado -->
-  <style>
-    .modal-overlay{
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,.45);
-      backdrop-filter: blur(2px);
-      padding: 1rem;
-      z-index: 9999;
-    }
-    .modal-overlay:not(.hidden){ display:flex; }
-    .modal-overlay .modal-content{
-      width: 100%;
-      max-width: 960px;
-      background: #fff;
-      border-radius: 1rem;
-      box-shadow: 0 25px 50px -12px rgba(0,0,0,.25);
-      max-height: 85vh;
-      overflow: auto;
-      padding: 1.25rem;
-    }
-  </style>
+  <!-- Tailwind (CDN para dev) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- Estilos locales (SIN pleca inicial) -->
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/factura.css"/>
 </head>
 
-<body class="bg-gray-50 min-h-screen font-sans bg-pattern overflow-x-hidden">
-  <!-- overlay móvil -->
+<body class="bg-gray-50 font-sans overflow-x-hidden">
+  <!-- Overlay móvil -->
   <div class="mobile-overlay" id="mobileOverlay"></div>
 
-  <!-- sidebar -->
-  <aside class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
+  <!-- Sidebar -->
+  <div class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
     <div class="logo-container animate-fade-in">
       <div class="flex items-center justify-center">
         <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
+          <!-- SIN pleca; respeta el nombre exacto del archivo -->
           <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo w-10 h-10">
         </div>
         <span class="logo-text ml-3 text-xl font-bold text-white">Orderly</span>
@@ -67,7 +49,7 @@
         <span class="nav-text ml-3 font-medium">Menú</span>
       </a>
       <a href="reservas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-        <i class="fas fa-calendar-check w-6 text-center text-lg"></i>
+        <i class="fas a-calendar-check w-6 text-center text-lg"></i>
         <span class="nav-text ml-3 font-medium">Reservaciones</span>
       </a>
 
@@ -76,8 +58,10 @@
         <i class="fas fa-users w-6 text-center text-lg"></i>
         <span class="nav-text ml-3 font-medium">Empleados</span>
       </a>
+
+      <!-- Activo: Facturas -->
       <a href="facturas.html"
-         class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2 active bg-gradient-to-r from-blue-500 to-blue-600">
+         class="nav-item flex items-center p-3 rounded-xl mb-2 text-white hover:text-white active bg-gradient-to-r from-blue-500 to-blue-600">
         <i class="fas fa-file-invoice-dollar w-6 text-center text-lg"></i>
         <span class="nav-text ml-3 font-medium">Facturas</span>
       </a>
@@ -93,77 +77,73 @@
       </a>
     </div>
 
-    <!-- CARD OSCURO DEL ADMIN -->
     <div class="p-4 border-t border-white/20">
-      <div class="user-card-dark rounded-xl p-3 flex items-center">
-        <div class="user-info-icon w-10 h-10 rounded-xl flex items-center justify-center mr-3">
+      <div class="flex items-center glass-effect rounded-xl p-3">
+        <div class="user-info-icon w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
           <i class="fas fa-user text-white"></i>
         </div>
-        <div class="user-info-text">
+        <div class="user-info-text ml-3">
           <div class="text-sm font-semibold text-white">Admin User</div>
-          <div class="text-xs text-white/80">Administrator</div>
+          <div class="text-xs text-white/70">Administrator</div>
         </div>
       </div>
     </div>
-  </aside>
+  </div>
 
-  <!-- contenido principal -->
-  <main class="main-content flex flex-col min-h-screen">
+  <!-- Main content -->
+  <div class="main-content flex flex-col min-h-screen">
     <header class="main-header flex items-center justify-between px-6 animate-fade-in">
       <div class="flex items-center">
-        <button id="sidebarToggle" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
+        <button id="sidebarToggle"
+                class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
           <i class="fas fa-bars text-lg"></i>
         </button>
-        <button id="sidebarToggleDesktop" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
+        <button id="sidebarToggleDesktop"
+                class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
           <i class="fas fa-bars text-lg"></i>
         </button>
         <h1 class="text-2xl font-bold text-gray-800">Facturas</h1>
       </div>
 
       <div class="flex items-center space-x-4">
-        <button class="notif-btn bell text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors relative" title="Notificaciones">
-          <i class="fas fa-bell text-lg"></i>
-          <span class="notification-badge">3</span>
-        </button>
-        <button class="notif-btn mail text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors relative" title="Mensajes">
-          <i class="fas fa-envelope text-lg"></i>
-          <span class="notification-badge bg-blue-500">5</span>
-        </button>
-        <button class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
-            <i class="fas fa-user"></i>
-          </div>
-          <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
-          <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
-        </button>
+        <div class="relative">
+          <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <i class="fas fa-bell text-lg"></i>
+            <span class="notification-badge">3</span>
+          </button>
+        </div>
+        <div class="relative">
+          <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <i class="fas fa-envelope text-lg"></i>
+            <span class="notification-badge bg-blue-500">5</span>
+          </button>
+        </div>
+        <div class="relative">
+          <button class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+              <i class="fas fa-user"></i>
+            </div>
+            <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
+            <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
+          </button>
+        </div>
       </div>
     </header>
 
-    <section class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
-      <!-- filtros -->
-      <div class="pb-4">
-        <div class="stat-card p-6 hover-lift animate-fade-in">
-          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div class="filter-grid grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-              <div class="relative">
-                <input type="text" id="searchInput" placeholder="Buscar factura, orden o cliente..."
-                       class="modern-input w-full pl-12 pr-4 py-4 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
-              </div>
-              <div class="relative">
-                <input type="date" id="dateFilter"
-                       class="modern-input block w-full pl-4 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              </div>
-            </div>
-          </div>
+    <!-- Contenido -->
+    <main class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
+      <!-- Filtros -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="relative">
+          <input type="text" id="searchInput" placeholder="Buscar factura, orden o cliente..."
+                 class="modern-input w-full pl-12 pr-4 py-4 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg"></i>
         </div>
-      </div>
-
-      <!-- encabezado + selector "Mostrar" -->
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-bold text-gray-800">Listado de Facturas</h2>
-
-        <div class="flex items-center gap-3 text-sm">
+        <div>
+          <input type="date" id="dateFilter"
+                 class="modern-input block w-full pl-4 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div class="flex items-center gap-3 justify-end">
           <label for="itemsPerPage" class="text-gray-600 font-medium">Mostrar:</label>
           <select id="itemsPerPage" class="modern-input">
             <option value="5">5</option>
@@ -174,29 +154,25 @@
         </div>
       </div>
 
-      <!-- tabla -->
-      <div class="pb-2">
-        <div class="table-container scrollbar-custom max-h-[70vh] overflow-y-auto card-hover">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="gradient-bg sticky top-0 z-10">
-              <tr>
-                <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">#Factura</th>
-                <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">#Orden</th>
-                <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Cliente</th>
-                <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Fecha</th>
-                <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Detalles</th>
-                <th class="px-8 py-6 text-right text-sm font-bold text-white uppercase tracking-wider">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="invoicesTableBody" class="bg-white divide-y divide-gray-200"></tbody>
-          </table>
-        </div>
+      <!-- Tabla -->
+      <div class="table-container scrollbar-custom">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="gradient-bg sticky top-0 z-10">
+          <tr>
+            <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">#Factura</th>
+            <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">#Orden</th>
+            <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Cliente</th>
+            <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Fecha</th>
+            <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Detalles</th>
+            <th class="px-8 py-6 text-right text-sm font-bold text-white uppercase tracking-wider">Acciones</th>
+          </tr>
+          </thead>
+          <tbody id="invoicesTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+        </table>
       </div>
 
-      <!-- paginación estilo Reservas -->
-      <div id="paginationContainer"
-           class="pagination-container mt-6 flex items-center justify-between"
-           style="display:none;">
+      <!-- Paginación -->
+      <div id="paginationContainer" class="mt-6 flex items-center justify-between" style="display:none;">
         <div class="flex items-center gap-2">
           <button id="prevPage" class="pagination-btn" title="Anterior">
             <i class="fas fa-chevron-left"></i>
@@ -210,20 +186,20 @@
           Página <span id="currentPage">1</span> de <span id="totalPages">1</span>
         </div>
       </div>
-    </section>
-  </main>
+    </main>
+  </div>
 
-  <!-- MODAL: Detalles -->
-  <div id="detailsModal" class="modal-overlay hidden flex items-center justify-center">
+  <!-- Modal Detalles -->
+  <div id="detailsModal" class="modal-overlay hidden">
     <div class="modal-content animate-fade-in">
       <div class="flex items-center mb-6">
-        <div class="w-12 h-12 rounded-xl gradient-button flex items-center justify-center text-white mr-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white mr-4">
           <i class="fas fa-file-invoice"></i>
         </div>
         <h2 class="text-2xl font-bold text-gray-800">Detalles de Factura</h2>
       </div>
 
-      <div class="gradient-card rounded-xl p-6 mb-6">
+      <div class="stat-card p-6 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div><strong class="text-gray-700">Factura:</strong> <span id="modalInvoiceNumber" class="text-blue-600 font-semibold"></span></div>
           <div><strong class="text-gray-700">Orden:</strong>   <span id="modalOrderNumber"   class="text-blue-600 font-semibold"></span></div>
@@ -235,19 +211,20 @@
       <div class="overflow-hidden rounded-xl border border-gray-200 mb-6">
         <table class="w-full text-sm">
           <thead class="gradient-bg">
-            <tr>
-              <th class="px-4 py-3 text-left  font-bold text-white">Producto</th>
-              <th class="px-4 py-3 text-right font-bold text-white">Cantidad</th>
-              <th class="px-4 py-3 text-right font-bold text-white">Precio Unit.</th>
-              <th class="px-4 py-3 text-right font-bold text-white">Subtotal</th>
-            </tr>
+          <tr>
+            <th class="px-4 py-3 text-left  font-bold text-white">Producto</th>
+            <th class="px-4 py-3 text-right font-bold text-white">Cantidad</th>
+            <th class="px-4 py-3 text-right font-bold text-white">Precio Unit.</th>
+            <th class="px-4 py-3 text-right font-bold text-white">Subtotal</th>
+          </tr>
           </thead>
           <tbody id="modalProductsBody" class="bg-white divide-y divide-gray-200"></tbody>
         </table>
       </div>
 
-      <div class="gradient-card rounded-xl p-6 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+      <!-- Tarjetas de totales: incluye Descuento como tarjeta grande -->
+      <div class="stat-card p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
           <div class="bg-blue-50 rounded-lg p-4">
             <div class="text-sm text-gray-600 font-medium">Subtotal</div>
             <div id="modalSubtotal" class="text-2xl font-bold text-blue-600"></div>
@@ -256,6 +233,10 @@
             <div class="text-sm text-gray-600 font-medium">Propina (10%)</div>
             <div id="modalTip" class="text-2xl font-bold text-green-600"></div>
           </div>
+          <div class="bg-amber-50 rounded-lg p-4">
+            <div class="text-sm text-gray-600 font-medium">Descuento</div>
+            <div id="modalDiscount" class="text-2xl font-bold text-amber-600"></div>
+          </div>
           <div class="bg-purple-50 rounded-lg p-4">
             <div class="text-sm text-gray-600 font-medium">Total</div>
             <div id="modalTotal" class="text-3xl font-bold text-purple-600"></div>
@@ -263,13 +244,115 @@
         </div>
       </div>
 
-      <button id="closeModalBtn" class="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 rounded-xl btn-animate">
+      <button id="closeModalBtn" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-xl">
         <i class="fas fa-times mr-2"></i> Cerrar
       </button>
     </div>
   </div>
 
-  <script src="js/Factura.js"></script>
+  <!-- Modal EDITAR (Actualizar) -->
+  <div id="editModal" class="modal-overlay hidden">
+    <div class="modal-content animate-fade-in max-w-2xl">
+      <div class="flex items-center mb-6">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white mr-4">
+          <i class="fas fa-pen-to-square"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800">Editar Factura</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="text-sm text-gray-600">Factura</label>
+          <input id="editFacturaNum" class="modern-input w-full" disabled>
+          <input id="editFacturaId" type="hidden">
+        </div>
+        <div>
+          <label class="text-sm text-gray-600">Pedido</label>
+          <input id="editPedidoNum" class="modern-input w-full" disabled>
+          <input id="editPedidoId" type="hidden">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="text-sm text-gray-600">Platillo</label>
+          <select id="editPlatilloSelect" class="modern-input w-full"></select>
+        </div>
+        <div>
+          <label class="text-sm text-gray-600">Cantidad</label>
+          <input id="editCantidad" type="number" min="1" step="1" class="modern-input w-full" value="1">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="bg-white rounded-xl border p-4">
+          <div class="text-sm text-gray-600">Precio Unit.</div>
+          <div id="editPrecioUnit" class="text-xl font-semibold">—</div>
+        </div>
+        <div class="bg-white rounded-xl border p-4">
+          <label class="text-sm text-gray-600 block">Descuento (%)</label>
+          <input id="editDescuento" type="number" min="0" max="100" step="0.01" class="modern-input w-full" value="0">
+          <div class="text-xs text-gray-500 mt-1">Monto: <span id="editDescuentoMonto">—</span></div>
+        </div>
+        <div class="bg-white rounded-xl border p-4">
+          <div class="text-sm text-gray-600">Propina</div>
+          <div id="editPreviewPropina" class="text-xl font-semibold">—</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-blue-50 rounded-lg p-4 text-center">
+          <div class="text-sm text-gray-600">Subtotal</div>
+          <div id="editPreviewSubtotal" class="text-2xl font-bold text-blue-600">—</div>
+        </div>
+        <div class="bg-emerald-50 rounded-lg p-4 text-center">
+          <div class="text-sm text-gray-600">Total Pedido</div>
+          <div id="editPreviewTotalPedido" class="text-2xl font-bold text-emerald-600">—</div>
+        </div>
+        <div class="bg-purple-50 rounded-lg p-4 text-center">
+          <div class="text-sm text-gray-600">Total Factura</div>
+          <div id="editPreviewTotalFactura" class="text-2xl font-bold text-purple-600">—</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <button id="cancelEditBtn" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-xl">
+          <i class="fas fa-times mr-2"></i> Cancelar
+        </button>
+        <button id="saveInvoiceBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl">
+          <i class="fas fa-floppy-disk mr-2"></i> Guardar Cambios
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal CONFIRMAR ELIMINACIÓN -->
+  <div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal-content animate-fade-in max-w-md">
+      <div class="flex items-center mb-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-red-500 to-red-600 flex items-center justify-center text-white mr-4">
+          <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800">Eliminar factura</h3>
+      </div>
+      <p class="text-gray-700 mb-6">¿Seguro que deseas eliminar esta factura? Esta acción no se puede deshacer.</p>
+      <div class="grid grid-cols-2 gap-3">
+        <button id="cancelDeleteBtn" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-xl">
+          Cancelar
+        </button>
+        <button id="confirmDeleteBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl">
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS generales (SIN pleca) -->
+  <script src="js/script.js"></script>
+  <script src="js/factura.js"></script>
+
+  <!-- Controlador de la vista (modules con rutas relativas) -->
   <script type="module" src="js/jsControllers/ControllerFactura.js"></script>
 </body>
 </html>
+
