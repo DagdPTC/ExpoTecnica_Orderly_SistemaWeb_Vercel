@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             // Realiza la solicitud POST al backend para autenticar al usuario
-            const response = await fetch('http://localhost:8080/api/auth/login', {
+            const response = await fetch('https://orderly-api-b53514e40ebd.herokuapp.com/api/auth/login ', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
