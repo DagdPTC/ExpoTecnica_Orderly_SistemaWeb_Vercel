@@ -1,30 +1,61 @@
 // js/jsService/historialService.js
 const API_HOST = "http://localhost:8080";
 
-/** Lista de pedidos (paginado o array plano) */
-export async function getPedidos(page = 0, size = 50) {
-  const s = Math.min(Math.max(1, Number(size)), 50);
-  const url = `${API_HOST}/apiPedido/getDataPedido?page=${Number(page)}&size=${s}`;
-  const res = await fetch(url, { credentials: "include" });
-  if (!res.ok) throw new Error(`Error al obtener pedidos (HTTP ${res.status})`);
-  const data = await res.json().catch(() => null);
-  if (!data) return [];
-  return Array.isArray(data?.content) ? data.content : (Array.isArray(data) ? data : []);
+/* -------------------- fetch con auth (cookie HttpOnly) -------------------- */
+function authFetch(url, options = {}) {
+  const headers = new Headers(options.headers || {});
+
+  // Si además guardaste un token en front, úsalo (opcional)
+  const keys = ["jwt", "token", "authToken", "access_token"];
+  for (const k of keys) {
+    const t = localStorage.getItem(k) || sessionStorage.getItem(k);
+    if (t && !headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${t}`);
+      break;
+    }
+  }
+
+  return fetch(url, {
+    credentials: "include",
+    cache: "no-store",
+    ...options,
+    headers,
+  });
 }
 
-/** Pedido por ID */
+/* ============================ HISTORIAL ============================ */
+/** Página de historial (DTO: { Id, IdPedido, IdFactura }) */
+export async function getHistorial(page = 0, size = 20) {
+  const s = Math.min(Math.max(1, Number(size) || 10), 50); // backend limita a 1..50
+  const url = `${API_HOST}/apiHistorialPedido/getDataHistorialPedido?page=${Number(page)}&size=${s}`;
+  const res = await authFetch(url);
+  if (res.status === 204) {
+    return { content: [], totalElements: 0, totalPages: 0, number: 0, size: s };
+  }
+  if (!res.ok) throw new Error(await res.text().catch(() => `HTTP ${res.status}`));
+
+  const text = await res.text();
+  if (!text || !text.trim() || text === "null") {
+    return { content: [], totalElements: 0, totalPages: 0, number: 0, size: s };
+  }
+  try { return JSON.parse(text); } catch { throw new Error(text); }
+}
+
+/* ============================== PEDIDOS ============================== */
+/** Pedido por ID (de aquí sacamos cliente, fecha, mesa, estado, items, etc.) */
 export async function getPedidoById(id) {
   const url = `${API_HOST}/apiPedido/getPedidoById/${encodeURIComponent(id)}`;
-  const res = await fetch(url, { credentials: "include" });
+  const res = await authFetch(url);
   if (!res.ok) throw new Error(`No se pudo obtener el pedido #${id}`);
   return await res.json();
 }
 
-/** Catálogo de estados de pedido -> Map(idEstado, nombre) */
+/* ============================== CATÁLOGOS ============================== */
+/** Catálogo de estados -> Map(idEstado, nombre) */
 export async function getEstadosPedido() {
   const url = `${API_HOST}/apiEstadoPedido/getDataEstadoPedido?page=0&size=50`;
   try {
-    const res = await fetch(url, { credentials: "include" });
+    const res = await authFetch(url);
     if (!res.ok) return new Map();
     const data = await res.json().catch(() => ({}));
     const list = Array.isArray(data?.content) ? data.content : (Array.isArray(data) ? data : []);
@@ -40,14 +71,11 @@ export async function getEstadosPedido() {
   }
 }
 
-/**
- * Mapa de usuarios (username) por idEmpleado -> Map(idEmpleado, username)
- * Fuente: /apiUsuario/getDataUsuario
- */
+/** Usuarios -> Map(idEmpleado, username) */
 export async function getUsuarios() {
-  const url = `${API_HOST}/apiUsuario/getDataUsuario?page=0&size=1000`;
+  const url = `${API_HOST}/apiUsuario/getDataUsuario?page=0&size=50`; // clamped
   try {
-    const res = await fetch(url, { credentials: "include" });
+    const res = await authFetch(url);
     if (!res.ok) return new Map();
     const data = await res.json().catch(() => ({}));
     const list = Array.isArray(data?.content) ? data.content : (Array.isArray(data) ? data : []);
@@ -64,11 +92,11 @@ export async function getUsuarios() {
   }
 }
 
-/** Catálogo de platillos -> Map(idPlatillo, nombre) */
+/** Platillos -> Map(idPlatillo, nombre) (para nombre en el modal) */
 export async function getPlatillos() {
-  const url = `${API_HOST}/apiPlatillo/getDataPlatillo?page=0&size=1000`;
+  const url = `${API_HOST}/apiPlatillo/getDataPlatillo?page=0&size=50`; // clamped
   try {
-    const res = await fetch(url, { credentials: "include" });
+    const res = await authFetch(url);
     if (!res.ok) return new Map();
     const data = await res.json().catch(() => ({}));
     const list = Array.isArray(data?.content) ? data.content : (Array.isArray(data) ? data : []);

@@ -146,7 +146,7 @@ function attachFilters(){
 /* ========================= Platillos ========================= */
 async function preloadPlatillos(){
   try{
-    const page=await getPlatillos(0,50); // <= 50 para respetar tu API
+    const page=await getPlatillos(0,50);
     const content=Array.isArray(page?.content)?page.content:[];
     state.platillos=content.map(x=>({
       id:     getV(x,"Id","id"),
@@ -314,7 +314,7 @@ async function fillClienteFecha(tr,idPedido){
     );
 
     tr.querySelector(".js-cli").textContent=String(cliente);
-    tr.querySelector(".js-fecha").textContent="-"; // (fecha pausada por ahora)
+    tr.querySelector(".js-fecha").textContent="-";
   }catch{
     tr.querySelector(".js-cli").textContent="-";
     tr.querySelector(".js-fecha").textContent="-";
@@ -490,59 +490,75 @@ function handleUpdateError(error) {
   showNotification(errorMessage, "error");
 }
 
-/* ========================= Editar (PUT) - CORREGIDO ========================= */
-let currentEdit={ factura:null, pedido:null, original:null };
+/* ========================= Editar (SOLO DESCUENTO) ========================= */
+let currentEdit = { factura: null, pedido: null };
 
-function populatePlatillosSelect(selectId="editPlatilloSelect"){
-  const sel=document.getElementById(selectId);
-  if(!sel) return;
-  sel.innerHTML="";
-  const op0=document.createElement("option");
-  op0.value=""; op0.textContent="(sin platillos)";
-  sel.appendChild(op0);
-  state.platillos.forEach(pl=>{
-    const op=document.createElement("option");
-    op.value=String(pl.id); op.textContent=pl.nombre;
-    sel.appendChild(op);
-  });
-}
-
-function refreshPreview(){
-  const ped = currentEdit.pedido || {};
+function renderPlatillosTable(platillos) {
+  const $tableBody = $("#editPlatillosTableBody");
+  if (!$tableBody) return;
   
-  // Obtener valores actuales del formulario
-  const platilloId = $("#editPlatilloSelect").value ? Number($("#editPlatilloSelect").value) : null;
-  const cantidad = Math.max(1, Number($("#editCantidad").value) || 1);
-  const descuentoPct = clamp(Number($("#editDescuento").value) || 0, 0, 100);
+  $tableBody.innerHTML = "";
   
-  $("#editDescuento").value = descuentoPct;
-
-  let precioUnitario = 0;
-  let nombrePlatillo = "Seleccione un platillo";
-
-  // Si hay un platillo seleccionado, obtener su precio
-  if (platilloId) {
-    const platillo = findPlatilloLocally(platilloId);
-    if (platillo) {
-      precioUnitario = platillo.precio;
-      nombrePlatillo = platillo.nombre;
-    }
+  if (!platillos || platillos.length === 0) {
+    $tableBody.innerHTML = `
+      <tr>
+        <td colspan="4" class="px-4 py-6 text-center text-gray-500">
+          No hay platillos en este pedido
+        </td>
+      </tr>
+    `;
+    return;
   }
 
-  // Calcular valores
-  const subtotal = round2(precioUnitario * cantidad);
-  const propina = round2(subtotal * 0.10);
-  const totalPedido = round2(subtotal + propina);
+  let subtotalTotal = 0;
+  
+  platillos.forEach((platillo, index) => {
+    const subtotal = round2(platillo.precio * platillo.cantidad);
+    subtotalTotal += subtotal;
+    
+    const tr = document.createElement("tr");
+    tr.className = index % 2 === 0 ? "bg-white" : "bg-gray-50";
+    tr.innerHTML = `
+      <td class="px-4 py-3 text-sm text-gray-900">${platillo.nombre}</td>
+      <td class="px-4 py-3 text-sm text-gray-600 text-right">${platillo.cantidad}</td>
+      <td class="px-4 py-3 text-sm text-gray-600 text-right">${money(platillo.precio)}</td>
+      <td class="px-4 py-3 text-sm text-gray-900 font-medium text-right">${money(subtotal)}</td>
+    `;
+    $tableBody.appendChild(tr);
+  });
+
+  // Actualizar totales
+  const propina = round2(subtotalTotal * 0.10);
+  const totalPedido = round2(subtotalTotal + propina);
+  
+  $("#editSubtotal").textContent = money(subtotalTotal);
+  $("#editPropina").textContent = money(propina);
+  $("#editTotalPedido").textContent = money(totalPedido);
+  
+  return { subtotal: subtotalTotal, propina, totalPedido };
+}
+
+function refreshPreview() {
+  const descuentoPct = clamp(Number($("#editDescuento").value) || 0, 0, 100);
+  
+  // Obtener el total del pedido desde la tabla
+  const totalPedidoText = $("#editTotalPedido").textContent;
+  const totalPedido = parseFloat(totalPedidoText.replace(/[^\d.-]/g, '')) || 0;
+  
+  // Calcular descuento y total final
   const descuentoMonto = round2(totalPedido * (descuentoPct / 100));
   const totalFactura = round2(Math.max(0, totalPedido - descuentoMonto));
 
-  // Actualizar UI
-  $("#editPrecioUnit").textContent = precioUnitario ? money(precioUnitario) : "$0.00";
+  // Actualizar la UI
   $("#editDescuentoMonto").textContent = money(descuentoMonto);
-  $("#editPreviewSubtotal").textContent = money(subtotal);
-  $("#editPreviewPropina").textContent = money(propina);
-  $("#editPreviewTotalPedido").textContent = money(totalPedido);
   $("#editPreviewTotalFactura").textContent = money(totalFactura);
+  
+  console.log("Cálculos actualizados:", {
+    descuentoPct,
+    totalPedido,
+    descuentoMonto,
+    totalFactura
+  });
 }
 
 async function onOpenEdit(ev) {
@@ -550,7 +566,7 @@ async function onOpenEdit(ev) {
   const idFactura = Number(tr.dataset.fid);
   const idPedido = Number(tr.dataset.pid);
 
-  currentEdit = { factura: { id: idFactura }, pedido: null, original: null };
+  currentEdit = { factura: { id: idFactura }, pedido: null };
 
   try {
     let ped = state.pedidoCache.get(idPedido);
@@ -571,34 +587,47 @@ async function onOpenEdit(ev) {
   $("#editFacturaNum").value = fmtPref(idFactura, "FAC-");
   $("#editPedidoNum").value = fmtPref(idPedido, "PED-");
 
-  // Cargar platillos en el select
-  populatePlatillosSelect("editPlatilloSelect");
-
+  // Obtener y mostrar platillos del pedido
   const ped = currentEdit.pedido;
   const detalles = detailsArray(ped);
-  
-  // Si hay detalles, usar el primero para pre-cargar datos
-  if (detalles.length > 0) {
-    const detalle = detalles[0];
+  const platillosData = [];
+
+  for (const detalle of detalles) {
     const idPlatillo = pick(detalle, 'IdPlatillo', 'idPlatillo', 'platilloId', 'platillo.id');
     const cantidad = Math.max(1, Number(pick(detalle, 'Cantidad', 'cantidad')) || 1);
     
     if (idPlatillo) {
-      $("#editPlatilloSelect").value = String(idPlatillo);
+      const platillo = findPlatilloLocally(idPlatillo) || await getPlatilloSafeById(idPlatillo);
+      if (platillo) {
+        platillosData.push({
+          id: platillo.id,
+          nombre: platillo.nombre,
+          precio: platillo.precio,
+          cantidad: cantidad
+        });
+      } else {
+        // Si no se encuentra el platillo, mostrar datos básicos
+        platillosData.push({
+          id: idPlatillo,
+          nombre: `Platillo #${idPlatillo}`,
+          precio: 0,
+          cantidad: cantidad
+        });
+      }
     }
-    $("#editCantidad").value = cantidad;
   }
 
-  // Obtener descuento actual de la factura
+  // Renderizar tabla de platillos
+  const totales = renderPlatillosTable(platillosData);
+
+  // Obtener y mostrar descuento actual
   const descuentoActual = safeNum(tr.dataset.desc || 0);
-  const totalPedidoActual = safeNum(pick(ped, 'TotalPedido', 'totalPedido', 'total')) || 1;
+  const totalPedidoActual = totales?.totalPedido || safeNum(pick(ped, 'TotalPedido', 'totalPedido', 'total')) || 1;
   const descuentoPctActual = totalPedidoActual > 0 ? round2((descuentoActual / totalPedidoActual) * 100) : 0;
   
   $("#editDescuento").value = clamp(descuentoPctActual, 0, 100);
 
-  // Configurar event listeners
-  $("#editPlatilloSelect").addEventListener("change", refreshPreview);
-  $("#editCantidad").addEventListener("input", refreshPreview);
+  // Configurar event listener para el input de descuento
   $("#editDescuento").addEventListener("input", refreshPreview);
 
   // Calcular vista previa inicial
@@ -611,9 +640,7 @@ async function onOpenEdit(ev) {
   $("#saveInvoiceBtn").onclick = onSaveEdit;
   $("#cancelEditBtn").onclick = () => {
     $("#editModal").classList.add("hidden");
-    // Limpiar event listeners para evitar duplicados
-    $("#editPlatilloSelect").onchange = null;
-    $("#editCantidad").oninput = null;
+    // Limpiar event listener
     $("#editDescuento").oninput = null;
   };
 }
@@ -628,41 +655,27 @@ async function onSaveEdit() {
   $btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
 
   try {
-    // 1. Obtener datos del formulario
-    const platilloId = $("#editPlatilloSelect").value ? Number($("#editPlatilloSelect").value) : null;
-    const cantidad = $("#editCantidad").value ? Number($("#editCantidad").value) : null;
+    // Solo obtener el descuento (los platillos y cantidades son de solo lectura)
     const descuentoPct = Number($("#editDescuento").value) || 0;
 
-    // Validaciones básicas
+    // Validación básica
     if (descuentoPct < 0 || descuentoPct > 100) {
       throw new Error("El descuento debe estar entre 0% y 100%");
     }
 
-    if (cantidad !== null && cantidad < 1) {
-      throw new Error("La cantidad debe ser al menos 1");
-    }
-
-    // 2. Preparar payload EXACTO como espera el backend
+    // Preparar payload SOLO con descuento
     const payload = {
       IdPedido: idPedido,
       DescuentoPct: descuentoPct
+      // No enviar IdPlatillo ni Cantidad - son de solo lectura
     };
-
-    // Solo incluir platillo y cantidad si fueron modificados/seleccionados
-    if (platilloId) {
-      payload.IdPlatillo = platilloId;
-    }
-    
-    if (cantidad !== null) {
-      payload.Cantidad = cantidad;
-    }
 
     console.log("Enviando payload al backend:", payload);
 
-    // 3. Ejecutar actualización
+    // Ejecutar actualización
     const resultado = await updateFacturaCompleta(idFactura, payload);
     
-    // 4. Cerrar modal y refrescar
+    // Cerrar modal y refrescar
     $("#editModal").classList.add("hidden");
     
     // Limpiar cache y recargar

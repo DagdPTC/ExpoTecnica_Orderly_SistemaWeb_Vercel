@@ -1,6 +1,6 @@
 // js/jsService/ServiceFactura.js
-const API_BASE = "http://localhost:8080";
-const API_FACTURA = `${API_BASE}/apiFactura`;
+const API_BASE = "https://orderly-api-b53514e40ebd.herokuapp.com";
+const API_FACTURA = `${API_BASE}api//apiFactura`;
 const API_PEDIDO = `${API_BASE}/apiPedido`;
 const API_PLATILLO = `${API_BASE}/apiPlatillo`;
 
