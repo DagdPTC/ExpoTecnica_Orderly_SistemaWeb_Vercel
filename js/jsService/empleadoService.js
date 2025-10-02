@@ -1,5 +1,13 @@
 // ===== Config base =====
-const API_HOST = "http://localhost:8080";
+const API_HOST = "https://orderly-api-b53514e40ebd.herokuapp.com";
+
+const API_BASE = "https://orderly-api-b53514e40ebd.herokuapp.com".replace(/\/+$/,''); // sin slash final
+
+function apiUrl(path) {
+  // path debe empezar con "/" (p.ej. "/apiEmpleado/getDataEmpleado")
+  return `${API_BASE}${path}`;
+}
+
 
 // Endpoints (ajústalos si tus rutas difieren)
 const BASE_EMPLEADOS = `${API_HOST}/apiEmpleado`;
@@ -52,16 +60,22 @@ function buildHeaders() {
 }
 
 // ===== CRUD empleados =====
-async function getEmpleados(page = 0, size = 20) {
-  const res = await fetch(URL_EMPLEADOS_LIST(page, size), {
+async function getEmpleados(page = 0, size = 20, signal) {
+  const url = apiUrl(`/apiEmpleado/getDataEmpleado?page=${encodeURIComponent(page)}&size=${encodeURIComponent(size)}`);
+  const res = await fetch(url, {
     method: "GET",
-    headers: buildHeaders(),
-    credentials: "include",
+    headers: { "Accept": "application/json" },
+    // Si decides dejar /apiEmpleado protegido, agrega:
+    // credentials: "include",
+    signal
   });
-  if (!res.ok) throw new Error("Error al obtener empleados");
-  const data = await res.json();
-  return Array.isArray(data?.content) ? data.content : [];
+  if (!res.ok) {
+    const text = await res.text().catch(()=>"");
+    throw new Error(`GET ${url} -> ${res.status} ${res.statusText} ${text}`);
+  }
+  return res.json();
 }
+
 
 async function getEmpleadoById(id) {
   const res = await fetch(URL_EMPLEADO_BY_ID(id), {

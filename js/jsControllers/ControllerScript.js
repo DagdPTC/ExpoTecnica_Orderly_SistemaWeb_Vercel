@@ -1,19 +1,35 @@
-// ==========================
-// ControllerScript.js
-// Render específico según tus JSON (mesas/pedidos/reservas) + Header Usuario
-// ==========================
 import { Service } from "../jsService/ServiceScript.js";
 
-// === Auth & rutas ===
-const API_BASE        = "http://localhost:8080";
-const ME_ENDPOINT     = `${API_BASE}/api/auth/me`;
+const REQUIRE_AUTH = false; // cambia a true cuando quieras forzar login estricto
+let IS_AUTH = false;
+
+const API_BASE = (() => {
+  const manual = window.__API_BASE_OVERRIDE;
+  if (manual) return manual;
+  const isLocal = /localhost|127\.0\.0\.1|^file:/i.test(location.origin);
+  return isLocal
+    ? "https://orderly-api-b53514e40ebd.herokuapp.com"
+    : "https://orderly-api-b53514e40ebd.herokuapp.com";
+})();
+const ME_ENDPOINT = `${API_BASE}/api/auth/me`;
 const LOGOUT_ENDPOINT = `${API_BASE}/api/auth/logout`;
-const LOGIN_PAGE      = "inicioSesion.html";
+const LOGIN_PAGE = "inicioSesion.html";
+
+// Intenta inyectar la base al Service (si lo soporta)
+try {
+  if (typeof Service?.setBase === "function") {
+    Service.setBase(API_BASE);
+  } else if ("BASE" in Service) {
+    Service.BASE = API_BASE;
+  }
+} catch { /* no-op */ }
 
 // === Mapeos dinámicos (se cargan desde el API) ===
 let MAP_ESTADO_MESA = {};
 let MAP_ESTADO_PEDIDO = {};
 let MAP_ESTADO_RESERVA = {};
+
+
 
 // === Estado de paginación ===
 let currentMesasPage = 0;
@@ -22,19 +38,19 @@ let allMesas = [];
 
 const DEFAULTS = {
   selectors: {
-    cardMesasCount:    "#cardMesasCount",
-    cardPedidosCount:  "#cardPedidosCount",
+    cardMesasCount: "#cardMesasCount",
+    cardPedidosCount: "#cardPedidosCount",
     cardReservasCount: "#cardReservasCount",
-    listMesas:         "#listMesas",
-    listPedidos:       "#listPedidos",
-    listReservas:      "#listReservas",
-    mesasPagination:   "#mesasPagination",
-    toast:             "#appToast",
-    topUserName:       "#topUserName",
-    sidebarUserName:   "#sidebarUserName",
-    userMenuBtn:       "#userMenuBtn",
-    userMenu:          "#userMenu",
-    btnLogout:         "#btnLogout",
+    listMesas: "#listMesas",
+    listPedidos: "#listPedidos",
+    listReservas: "#listReservas",
+    mesasPagination: "#mesasPagination",
+    toast: "#appToast",
+    topUserName: "#topUserName",
+    sidebarUserName: "#sidebarUserName",
+    userMenuBtn: "#userMenuBtn",
+    userMenu: "#userMenu",
+    btnLogout: "#btnLogout",
   },
   topN: 6,
   autoRefreshMs: 45000,
@@ -46,17 +62,17 @@ const $ = (s) => document.querySelector(s);
 const setText = (sel, t) => { const el = $(sel); if (el) el.textContent = t; };
 const nf = (n) => new Intl.NumberFormat().format(n ?? 0);
 const money = (n) => (n == null ? "—" : new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(n));
-const clip = (s, m=80) => (s && s.length > m ? s.slice(0, m-1) + "…" : s || "");
+const clip = (s, m = 80) => (s && s.length > m ? s.slice(0, m - 1) + "…" : s || "");
 
 function showToast(sel, msg) {
   const el = $(sel);
   if (!el) return;
   el.textContent = msg;
-  el.classList.remove("hidden","opacity-0");
+  el.classList.remove("hidden", "opacity-0");
   el.classList.add("opacity-100");
-  setTimeout(()=>{
+  setTimeout(() => {
     el.classList.add("opacity-0");
-    setTimeout(()=>el.classList.add("hidden"),300);
+    setTimeout(() => el.classList.add("hidden"), 300);
   }, 3500);
 }
 
@@ -81,16 +97,25 @@ function setUserNameEverywhere(name, cfg) {
   if (elMenuName) elMenuName.textContent = name;
 }
 
-async function loadMeOrRedirect() {
-  const res = await fetch(ME_ENDPOINT, { credentials: "include" });
-  if (res.status === 401) {
-    window.location.href = LOGIN_PAGE;
-    return null;
+
+async function loadMeSoft() {
+  try {
+    const res = await fetch(ME_ENDPOINT, { credentials: "include" });
+    if (REQUIRE_AUTH && res.status === 401) {
+      window.location.href = LOGIN_PAGE; // modo estricto
+      return null;
+    }
+    if (!res.ok) return null; // modo suave: sin usuario, seguimos
+    const data = await res.json();
+    return data.user || data.usuario || data;
+  } catch (e) {
+    console.error("ME error:", e);
+    return null; // no frenes el dashboard si /me falla
   }
-  if (!res.ok) throw new Error("No se pudo obtener el usuario");
-  const data = await res.json();
-  return data.user || data.usuario || data;
 }
+
+
+
 
 async function logoutAndRedirect() {
   try {
@@ -101,18 +126,18 @@ async function logoutAndRedirect() {
     });
   } catch (_) {
   } finally {
-    try { localStorage.clear(); } catch {}
-    try { sessionStorage.clear(); } catch {}
+    try { localStorage.clear(); } catch { }
+    try { sessionStorage.clear(); } catch { }
     window.location.href = LOGIN_PAGE;
   }
 }
 
 function setupUserHeader(cfg) {
-  const btn  = $(cfg.selectors.userMenuBtn);
+  const btn = $(cfg.selectors.userMenuBtn);
   const menu = $(cfg.selectors.userMenu);
   if (btn && menu) {
     const toggle = () => menu.classList.toggle("hidden");
-    const hide   = () => menu.classList.add("hidden");
+    const hide = () => menu.classList.add("hidden");
 
     btn.addEventListener("click", (e) => { e.stopPropagation(); toggle(); });
     document.addEventListener("click", (e) => {
@@ -454,8 +479,8 @@ function renderMesasPage() {
         ${st.label}
       </div>
     `;
-    card.addEventListener("mouseenter", ()=> card.style.transform="scale(1.05) rotate(2deg)");
-    card.addEventListener("mouseleave", ()=> card.style.transform="scale(1) rotate(0deg)");
+    card.addEventListener("mouseenter", () => card.style.transform = "scale(1.05) rotate(2deg)");
+    card.addEventListener("mouseleave", () => card.style.transform = "scale(1) rotate(0deg)");
     grid.appendChild(card);
   });
   container.appendChild(grid);
@@ -472,22 +497,40 @@ function renderMesas(containerSel, page, topN) {
 
 // === Render PEDIDOS ===
 function renderPedidos(containerSel, page, topN) {
-  const container = $(containerSel);
+  const container = document.querySelector(containerSel);
   if (!container) return;
   container.innerHTML = "";
-  const items = (page.items ?? []).slice(0, topN);
+
+  // Si no hay sesión, mostramos CTA y salimos
+  if (!IS_AUTH) {
+    container.innerHTML = `
+      <div class="text-gray-500">
+        Inicia sesión para ver los pedidos.
+        <a href="inicioSesion.html" class="text-blue-600 underline ml-1">Ir a iniciar sesión</a>
+      </div>`;
+    return;
+  }
+
+  const items = (page && Array.isArray(page.items) ? page.items : []).slice(0, topN);
+
   if (items.length === 0) {
     container.innerHTML = `<div class="text-gray-500">No hay pedidos para mostrar.</div>`;
     return;
   }
+
   const frag = document.createDocumentFragment();
-  items.forEach(p => {
+
+  items.forEach((p) => {
     const st = MAP_ESTADO_PEDIDO[p.idEstadoPedido] ?? {
       label: `Estado ${p.idEstadoPedido}`,
       color: "#6b7280",
-      cls: "status-desconocido"
+      cls: "status-desconocido",
     };
-    const cantItems = Array.isArray(p.items) ? p.items.reduce((a,it)=>a+(Number(it.cantidad)||0),0) : 0;
+
+    const cantItems = Array.isArray(p.items)
+      ? p.items.reduce((a, it) => a + (Number(it.cantidad) || 0), 0)
+      : 0;
+
     const card = document.createElement("div");
     card.className = "order-card p-4 hover-lift rounded-xl border bg-white shadow-sm";
     card.innerHTML = `
@@ -520,12 +563,14 @@ function renderPedidos(containerSel, page, topN) {
         <button class="btn-ver-pedido text-blue-500 hover:text-blue-600 font-medium">Ver detalles</button>
       </div>
     `;
-    const btnVer = card.querySelector(".btn-ver-pedido");
-    btnVer.addEventListener("click", () => showPedidoModal(p));
+
+    card.querySelector(".btn-ver-pedido").addEventListener("click", () => showPedidoModal(p));
     frag.appendChild(card);
   });
+
   container.appendChild(frag);
 }
+
 
 // === Render RESERVAS ===
 function renderReservas(containerSel, page, topN) {
@@ -604,38 +649,44 @@ const DashboardController = (() => {
   let inFlightController = null;
 
   async function loadOnce() {
-    if (cfg.useAbortOnRefresh)
-      {
-      try { inFlightController?.abort(); } catch {}
-      inFlightController = new AbortController();
-    }
-
-    try {
-      setText(cfg.selectors.cardMesasCount, "…");
-      setText(cfg.selectors.cardPedidosCount, "…");
-      setText(cfg.selectors.cardReservasCount, "…");
-
-      const { mesas, pedidos, reservas, estadosMesa, estadosPedido, estadosReserva } = await Service.fetchAll({
-        signal: inFlightController?.signal
-      });
-
-      buildMapEstadosMesa(estadosMesa);
-      buildMapEstadosPedido(estadosPedido);
-      buildMapEstadosReserva(estadosReserva);
-
-      setText(cfg.selectors.cardMesasCount,    nf(mesas.total));
-      setText(cfg.selectors.cardPedidosCount,  nf(pedidos.total));
-      setText(cfg.selectors.cardReservasCount, nf(reservas.total));
-
-      renderMesas(cfg.selectors.listMesas,       mesas,    cfg.topN);
-      renderPedidos(cfg.selectors.listPedidos,   pedidos,  cfg.topN);
-      renderReservas(cfg.selectors.listReservas, reservas, cfg.topN);
-
-    } catch (err) {
-      console.error("[DashboardController] Error:", err);
-      showToast(cfg.selectors.toast, `Error al cargar datos: ${err.message}`);
-    }
+  if (cfg.useAbortOnRefresh) {
+    try { inFlightController?.abort(); } catch {}
+    inFlightController = new AbortController();
   }
+
+  try {
+    // placeholders mientras carga
+    setText(cfg.selectors.cardMesasCount, "…");
+    setText(cfg.selectors.cardPedidosCount, "…");
+    setText(cfg.selectors.cardReservasCount, "…");
+
+    // pedir todo (los protegidos no rompen por el softGet)
+    const { mesas, pedidos, reservas, estadosMesa, estadosPedido, estadosReserva } =
+      await Service.fetchAll({ signal: inFlightController?.signal });
+
+    // mapas (si vinieron null, toPage ya los dejó vacíos)
+    buildMapEstadosMesa(estadosMesa);
+    buildMapEstadosPedido(estadosPedido);
+    buildMapEstadosReserva(estadosReserva);
+
+    // contadores
+    setText(cfg.selectors.cardMesasCount,    nf(mesas.total));
+    setText(cfg.selectors.cardPedidosCount,  pedidos.total > 0 ? nf(pedidos.total) : "—");
+    setText(cfg.selectors.cardReservasCount, nf(reservas.total));
+
+    // renders
+    renderMesas(cfg.selectors.listMesas,       mesas,    cfg.topN);
+    renderPedidos(cfg.selectors.listPedidos,   pedidos,  cfg.topN);
+    renderReservas(cfg.selectors.listReservas, reservas, cfg.topN);
+
+  } catch (err) {
+    console.error("[DashboardController] Error:", err);
+    showToast(cfg.selectors.toast, `Error al cargar datos: ${err.message}`);
+  }
+}
+
+
+
 
   function startAutoRefresh() {
     if (!cfg.autoRefreshMs || cfg.autoRefreshMs <= 0) return;
@@ -652,19 +703,26 @@ const DashboardController = (() => {
       cfg = { ...DEFAULTS, ...options, selectors: { ...DEFAULTS.selectors, ...(options.selectors || {}) } };
 
       setupUserHeader(cfg);
-      const user = await loadMeOrRedirect();
-      if (user) setUserNameEverywhere(guessDisplayName(user), cfg);
+
+      // Intentamos /me (modo suave)
+      const user = await loadMeSoft();
+      IS_AUTH = !!user;
+      setUserNameEverywhere(guessDisplayName(user || {}), cfg);
 
       await loadOnce();
       startAutoRefresh();
     },
+
     async refresh() { await loadOnce(); },
     dispose() {
       stopAutoRefresh();
-      try { inFlightController?.abort(); } catch {}
+      try { inFlightController?.abort(); } catch { }
     },
     getConfig() { return cfg; }
   };
 })();
+
+
+
 
 export { DashboardController };

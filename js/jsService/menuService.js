@@ -1,5 +1,5 @@
 // js/services/menuService.js
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://orderly-api-b53514e40ebd.herokuapp.com/";
 
 /* ===================== AUTH & HEADERS ===================== */
 export function setAuthToken(token) {
