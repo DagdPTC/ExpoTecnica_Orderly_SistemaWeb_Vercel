@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (userBtn) {
     userBtn.style.position = 'relative';
 
+    
     if (!document.getElementById('userDropdown')) {
       const dropdown = document.createElement('div');
       dropdown.className = 'user-dropdown';
