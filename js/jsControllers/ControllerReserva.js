@@ -1,6 +1,8 @@
+// js/jsControllers/ControllerReserva.js
 import {
   getReservas, createReserva, updateReserva, deleteReserva,
-  getMesas, getTiposMesa, getTiposReserva, getEstadosReserva,
+  getMesasAll, getTiposMesaAll, getTiposReservaAll, getEstadosReservaAll,
+  getSessionUser
 } from "../jsService/ServiceReservas.js";
 
 const $ = (s) => document.querySelector(s);
@@ -22,14 +24,14 @@ const toInputDate = (v) => {
 const toInputTime = (v) => v ? String(v).slice(0, 5) : "";
 const formatDate = (v) => { const iso = toInputDate(v); if (!iso) return ""; const [y, m, d] = iso.split("-"); return `${d}/${m}/${y}`; };
 const formatTime = (v) => toInputTime(v) || "--:--";
-const makeDT = (iso, hhmm) => new Date(`${iso}T${hhmm}:00`);
+const makeDT     = (iso, hhmm) => new Date(`${iso}T${hhmm}:00`);
 
 let currentPage = 0;
 let pageSize = 10;
 let rawPage = null;
 let reservas = [];
 
-let mesas = [];
+let mesas = [];              // <<--- ahora vendrá con TODAS las mesas de BD
 let tipoMesaCap = new Map();
 let tiposReserva = [];
 let estados = new Map();
@@ -37,13 +39,33 @@ let estados = new Map();
 let selectedMesaId = null;
 let editingId = null;
 
+function showMsg(msg) {
+  const m = $("#reservation-message");
+  if (!m) return;
+  m.textContent = msg;
+  m.className = "block px-4 py-2 rounded-lg bg-red-50 text-red-700 border border-red-200";
+}
+function hideMsg() {
+  const m = $("#reservation-message");
+  if (!m) return;
+  m.textContent = "";
+  m.className = "hidden";
+}
+function handle401(e) {
+  if (e && e.status === 401) {
+    alert("Tu sesión expiró o no es válida. Inicia sesión nuevamente.");
+    // window.location.href = "inicioSesion.html";
+    return true;
+  }
+  return false;
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   $("#items-per-page")?.addEventListener("change", async (e) => {
     pageSize = parseInt(e.target.value, 10) || 10;
     currentPage = 0;
     await loadAndRender();
   });
-
   $("#add-reservation-btn")?.addEventListener("click", openCreateModal);
   $("#close-modal")?.addEventListener("click", closeModal);
   $("#cancel-reservation")?.addEventListener("click", closeModal);
@@ -53,31 +75,34 @@ document.addEventListener("DOMContentLoaded", async () => {
   $("#search-input")?.addEventListener("input", renderTable);
 
   setupLiveValidation();
-  await bootstrapCatalogs();
+  try { await getSessionUser(); } catch {}
+
+  await bootstrapCatalogs();   // <- aquí se cargan TODAS las mesas
   await loadAndRender();
 });
 
 async function bootstrapCatalogs() {
   tipoMesaCap.clear();
   estados.clear();
+
   try {
-    const [pTiposMesa, pMesas, pTiposRes, pEstados] = await Promise.allSettled([
-      getTiposMesa(), getMesas(), getTiposReserva(), getEstadosReserva(),
+    // Trae TODO de cada catálogo (no solo la primera página)
+    const [pTiposMesa, pMesas, pTiposRes] = await Promise.allSettled([
+      getTiposMesaAll(), getMesasAll(), getTiposReservaAll()
     ]);
 
+    // Tipos de mesa -> mapa idTipoMesa -> capacidad
     if (pTiposMesa.status === "fulfilled") {
-      const list = pTiposMesa.value?.content ?? pTiposMesa.value ?? [];
-      list.forEach(t => {
-        const id = Number(pick(t, ["id", "Id", "idTipoMesa"]));
+      (pTiposMesa.value ?? []).forEach(t => {
+        const id  = Number(pick(t, ["id", "Id", "idTipoMesa"]));
         const cap = Number(pick(t, ["capacidadPersonas", "capacidad", "capacidad_personas"])) || 0;
         if (!Number.isNaN(id)) tipoMesaCap.set(id, cap);
       });
     }
 
+    // Mesas (TODAS)
     {
-      const list = pMesas.status === "fulfilled"
-        ? (pMesas.value?.content ?? pMesas.value ?? [])
-        : [];
+      const list = pMesas.status === "fulfilled" ? (pMesas.value ?? []) : [];
       mesas = list.map(m => ({
         id: Number(pick(m, ["id", "Id"])) || null,
         nomMesa: pick(m, ["nomMesa", "NomMesa", "nombre", "mesa"]) ?? `Mesa ${pick(m, ["id", "Id"])}`,
@@ -85,30 +110,32 @@ async function bootstrapCatalogs() {
       })).filter(x => x.id !== null);
     }
 
-    tiposReserva = pTiposRes.status === "fulfilled"
-      ? (pTiposRes.value?.content ?? pTiposRes.value ?? [])
-      : [];
+    // Tipos de reserva
+    tiposReserva = pTiposRes.status === "fulfilled" ? (pTiposRes.value ?? []) : [];
     const selTipo = $("#tipo-reserva-select");
     if (selTipo) {
       selTipo.innerHTML = `<option value="">Seleccione tipo</option>`;
-      tiposReserva.forEach(t => selTipo.insertAdjacentHTML("beforeend",
-        `<option value="${t.id}">${t.nomTipo || t.nombre || ("Tipo " + t.id)}</option>`));
+      tiposReserva.forEach(t => selTipo.insertAdjacentHTML(
+        "beforeend",
+        `<option value="${t.id}">${t.nomTipo || t.nombre || ("Tipo " + t.id)}</option>`
+      ));
     }
 
+    // Estados
     await refreshEstados();
-    renderMesasGrid();
+
+    renderMesasGrid(); // pintamos todas las mesas
   } catch (err) {
     console.error("Error cargando catálogos:", err);
-    renderMesasGrid();
+    if (!handle401(err)) renderMesasGrid();
   }
 }
 
 async function refreshEstados() {
   try {
-    const resp = await getEstadosReserva();
+    const list = await getEstadosReservaAll();
     estados.clear();
-    const list = resp?.content ?? resp ?? [];
-    list.forEach(e => {
+    (list ?? []).forEach(e => {
       const n = String(pick(e, ["nomEstado", "NomEstado", "nombre"]) || "").toLowerCase();
       const id = Number(pick(e, ["id", "Id"]));
       if (n && !Number.isNaN(id)) estados.set(n, id);
@@ -119,11 +146,16 @@ async function refreshEstados() {
 }
 
 async function loadAndRender() {
-  rawPage = await getReservas(currentPage, pageSize);
-  reservas = rawPage?.content ?? [];
-  renderTable();
-  renderPagination();
-  updateStats();
+  try {
+    rawPage  = await getReservas(currentPage, pageSize);
+    reservas = rawPage?.content ?? [];
+    renderTable();
+    renderPagination();
+    updateStats();
+  } catch (e) {
+    console.error(e);
+    handle401(e);
+  }
 }
 
 function renderTable() {
@@ -205,24 +237,25 @@ function rowHtml(r) {
 window.__editRes = (id) => openEditModal(id);
 window.__delRes = async (id) => {
   if (!confirm("¿Eliminar esta reservación?")) return;
-  try { await deleteReserva(id); await loadAndRender(); } catch (e) { console.error(e); alert("No se pudo eliminar."); }
+  try { await deleteReserva(id); await loadAndRender(); }
+  catch (e) { console.error(e); if (!handle401(e)) alert("No se pudo eliminar."); }
 };
 
 function renderPagination() {
   const totalPages = rawPage?.totalPages ?? 1;
-  const number = rawPage?.number ?? 0;
+  const number     = rawPage?.number ?? 0;
 
   const prev = $("#prev-page");
   const next = $("#next-page");
   const curr = $("#current-page");
-  const tot = $("#total-pages");
+  const tot  = $("#total-pages");
   const nums = $("#page-numbers");
   const cont = $("#pagination-container");
 
   if (!prev || !next || !curr || !tot || !nums || !cont) return;
 
   curr.textContent = number + 1;
-  tot.textContent = totalPages;
+  tot.textContent  = totalPages;
 
   prev.disabled = number <= 0;
   next.disabled = number >= totalPages - 1;
@@ -233,7 +266,7 @@ function renderPagination() {
   nums.innerHTML = "";
   const max = 5;
   let start = Math.max(0, number - Math.floor(max / 2));
-  let end = Math.min(totalPages - 1, start + max - 1);
+  let end   = Math.min(totalPages - 1, start + max - 1);
   if (end - start + 1 < max) start = Math.max(0, end - max + 1);
   for (let i = start; i <= end; i++) {
     const b = document.createElement("button");
@@ -258,17 +291,16 @@ function openEditModal(id) {
   editingId = id;
   $("#reservation-modal-title").textContent = "Editar Reservación";
 
-  $("#customer-name").value = r.nomCliente || "";
-  $("#customer-phone").value = r.telefono || "";
-  $("#reservation-date").value = toInputDate(getFecha(r));
-  $("#reservation-time").value = toInputTime(getHoraI(r));
+  $("#customer-name").value        = r.nomCliente || "";
+  $("#customer-phone").value       = r.telefono || "";
+  $("#reservation-date").value     = toInputDate(getFecha(r));
+  $("#reservation-time").value     = toInputTime(getHoraI(r));
   $("#reservation-end-time").value = toInputTime(getHoraF(r));
-  $("#guest-count").value = r.cantidadPersonas || 1;
-  $("#tipo-reserva-select").value = r.idTipoReserva || "";
+  $("#guest-count").value          = r.cantidadPersonas || 1;
+  $("#tipo-reserva-select").value  = r.idTipoReserva || "";
 
   selectedMesaId = getIdMesa(r);
   renderMesasGrid();
-
   showModal(true);
 }
 function resetForm() {
@@ -282,7 +314,7 @@ function showModal(show) {
   show ? m.classList.remove("hidden") : m.classList.add("hidden");
   document.body.style.overflow = show ? "hidden" : "auto";
 }
-function closeModal() { showModal(false); }
+function closeModal(){ showModal(false); }
 
 function renderMesasGrid() {
   const grid = $("#tables-container");
@@ -316,17 +348,17 @@ function renderMesasGrid() {
 function computeStatusKey(fReserva, horaI, horaF) {
   if (!fReserva || !horaI || !horaF) return "pending";
   const start = makeDT(toInputDate(fReserva), toInputTime(horaI));
-  const end = makeDT(toInputDate(fReserva), toInputTime(horaF));
-  const now = new Date();
+  const end   = makeDT(toInputDate(fReserva), toInputTime(horaF));
+  const now   = new Date();
   if (now < start) return "pending";
   if (now >= start && now <= end) return "in-progress";
   return "completed";
 }
 function statusPill(k) {
   const m = {
-    "pending": { cls: "bg-yellow-100 text-yellow-800", icon: "fa-clock", txt: "Pendiente" },
-    "in-progress": { cls: "bg-blue-100 text-blue-800", icon: "fa-utensils", txt: "En curso" },
-    "completed": { cls: "bg-green-100 text-green-800", icon: "fa-check", txt: "Completada" },
+    "pending":     { cls: "bg-yellow-100 text-yellow-800", icon: "fa-clock",    txt: "Pendiente" },
+    "in-progress": { cls: "bg-blue-100 text-blue-800",     icon: "fa-utensils", txt: "En curso"  },
+    "completed":   { cls: "bg-green-100 text-green-800",   icon: "fa-check",    txt: "Completada" },
   }[k] || { cls: "bg-gray-100 text-gray-800", icon: "fa-question", txt: "-" };
   return `<span class="px-3 py-1 rounded-full text-xs font-medium ${m.cls}">
             <i class="fas ${m.icon} mr-1"></i>${m.txt}
@@ -346,56 +378,8 @@ function estadoIdDesdeClave(key) {
   return it && !it.done ? it.value : null;
 }
 
-async function submitForm(e) {
-  e.preventDefault();
-  hideMsg();
-
-  if (!validateName()) return showMsg("Nombre inválido. Solo letras y mínimo 2 palabras.");
-  if (!validatePhone()) return showMsg("Teléfono inválido. Formato: 0000-0000.");
-  if (!selectedMesaId) return showMsg("Selecciona una mesa.");
-
-  const tipoSel = $("#tipo-reserva-select").value;
-  if (!tipoSel) return showMsg("Seleccione un tipo de reserva.");
-
-  const f = $("#reservation-date").value;
-  const hi = ($("#reservation-time").value || "").slice(0, 5);
-  const hf = ($("#reservation-end-time").value || "").slice(0, 5);
-
-  if (!f) return showMsg("La fecha es obligatoria.");
-  if (!hi) return showMsg("La hora inicio es obligatoria.");
-  if (!hf) return showMsg("La hora fin es obligatoria.");
-  if (!validateTimes()) return;
-
-  await refreshEstados();
-
-  const estadoKey = computeStatusKey(f, hi, hf);
-  const idEstado = estadoIdDesdeClave(estadoKey);
-
-  const payload = {
-    nomCliente: $("#customer-name").value.trim(),
-    telefono: $("#customer-phone").value.trim(),
-    idMesa: selectedMesaId,
-    fReserva: f,
-    horaI: hi,
-    horaF: hf,
-    cantidadPersonas: parseInt($("#guest-count").value || "1", 10),
-    idTipoReserva: parseInt(tipoSel, 10),
-    idEstadoReserva: idEstado,
-  };
-
-  try {
-    if (editingId) await updateReserva(editingId, payload);
-    else await createReserva(payload);
-    closeModal();
-    await loadAndRender();
-  } catch (err) {
-    console.error(err);
-    showMsg("Error al guardar la reservación.");
-  }
-}
-
 function setupLiveValidation() {
-  const name = $("#customer-name");
+  const name  = $("#customer-name");
   const phone = $("#customer-phone");
 
   if (name) {
@@ -415,10 +399,8 @@ function setupLiveValidation() {
       phone.setSelectionRange(c, c);
     });
   }
-
   $("#reservation-time")?.addEventListener("change", ensureEndMin);
 }
-
 function validateName() {
   const v = ($("#customer-name").value || "").trim();
   const ok = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,60}$/.test(v) && v.split(/\s+/).length >= 2;
@@ -456,23 +438,60 @@ function toggleInvalid(id, bad) {
   if (!el) return;
   el.classList.toggle("invalid", !!bad);
 }
-function showMsg(msg) {
-  const m = $("#reservation-message");
-  if (!m) return;
-  m.textContent = msg;
-  m.className = "block px-4 py-2 rounded-lg bg-red-50 text-red-700 border border-red-200";
-}
-function hideMsg() {
-  const m = $("#reservation-message");
-  if (!m) return;
-  m.className = "hidden"; m.textContent = "";
+
+async function submitForm(e) {
+  e.preventDefault();
+  hideMsg();
+
+  if (!validateName())  return showMsg("Nombre inválido. Solo letras y mínimo 2 palabras.");
+  if (!validatePhone()) return showMsg("Teléfono inválido. Formato: 0000-0000.");
+  if (!selectedMesaId)  return showMsg("Selecciona una mesa.");
+
+  const tipoSel = $("#tipo-reserva-select").value;
+  if (!tipoSel) return showMsg("Seleccione un tipo de reserva.");
+
+  const f  = $("#reservation-date").value;
+  const hi = ($("#reservation-time").value || "").slice(0, 5);
+  const hf = ($("#reservation-end-time").value || "").slice(0, 5);
+
+  if (!f)  return showMsg("La fecha es obligatoria.");
+  if (!hi) return showMsg("La hora inicio es obligatoria.");
+  if (!hf) return showMsg("La hora fin es obligatoria.");
+  if (!validateTimes()) return;
+
+  await refreshEstados();
+
+  const estadoKey = computeStatusKey(f, hi, hf);
+  const idEstado  = estadoIdDesdeClave(estadoKey);
+
+  const payload = {
+    nomCliente: $("#customer-name").value.trim(),
+    telefono: $("#customer-phone").value.trim(),
+    idMesa: selectedMesaId,
+    fReserva: f,
+    horaI: hi,
+    horaF: hf,
+    cantidadPersonas: parseInt($("#guest-count").value || "1", 10),
+    idTipoReserva: parseInt(tipoSel, 10),
+    idEstadoReserva: idEstado,
+  };
+
+  try {
+    if (editingId) await updateReserva(editingId, payload);
+    else           await createReserva(payload);
+    closeModal();
+    await loadAndRender();
+  } catch (err) {
+    console.error(err);
+    if (!handle401(err)) showMsg("Error al guardar la reservación.");
+  }
 }
 
 function updateStats() {
-  const total = reservas.length;
+  const total   = reservas.length;
   const pending = reservas.filter(r => computeStatusKey(getFecha(r), getHoraI(r), getHoraF(r)) === "pending").length;
-  const inprog = reservas.filter(r => computeStatusKey(getFecha(r), getHoraI(r), getHoraF(r)) === "in-progress").length;
-  const compl = reservas.filter(r => computeStatusKey(getFecha(r), getHoraI(r), getHoraF(r)) === "completed").length;
+  const inprog  = reservas.filter(r => computeStatusKey(getFecha(r), getHoraI(r), getHoraF(r)) === "in-progress").length;
+  const compl   = reservas.filter(r => computeStatusKey(getFecha(r), getHoraI(r), getHoraF(r)) === "completed").length;
 
   ($("#total-reservations") || {}).textContent = total;
   ($("#pending-reservations") || {}).textContent = pending;
