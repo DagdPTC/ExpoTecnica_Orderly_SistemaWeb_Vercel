@@ -1,56 +1,55 @@
-// SOLO diseño/UX (sidebar, dropdown usuario, animaciones, cierres de modal, etc.)
+// js/Factura.js
+// === SOLO DISEÑO/UX (animaciones, sidebar, dropdown usuario, cierre de modales) ===
 
-// Dropdown usuario
 document.addEventListener('DOMContentLoaded', function () {
   let userBtn = document.querySelector('.navbar-user-avatar');
-  if (!userBtn) return;
+  if (userBtn) {
+    userBtn.style.position = 'relative';
 
-  userBtn.style.position = 'relative';
+    if (!document.getElementById('userDropdown')) {
+      const dropdown = document.createElement('div');
+      dropdown.className = 'user-dropdown';
+      dropdown.id = 'userDropdown';
+      dropdown.innerHTML = `
+                        <button class="user-dropdown-item" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
+                        </button>
+                    `;
+      userBtn.parentNode.style.position = "relative";
+      userBtn.parentNode.appendChild(dropdown);
 
-  if (!document.getElementById('userDropdown')) {
-    const dropdown = document.createElement('div');
-    dropdown.className = 'user-dropdown';
-    dropdown.id = 'userDropdown';
-    dropdown.innerHTML = `
-      <button class="user-dropdown-item" id="logoutBtn">
-        <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
-      </button>
-    `;
-    userBtn.parentNode.style.position = "relative";
-    userBtn.parentNode.appendChild(dropdown);
+      const overlay = document.createElement('div');
+      overlay.className = 'user-dropdown-overlay';
+      overlay.id = 'userDropdownOverlay';
+      document.body.appendChild(overlay);
 
-    const overlay = document.createElement('div');
-    overlay.className = 'user-dropdown-overlay';
-    overlay.id = 'userDropdownOverlay';
-    document.body.appendChild(overlay);
+      userBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        dropdown.classList.toggle('show');
+        overlay.classList.toggle('active');
+      });
 
-    userBtn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      dropdown.classList.toggle('show');
-      overlay.classList.toggle('active');
-    });
-
-    overlay.addEventListener('click', function () {
-      dropdown.classList.remove('show');
-      overlay.classList.remove('active');
-    });
-
-    document.addEventListener('keydown', function (ev) {
-      if (ev.key === "Escape") {
+      overlay.addEventListener('click', function () {
         dropdown.classList.remove('show');
         overlay.classList.remove('active');
-      }
-    });
+      });
 
-    document.getElementById('logoutBtn').addEventListener('click', function () {
-      dropdown.classList.remove('show');
-      overlay.classList.remove('active');
-      window.location.href = "inicioSesion.html";
-    });
+      document.addEventListener('keydown', function (ev) {
+        if (ev.key === "Escape") {
+          dropdown.classList.remove('show');
+          overlay.classList.remove('active');
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', function () {
+        dropdown.classList.remove('show');
+        overlay.classList.remove('active');
+        window.location.href = "inicioSesion.html";
+      });
+    }
   }
 });
 
-// Sidebar (mobile/desktop)
 document.addEventListener('DOMContentLoaded', function () {
   const sidebarToggle = document.getElementById('sidebarToggle');
   const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
@@ -92,7 +91,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-// Animaciones de entrada
 document.addEventListener('DOMContentLoaded', function () {
   const observerOptions = {
     threshold: 0.1,
@@ -116,69 +114,49 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-// Efectos “table-status” (si existieran)
-document.addEventListener('DOMContentLoaded', function () {
-  const tableStatus = document.querySelectorAll('.table-status');
-
-  tableStatus.forEach(table => {
-    table.addEventListener('mouseenter', function () {
-      this.style.transform = 'scale(1.05) rotate(2deg)';
-    });
-
-    table.addEventListener('mouseleave', function () {
-      this.style.transform = 'scale(1) rotate(0deg)';
-    });
-
-    table.addEventListener('click', function () {
-      this.style.transform = 'scale(0.95)';
-      setTimeout(() => {
-        this.style.transform = 'scale(1.05) rotate(2deg)';
-      }, 150);
-    });
-  });
-});
-
-// Anclas suaves
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
       e.preventDefault();
       const target = document.querySelector(this.getAttribute('href'));
       if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
       }
     });
   });
 });
 
-// Cierre de modales por click fuera / Escape
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.modal-overlay').forEach(modal => {
+// Cierre de modales por overlay / ESC
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.modal-overlay').forEach((modal) => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
         modal.classList.add('hidden');
+        modal.style.display = 'none';
       }
     });
   });
-
+  
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      document.querySelectorAll('.modal-overlay').forEach(modal => {
+      document.querySelectorAll('.modal-overlay').forEach((modal) => {
         modal.classList.add('hidden');
+        modal.style.display = 'none';
       });
     }
   });
 
-  // Botones de modal estáticos
-  const closeModalBtn = document.getElementById('closeModalBtn');
-  if (closeModalBtn) closeModalBtn.onclick = () => document.getElementById('detailsModal').classList.add('hidden');
-});
-
-// ——— Animaciones para campana y correo ———
-document.addEventListener('DOMContentLoaded', () => {
-  // al pasar el mouse, acentuar la animación
-  document.querySelectorAll('.notif-btn').forEach(btn => {
-    btn.addEventListener('mouseenter', () => btn.classList.add('boost-anim'));
-    btn.addEventListener('mouseleave', () => btn.classList.remove('boost-anim'));
-  });
+  const closeDetails = document.getElementById('closeModalBtn');
+  if (closeDetails) {
+    closeDetails.onclick = () => {
+      const modal = document.getElementById('detailsModal');
+      if (modal) { 
+        modal.classList.add('hidden'); 
+        modal.style.display = 'none'; 
+      }
+    };
+  }
 });
