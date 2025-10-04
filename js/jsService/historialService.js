@@ -1,5 +1,5 @@
 // js/jsService/historialService.js
-const API_HOST = "http://localhost:8080";
+const API_HOST = "https://orderly-api-b53514e40ebd.herokuapp.com";
 
 /* -------------------- fetch con auth (cookie HttpOnly) -------------------- */
 function authFetch(url, options = {}) {
@@ -42,7 +42,7 @@ export async function getHistorial(page = 0, size = 20) {
 }
 
 /* ============================== PEDIDOS ============================== */
-/** Pedido por ID (de aquí sacamos cliente, fecha, mesa, estado, items, etc.) */
+/** Pedido por ID (de aquí sacamos cliente, mesa, estado, items, etc.) */
 export async function getPedidoById(id) {
   const url = `${API_HOST}/apiPedido/getPedidoById/${encodeURIComponent(id)}`;
   const res = await authFetch(url);
@@ -71,25 +71,55 @@ export async function getEstadosPedido() {
   }
 }
 
-/** Usuarios -> Map(idEmpleado, username) */
-export async function getUsuarios() {
-  const url = `${API_HOST}/apiUsuario/getDataUsuario?page=0&size=50`; // clamped
+/**
+ * Meseros -> Map(idEmpleado, "Nombre Apellido")
+ * Toma empleados y (si está disponible) personas para armar el nombre.
+ */
+export async function getMeseros() {
+  // Empleados
+  const urlEmp = `${API_HOST}/apiEmpleado/getDataEmpleado?page=0&size=100`;
+  let empleados = [];
   try {
-    const res = await authFetch(url);
-    if (!res.ok) return new Map();
-    const data = await res.json().catch(() => ({}));
-    const list = Array.isArray(data?.content) ? data.content : (Array.isArray(data) ? data : []);
-    return new Map(
-      list.map(u => {
-        const idEmp = Number(u.idEmpleado ?? u.empleadoId ?? u.id_empleado ?? u?.empleado?.id);
-        const username = String(u.username ?? u.usuario ?? u.user ?? "").trim();
-        if (!Number.isFinite(idEmp) || !username) return null;
-        return [idEmp, username];
-      }).filter(Boolean)
-    );
-  } catch {
-    return new Map();
+    const resEmp = await authFetch(urlEmp);
+    if (resEmp.ok) {
+      const dataEmp = await resEmp.json().catch(() => ({}));
+      empleados = Array.isArray(dataEmp?.content) ? dataEmp.content : (Array.isArray(dataEmp) ? dataEmp : []);
+    }
+  } catch {}
+
+  // Personas (para nombres)
+  let personasById = new Map();
+  try {
+    const urlPer = `${API_HOST}/apiPersona/getDataPersona?page=0&size=1000`;
+    const resPer = await authFetch(urlPer);
+    if (resPer.ok) {
+      const dataPer = await resPer.json().catch(() => ({}));
+      const personas = Array.isArray(dataPer?.content) ? dataPer.content : (Array.isArray(dataPer) ? dataPer : []);
+      personasById = new Map(
+        personas.map(p => [
+          Number(p.id ?? p.Id ?? p.idPersona ?? p.IdPersona),
+          p
+        ])
+      );
+    }
+  } catch {}
+
+  const map = new Map();
+  for (const e of empleados) {
+    const idEmp = Number(e.id ?? e.Id ?? e.idEmpleado ?? e.IdEmpleado);
+    const idPersona = Number(e.idPersona ?? e.IdPersona);
+    if (!Number.isFinite(idEmp)) continue;
+
+    const per = personasById.get(idPersona) || {};
+    const nombre = [
+      (per.primerNombre ?? per.Pnombre ?? per.pnombre ?? per.firstName),
+      (per.apellidoPaterno ?? per.ApellidoP ?? per.apellidoP ?? per.lastNameP),
+    ].filter(Boolean).map(String).join(" ").trim();
+
+    map.set(idEmp, nombre || `Empleado ${idEmp}`);
   }
+
+  return map;
 }
 
 /** Platillos -> Map(idPlatillo, nombre) (para nombre en el modal) */

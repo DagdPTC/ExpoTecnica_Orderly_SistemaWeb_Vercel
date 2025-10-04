@@ -69,9 +69,14 @@ const deleteCategoryBtn = document.getElementById("deleteCategoryBtn");
 const categoriaForm     = document.getElementById("categoriaForm");
 const platilloForm      = document.getElementById("platilloForm");
 
+// ADMIN (dropdown + logout)
+const adminBtn          = document.getElementById("adminBtn");
+const LOGIN_URL         = "login.html"; // <-- cambia esto si tu ruta difiere
+
 /* ================= Init ================= */
 document.addEventListener("DOMContentLoaded", async () => {
   setupEventListeners();
+  setupAdminMenu(); // <-- inicializa menú ADMIN
   await cargarCategorias();
   await cargarPlatillos();
 });
@@ -109,7 +114,7 @@ function renderCategorias() {
   if (selPlatCat) selPlatCat.innerHTML = '<option value="">Seleccione una categoría</option>';
   if (selCatSel)  selCatSel.innerHTML  = '<option value="">Seleccione una categoría</option>';
 
-  categorias.forEach((c) => {
+  (categorias || []).forEach((c) => {
     const option1 = document.createElement("option");
     option1.value = c.id;
     option1.textContent = c.nombre;
@@ -158,6 +163,7 @@ function renderPlatillos(platillosToRender = platillos) {
             onerror="this.onerror=null; injectFallbackNodeAndRemove(this);">`
       : `${window.__fallbackSVG && window.__fallbackSVG()}`;
 
+    // ★★ Quitamos la estrella y el 4.8 (puntuación) ★★
     card.innerHTML = `
       <div class="relative overflow-hidden">
         ${imgHtml}
@@ -182,10 +188,6 @@ function renderPlatillos(platillosToRender = platillos) {
         <p class="text-gray-600 mb-4 flex-1 leading-relaxed">${escapeHtml(platillo.descripcion || "Sin descripción disponible")}</p>
         <div class="flex justify-between items-center">
           <span class="price-badge">$${Number(platillo.precio || 0).toFixed(2)}</span>
-          <div class="flex items-center text-sm text-gray-500">
-            <i class="fas fa-star text-yellow-400 mr-1"></i>
-            <span>4.8</span>
-          </div>
         </div>
       </div>
     `;
@@ -230,12 +232,42 @@ function filterPlatillos() {
   renderPlatillos(filtered);
 }
 
+/* ================= Helpers IVA ================= */
+const TAX_RATE = 0.13;
+const EPS = 1e-9;
+function round2(n) { return Math.round(Number(n) * 100) / 100; }
+function toNumberLike(value) {
+  return Number(String(value ?? "").replace(",", ".").replace(/[^0-9.]/g, ""));
+}
+function precioConIVA(base, tasa = TAX_RATE) {
+  const n = toNumberLike(base);
+  return round2(n * (1 + tasa));
+}
+function iguales(a, b) {
+  const na = toNumberLike(a);
+  const nb = toNumberLike(b);
+  if (!Number.isFinite(na) && !Number.isFinite(nb)) return true;
+  if (!Number.isFinite(na) || !Number.isFinite(nb)) return false;
+  return Math.abs(na - nb) <= EPS;
+}
+
 /* ================= Modal Platillo ================= */
+// Crear campo hidden para guardar precio original al editar
+function ensureOriginalPriceField() {
+  if (!document.getElementById("platilloPrecioOriginal")) {
+    const hidden = document.createElement("input");
+    hidden.type = "hidden";
+    hidden.id = "platilloPrecioOriginal";
+    hidden.name = "platilloPrecioOriginal";
+    platilloForm?.appendChild(hidden);
+  }
+}
+
 function openPlatilloModal(id = null) {
   resetPlatilloForm();
+  ensureOriginalPriceField();
 
   const urlInput  = document.getElementById("platilloImagenUrl");
-  // Bloqueamos edición SIEMPRE
   if (urlInput) {
     urlInput.readOnly = true;
     urlInput.classList.add("bg-gray-100", "cursor-not-allowed");
@@ -254,6 +286,9 @@ function openPlatilloModal(id = null) {
       document.getElementById("platilloDescripcion").value = platillo.descripcion || "";
       document.getElementById("platilloPrecio").value = Number(platillo.precio || 0).toFixed(2);
 
+      const hidden = document.getElementById("platilloPrecioOriginal");
+      if (hidden) hidden.value = Number(platillo.precio || 0).toFixed(2);
+
       const imgSrc = platillo.imagenUrl;
       document.getElementById("platilloImagenPreview").innerHTML =
         imgSrc
@@ -266,10 +301,14 @@ function openPlatilloModal(id = null) {
     editingPlatilloId = null;
     document.getElementById("platilloModalTitle").textContent = "Nuevo Platillo";
     document.getElementById("platilloId").value = "";
+    const hidden = document.getElementById("platilloPrecioOriginal");
+    if (hidden) hidden.value = "";
   }
 
   platilloModal?.classList.remove("hidden");
   document.body.style.overflow = "hidden";
+
+  updateIvaHint();
 }
 
 function safeClosePlatilloModal() {
@@ -446,7 +485,6 @@ function setupEventListeners() {
   const urlInput  = document.getElementById("platilloImagenUrl");
   const preview   = document.getElementById("platilloImagenPreview");
 
-  // dejemos el textbox en solo lectura SIEMPRE
   if (urlInput) {
     urlInput.readOnly = true;
     urlInput.classList.add("bg-gray-100", "cursor-not-allowed");
@@ -458,7 +496,6 @@ function setupEventListeners() {
     console.log("[IMG] change:", f);
     if (!f) return;
 
-    // feedback en preview
     if (preview) {
       preview.innerHTML = `
         <div class="w-full h-64 flex items-center justify-center text-gray-500">
@@ -471,16 +508,14 @@ function setupEventListeners() {
       console.log("[IMG] URL recibida:", imageUrl);
 
       if (urlInput) {
-        urlInput.value = imageUrl;        // escribe la URL
-        urlInput.dispatchEvent(new Event("input", { bubbles: true })); // notifica a otros listeners
+        urlInput.value = imageUrl;
+        urlInput.dispatchEvent(new Event("input", { bubbles: true }));
         urlInput.readOnly = true;
         urlInput.classList.add("bg-gray-100", "cursor-not-allowed");
       }
 
-      // no enviar archivo en el submit (usaremos la URL)
       fileInput.value = "";
 
-      // preview final
       if (preview) {
         preview.innerHTML = `<img src="${imageUrl}" class="w-full h-full object-cover rounded-lg" alt="Preview"
            onerror="this.onerror=null; injectFallbackNodeAndRemove(this);">`;
@@ -507,7 +542,7 @@ function setupEventListeners() {
 
   function updateIvaHint() {
     const raw = (precioInput?.value || "").trim();
-    const num = Number(String(raw).replace(",", ".").replace(/[^0-9.]/g, ""));
+    const num = toNumberLike(raw);
     if (Number.isFinite(num) && num > 0) {
       ivaHint.textContent = `Con IVA (13%): $${precioConIVA(num).toFixed(2)}`;
     } else {
@@ -517,6 +552,67 @@ function setupEventListeners() {
 
   precioInput?.addEventListener("input", updateIvaHint);
   precioInput?.addEventListener("blur", updateIvaHint);
+}
+
+/* ================= Admin Dropdown & Logout ================= */
+function setupAdminMenu() {
+  if (!adminBtn) return;
+
+  // Crea el menú si no existe
+  let adminMenu = document.getElementById("adminMenu");
+  if (!adminMenu) {
+    adminMenu = document.createElement("div");
+    adminMenu.id = "adminMenu";
+    adminMenu.className = "hidden absolute mt-2 right-0 bg-white border rounded-lg shadow-lg z-50";
+    adminMenu.innerHTML = `
+      <button id="logoutBtn" class="block w-full text-left px-4 py-2 hover:bg-gray-100">Cerrar sesión</button>
+    `;
+    // Posiciona relativo al botón
+    adminBtn.style.position = adminBtn.style.position || "relative";
+    // Contenedor absoluto cerca del botón
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+    adminBtn.parentElement?.insertBefore(wrapper, adminBtn);
+    wrapper.appendChild(adminBtn);
+    wrapper.appendChild(adminMenu);
+  }
+
+  const logoutBtn = adminMenu.querySelector("#logoutBtn");
+
+  // Toggle al hacer click en ADMIN
+  adminBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    adminMenu.classList.toggle("hidden");
+  });
+
+  // Click fuera: cerrar menú
+  document.addEventListener("click", (e) => {
+    if (!adminMenu.classList.contains("hidden")) {
+      const isInside = adminMenu.contains(e.target) || adminBtn.contains(e.target);
+      if (!isInside) adminMenu.classList.add("hidden");
+    }
+  });
+
+  // Logout
+  logoutBtn?.addEventListener("click", async () => {
+    try {
+      // Limpia token local (si lo usas)
+      localStorage.removeItem("AUTH_TOKEN");
+      sessionStorage.removeItem("AUTH_TOKEN");
+
+      // Si tu backend tiene endpoint de logout por cookie, podrías intentar:
+      // await fetch("https://orderly-api-b53514e40ebd.herokuapp.com/auth/logout", {
+      //   method: "POST",
+      //   credentials: "include"
+      // }).catch(() => {});
+
+      // Redirigir al login
+      window.location.href = LOGIN_URL;
+    } catch (e) {
+      console.error("Error al cerrar sesión:", e);
+      window.location.href = LOGIN_URL; // fallback
+    }
+  });
 }
 
 /* ================= Handlers ================= */
@@ -621,16 +717,11 @@ function makePlatilloDTO({ nombre, descripcion, precio, idCategoria, imagenUrl, 
   };
 }
 
-/* === IVA helpers (forzar suma) === */
-function round2(n) {
-  return Math.round(Number(n) * 100) / 100;
-}
-function precioConIVA(precioBase, tasa = 0.13) {
-  const base = Number(String(precioBase).replace(/[^0-9.]/g, "")); // limpia $ y comas
-  return round2(base * (1 + tasa));
-}
-
-/* ======== Guardar / Actualizar Platillo (FORZAR +13% SIEMPRE) ======== */
+/* ======== Guardar / Actualizar Platillo ======== */
+/* Reglas:
+   - Crear: SIEMPRE aplicar +13%
+   - Editar: aplicar +13% SOLO si el usuario cambió el número mostrado;
+             si no lo cambió, reusamos el precio original tal cual. */
 async function handlePlatilloSubmit(e) {
   e.preventDefault();
 
@@ -642,6 +733,7 @@ async function handlePlatilloSubmit(e) {
   const idCateStr    = (document.getElementById("platilloCategoria").value || "").trim();
   const descripcion  = (document.getElementById("platilloDescripcion").value || "").trim();
   const precioStr    = (document.getElementById("platilloPrecio").value || "").trim();
+  const precioOriginalStr = (document.getElementById("platilloPrecioOriginal")?.value || "").trim();
   const imagenUrlIn  = (document.getElementById("platilloImagenUrl").value || "").trim();
   const fileInput    = document.getElementById("platilloImagen");
   const file         = fileInput?.files?.[0] || null;
@@ -652,14 +744,20 @@ async function handlePlatilloSubmit(e) {
   if (!idCategoria) return showToast("La categoría (Id) es requerida", "error");
   if (!descripcion) return showToast("La descripción no puede ser nula", "error");
 
-  // Normaliza precio ingresado (acepta $ y coma decimal)
-  const precioBaseNum = Number(String(precioStr).replace(",", ".").replace(/[^0-9.]/g, ""));
-  if (!Number.isFinite(precioBaseNum) || precioBaseNum < 0.01) {
+  const precioIngresado = toNumberLike(precioStr);
+  if (!Number.isFinite(precioIngresado) || precioIngresado < 0.01) {
     return showToast("El precio debe ser ≥ 0.01", "error");
   }
 
-  // APLICAR IVA SIEMPRE (crear y editar)
-  const precioFinal = precioConIVA(precioBaseNum, 0.13);
+  // IVA:
+  let precioFinal;
+  if (!isEdit) {
+    precioFinal = precioConIVA(precioIngresado);
+  } else {
+    const original = toNumberLike(precioOriginalStr);
+    const sinCambio = Number.isFinite(original) && iguales(precioIngresado, original);
+    precioFinal = sinCambio ? round2(original) : precioConIVA(precioIngresado);
+  }
 
   const dto = makePlatilloDTO({
     nombre,
@@ -670,9 +768,6 @@ async function handlePlatilloSubmit(e) {
     publicId: null
   });
 
-  // Diagnóstico
-  console.log("[DTO a enviar]", dto);
-
   try {
     const hasUploadedUrl = !!imagenUrlIn;
 
@@ -682,14 +777,17 @@ async function handlePlatilloSubmit(e) {
       } else {
         await actualizarPlatillo(id, dto);                // JSON
       }
-      showToast(`Platillo actualizado (con IVA: $${precioFinal.toFixed(2)})`, "success");
+      showToast(
+        `Platillo actualizado ${iguales(precioIngresado, toNumberLike(precioOriginalStr)) ? "(sin cambio de precio)" : "(con IVA aplicado)"}: $${precioFinal.toFixed(2)}`,
+        "success"
+      );
     } else {
       if (file && !hasUploadedUrl) {
         await crearPlatilloConImagen(dto, file);          // multipart
       } else {
         await crearPlatillo(dto);                         // JSON
       }
-      showToast(`Platillo agregado (con IVA: $${precioFinal.toFixed(2)})`, "success");
+      showToast(`Platillo agregado (con IVA): $${precioFinal.toFixed(2)}`, "success");
     }
 
     await cargarPlatillos();
