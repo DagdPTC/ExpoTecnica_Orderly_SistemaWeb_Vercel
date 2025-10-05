@@ -71,57 +71,6 @@ export async function getEstadosPedido() {
   }
 }
 
-/**
- * Meseros -> Map(idEmpleado, "Nombre Apellido")
- * Toma empleados y (si está disponible) personas para armar el nombre.
- */
-export async function getMeseros() {
-  // Empleados
-  const urlEmp = `${API_HOST}/apiEmpleado/getDataEmpleado?page=0&size=100`;
-  let empleados = [];
-  try {
-    const resEmp = await authFetch(urlEmp);
-    if (resEmp.ok) {
-      const dataEmp = await resEmp.json().catch(() => ({}));
-      empleados = Array.isArray(dataEmp?.content) ? dataEmp.content : (Array.isArray(dataEmp) ? dataEmp : []);
-    }
-  } catch {}
-
-  // Personas (para nombres)
-  let personasById = new Map();
-  try {
-    const urlPer = `${API_HOST}/apiPersona/getDataPersona?page=0&size=1000`;
-    const resPer = await authFetch(urlPer);
-    if (resPer.ok) {
-      const dataPer = await resPer.json().catch(() => ({}));
-      const personas = Array.isArray(dataPer?.content) ? dataPer.content : (Array.isArray(dataPer) ? dataPer : []);
-      personasById = new Map(
-        personas.map(p => [
-          Number(p.id ?? p.Id ?? p.idPersona ?? p.IdPersona),
-          p
-        ])
-      );
-    }
-  } catch {}
-
-  const map = new Map();
-  for (const e of empleados) {
-    const idEmp = Number(e.id ?? e.Id ?? e.idEmpleado ?? e.IdEmpleado);
-    const idPersona = Number(e.idPersona ?? e.IdPersona);
-    if (!Number.isFinite(idEmp)) continue;
-
-    const per = personasById.get(idPersona) || {};
-    const nombre = [
-      (per.primerNombre ?? per.Pnombre ?? per.pnombre ?? per.firstName),
-      (per.apellidoPaterno ?? per.ApellidoP ?? per.apellidoP ?? per.lastNameP),
-    ].filter(Boolean).map(String).join(" ").trim();
-
-    map.set(idEmp, nombre || `Empleado ${idEmp}`);
-  }
-
-  return map;
-}
-
 /** Platillos -> Map(idPlatillo, nombre) (para nombre en el modal) */
 export async function getPlatillos() {
   const url = `${API_HOST}/apiPlatillo/getDataPlatillo?page=0&size=50`; // clamped
@@ -141,3 +90,91 @@ export async function getPlatillos() {
     return new Map();
   }
 }
+
+/* ======================= Empleados / Meseros ======================= */
+/** Trae TODAS las páginas de un endpoint paginado (size máx = 50 por tu API) */
+async function fetchAllPaged(baseUrl, size = 50, maxPages = 200) {
+  const all = [];
+  let page = 0;
+  while (page < maxPages) {
+    const url = `${baseUrl}?page=${page}&size=${size}`;
+    const res = await authFetch(url);
+    if (!res.ok) break;
+    const data = await res.json().catch(() => ({}));
+    const list = Array.isArray(data?.content) ? data.content
+               : (Array.isArray(data) ? data : []);
+    if (!list.length) break;
+
+    all.push(...list);
+
+    const totalPages = Number(data?.totalPages);
+    if (Number.isFinite(totalPages) && page >= totalPages - 1) break;
+
+    page++;
+  }
+  return all;
+}
+
+/** Meseros (Empleado + Persona) -> Map(idEmpleado, 'Nombre Apellido') */
+export async function getMeseros() {
+  let empleados = [];
+  let personas  = [];
+  try {
+    empleados = await fetchAllPaged(`${API_HOST}/apiEmpleado/getDataEmpleado`, 50);
+  } catch (e) {
+    console.warn("[getMeseros] error empleados:", e?.message || e);
+  }
+  try {
+    personas = await fetchAllPaged(`${API_HOST}/apiPersona/getDataPersona`, 50);
+  } catch (e) {
+    console.warn("[getMeseros] error personas:", e?.message || e);
+  }
+
+  const personasById = new Map(
+    personas.map(p => [
+      Number(p.id ?? p.Id ?? p.idPersona ?? p.IdPersona),
+      p
+    ])
+  );
+
+  const S = v => (v == null ? "" : String(v).trim());
+
+  const nombreDesdePersona = (per = {}) => {
+    const pn = S(per.Pnombre ?? per.pnombre ?? per.primerNombre ?? per.firstName ?? per.nombre);
+    const ap = S(per.ApellidoP ?? per.apellidoP ?? per.apellidoPaterno ?? per.lastNameP ?? per.apellido);
+    const am = S(per.ApellidoM ?? per.apellidoM ?? per.apellidoMaterno ?? per.lastNameM);
+    const base = [pn, ap].filter(Boolean).join(" ").trim();
+    return base || [pn, ap, am].filter(Boolean).join(" ").trim();
+  };
+
+  const nombreDesdeEmpleado = (e = {}) => {
+    const direct =
+      S(e.nombre ?? e.nombreEmpleado ?? e.nomEmpleado ?? e.displayName ?? e.etiqueta) ||
+      [S(e.pnombre ?? e.primerNombre), S(e.apellidoP ?? e.apellidoPaterno)].filter(Boolean).join(" ").trim();
+    if (direct) return direct;
+    if (e.persona) {
+      const n = nombreDesdePersona(e.persona);
+      if (n) return n;
+    }
+    return "";
+  };
+
+  const map = new Map();
+  for (const e of empleados) {
+    const idEmp = Number(e.id ?? e.Id ?? e.idEmpleado ?? e.IdEmpleado);
+    if (!Number.isFinite(idEmp)) continue;
+
+    let nombre = nombreDesdeEmpleado(e);
+    if (!nombre) {
+      const idPersona = Number(e.idPersona ?? e.IdPersona);
+      const per = personasById.get(idPersona);
+      if (per) nombre = nombreDesdePersona(per);
+    }
+    if (!nombre) nombre = `Empleado ${idEmp}`;
+
+    map.set(idEmp, nombre);
+  }
+  return map;
+}
+
+export { authFetch };

@@ -3,7 +3,7 @@ import {
   getHistorial,
   getPedidoById,
   getEstadosPedido,
-  getMeseros,     // 👈 ahora tomamos meseros desde Empleado/Persona
+  getMeseros,
   getPlatillos,
 } from "../jsService/historialService.js";
 
@@ -13,32 +13,18 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const money = (n) => `$${Number(n || 0).toFixed(2)}`;
 
 const fmtId = (num, pfx="HIST-") => `${pfx}${String(Number(num||0)).padStart(4,"0")}`;
-function formatFechaHora(raw) {
-  if (!raw) return "—";
-  try {
-    const d = new Date(String(raw).replace(" ", "T"));
-    if (Number.isNaN(d.getTime())) return String(raw);
-    return d.toLocaleString("es-ES", { dateStyle: "medium", timeStyle: "short" });
-  } catch {
-    return String(raw);
-  }
-}
-function setTxt(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = String(val ?? "");
-}
 
 /* ====================== refs ====================== */
 const TBody        = $("#historial-tbody");
 const searchInput  = $("#searchInput");
 const waiterFilter = $("#waiterFilter");
-// ❌ Quitamos dateFilter porque tu HTML ya no lo usa
+// 🔥 SIN FECHA
 const statusFilter = $("#statusFilter");
 
 /* ====================== catálogos & cache ====================== */
-let MAP_ESTADOS   = new Map(); // idEstado -> nombre
-let MAP_MESEROS   = new Map(); // idEmpleado -> "Nombre Apellido"
-let MAP_PLATILLOS = new Map(); // idPlatillo -> nombre
+let MAP_ESTADOS     = new Map(); // idEstado -> nombre
+let MAP_MESEROS     = new Map(); // idEmpleado -> nombre completo
+let MAP_PLATILLOS   = new Map(); // idPlatillo -> nombre
 
 const PEDIDO_CACHE  = new Map(); // idPedido -> PedidoDTO
 
@@ -54,7 +40,7 @@ async function init() {
     // Cargar catálogos primero
     const [estados, meseros, plats] = await Promise.all([
       getEstadosPedido(),
-      getMeseros(),     // 👈 empleados/personas
+      getMeseros(),     // ← Empleado + Persona
       getPlatillos(),
     ]);
     MAP_ESTADOS   = estados;
@@ -67,7 +53,7 @@ async function init() {
     // Cargar historial (página 0)
     await cargarHistorial(0, 20);
 
-    // Filtros
+    // Filtros (sin fecha)
     searchInput?.addEventListener("input",  onFiltersChange);
     waiterFilter?.addEventListener("change", onFiltersChange);
     statusFilter?.addEventListener("change",onFiltersChange);
@@ -118,6 +104,7 @@ function nombreEstado(idEstado) {
 function nombreMesero(idEmpleado) {
   return MAP_MESEROS.get(Number(idEmpleado)) || null;
 }
+
 function badgeEstado(nombre) {
   const n = (nombre || "").toLowerCase();
   if (n.includes("pend")) return "bg-yellow-100 text-yellow-800 ring-1 ring-yellow-200";
@@ -157,10 +144,10 @@ function applyFilters(arr) {
 }
 
 /* ====================== UI: filtros (combos) ====================== */
-function fillWaiterFilter(mapUsers) {
+function fillWaiterFilter(mapMeseros) {
   if (!waiterFilter) return;
   const opts = ['<option value="">Todos los meseros</option>'];
-  const pairs = Array.from(mapUsers.entries())
+  const pairs = Array.from(mapMeseros.entries())
     .map(([idEmp, nombre]) => ({ idEmp, nombre }))
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }));
   for (const { idEmp, nombre } of pairs) {
@@ -215,8 +202,7 @@ function renderTabla(lista) {
         </td>
         <td class="px-6 py-4 whitespace-nowrap">
           <button class="btn-detalles px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                  data-id="${idPedido}"
-                  data-hist="${idHist}">
+                  data-id="${idPedido}">
             Ver
           </button>
         </td>
@@ -228,9 +214,8 @@ function renderTabla(lista) {
 
   $$(".btn-detalles", TBody).forEach((btn) => {
     btn.addEventListener("click", () => {
-      const idPedido = Number(btn.getAttribute("data-id"));
-      const idHist   = Number(btn.getAttribute("data-hist")); // 👈 ahora sí lo pasamos
-      abrirModalDetalles(idPedido, idHist);
+      const id = Number(btn.getAttribute("data-id"));
+      abrirModalDetalles(id);
     });
   });
 }
@@ -243,41 +228,42 @@ modal?.addEventListener("click", (e) => { if (e.target === modal) cerrarModal();
 
 function cerrarModal() { modal.classList.add("hidden"); }
 
-async function abrirModalDetalles(idPedido, idHistFromBtn) {
-  try {
-    // Si por alguna razón no vino en el botón, tratamos de deducirlo
-    let idHist = Number(idHistFromBtn);
-    if (!Number.isFinite(idHist)) {
-      const match = (HISTORIAL || []).find(h =>
-        Number(h.IdPedido ?? h.idPedido ?? h.idpedido) === Number(idPedido)
-      );
-      idHist = Number(match?.Id ?? match?.id ?? match?.ID);
-    }
+/** Encuentra el IdHistorial asociado a un IdPedido en la página cargada */
+function findHistIdForPedido(idPedido) {
+  const h = (HISTORIAL || []).find(x =>
+    Number(x.IdPedido ?? x.idPedido ?? x.idpedido) === Number(idPedido)
+  );
+  return h ? Number(h.Id ?? h.id ?? h.ID) : null;
+}
 
+async function abrirModalDetalles(idPedido) {
+  try {
     let data = PEDIDO_CACHE.get(idPedido);
     if (!data) {
       data = await getPedidoById(idPedido);
       PEDIDO_CACHE.set(idPedido, data);
     }
 
-    const cliente    = String(data?.nombreCliente ?? data?.cliente ?? "—");
-    const idMesa     = data?.idMesa ?? data?.mesaId ?? "—";
-    const fecha      = formatFechaHora(data?.fpedido ?? data?.FPedido ?? data?.fechaPedido ?? data?.fecha ?? data?.Hora ?? "");
-    const estadoNom  = nombreEstado(data?.idEstadoPedido ?? data?.IdEstadoPedido);
-    const meseroNom  = nombreMesero(data?.idEmpleado ?? data?.IdEmpleado) || "—";
+    const cliente    = String(data.nombreCliente ?? data.cliente ?? "—");
+    const idMesa     = data.idMesa ?? data.mesaId ?? "—";
+    const estadoNom  = nombreEstado(data.idEstadoPedido ?? data.IdEstadoPedido);
+    const meseroNom  = nombreMesero(data.idEmpleado ?? data.IdEmpleado) || "—";
+
+    // ID Historial desde la lista cargada
+    const idHist = findHistIdForPedido(idPedido);
 
     // Cabecera
-    setTxt("det-title",  `#${idPedido}`);
-    setTxt("det-hist",   Number.isFinite(idHist) ? fmtId(idHist, "HIST-") : "—");
-    setTxt("det-cliente", cliente);
-    setTxt("det-mesero",  meseroNom);
-    setTxt("det-mesa",    `${idMesa}`);
-    setTxt("det-fecha",   fecha);
-    setTxt("det-estado",  estadoNom);
+    $("#det-title").textContent   = `#${idPedido}`;
+    $("#det-hist").textContent    = idHist != null ? fmtId(idHist, "HIST-") : "—";
+    $("#det-cliente").textContent = cliente;
+    $("#det-mesero").textContent  = meseroNom;
+    $("#det-mesa").textContent    = idMesa;
+    // 🔥 SIN FECHA: no tocamos #det-fecha
+    $("#det-estado").textContent  = estadoNom;
 
     // Items
     const tbody = $("#det-items");
-    const items = Array.isArray(data?.items) ? data.items : [];
+    const items = Array.isArray(data.items) ? data.items : [];
 
     let subtotalCalc = 0;
     if (!items.length) {
@@ -302,19 +288,19 @@ async function abrirModalDetalles(idPedido, idHistFromBtn) {
     }
 
     // Totales (fallback si no vienen)
-    const sub = Number(data?.subtotal ?? data?.Subtotal);
-    const tip = Number(data?.propina  ?? data?.Propina);
-    const tot = Number(data?.totalPedido ?? data?.TotalPedido);
+    const sub = Number(data.subtotal ?? data.Subtotal);
+    const tip = Number(data.propina  ?? data.Propina);
+    const tot = Number(data.totalPedido ?? data.TotalPedido);
 
     const subtotal = Number.isFinite(sub) ? sub : subtotalCalc;
     const propina  = Number.isFinite(tip) ? tip : +(subtotal * 0.10).toFixed(2);
     const total    = Number.isFinite(tot) ? tot : +(subtotal + propina).toFixed(2);
 
-    setTxt("det-sub",   money(subtotal));
-    setTxt("det-tip",   money(propina));
-    setTxt("det-total", money(total));
+    $("#det-sub").textContent   = money(subtotal);
+    $("#det-tip").textContent   = money(propina);
+    $("#det-total").textContent = money(total);
 
-    modal?.classList?.remove("hidden");
+    modal.classList.remove("hidden");
   } catch (e) {
     alert(e?.message || "No se pudo cargar el detalle.");
   }
