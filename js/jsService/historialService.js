@@ -1,11 +1,9 @@
 // js/jsService/historialService.js
 const API_HOST = "https://orderly-api-b53514e40ebd.herokuapp.com";
 
-/* -------------------- fetch con auth (cookie HttpOnly) -------------------- */
+/* -------------------- fetch con auth -------------------- */
 function authFetch(url, options = {}) {
   const headers = new Headers(options.headers || {});
-
-  // Si además guardaste un token en front, úsalo (opcional)
   const keys = ["jwt", "token", "authToken", "access_token"];
   for (const k of keys) {
     const t = localStorage.getItem(k) || sessionStorage.getItem(k);
@@ -14,26 +12,18 @@ function authFetch(url, options = {}) {
       break;
     }
   }
-
-  return fetch(url, {
-    credentials: "include",
-    cache: "no-store",
-    ...options,
-    headers,
-  });
+  return fetch(url, { credentials: "include", cache: "no-store", ...options, headers });
 }
 
 /* ============================ HISTORIAL ============================ */
-/** Página de historial (DTO: { Id, IdPedido, IdFactura }) */
 export async function getHistorial(page = 0, size = 20) {
-  const s = Math.min(Math.max(1, Number(size) || 10), 50); // backend limita a 1..50
+  const s = Math.min(Math.max(1, Number(size) || 10), 50);
   const url = `${API_HOST}/apiHistorialPedido/getDataHistorialPedido?page=${Number(page)}&size=${s}`;
   const res = await authFetch(url);
   if (res.status === 204) {
     return { content: [], totalElements: 0, totalPages: 0, number: 0, size: s };
   }
   if (!res.ok) throw new Error(await res.text().catch(() => `HTTP ${res.status}`));
-
   const text = await res.text();
   if (!text || !text.trim() || text === "null") {
     return { content: [], totalElements: 0, totalPages: 0, number: 0, size: s };
@@ -42,7 +32,6 @@ export async function getHistorial(page = 0, size = 20) {
 }
 
 /* ============================== PEDIDOS ============================== */
-/** Pedido por ID (de aquí sacamos cliente, mesa, estado, items, etc.) */
 export async function getPedidoById(id) {
   const url = `${API_HOST}/apiPedido/getPedidoById/${encodeURIComponent(id)}`;
   const res = await authFetch(url);
@@ -51,7 +40,6 @@ export async function getPedidoById(id) {
 }
 
 /* ============================== CATÁLOGOS ============================== */
-/** Catálogo de estados -> Map(idEstado, nombre) */
 export async function getEstadosPedido() {
   const url = `${API_HOST}/apiEstadoPedido/getDataEstadoPedido?page=0&size=50`;
   try {
@@ -71,9 +59,8 @@ export async function getEstadosPedido() {
   }
 }
 
-/** Platillos -> Map(idPlatillo, nombre) (para nombre en el modal) */
 export async function getPlatillos() {
-  const url = `${API_HOST}/apiPlatillo/getDataPlatillo?page=0&size=50`; // clamped
+  const url = `${API_HOST}/apiPlatillo/getDataPlatillo?page=0&size=50`;
   try {
     const res = await authFetch(url);
     if (!res.ok) return new Map();
@@ -92,7 +79,6 @@ export async function getPlatillos() {
 }
 
 /* ======================= Empleados / Meseros ======================= */
-/** Trae TODAS las páginas de un endpoint paginado (size máx = 50 por tu API) */
 async function fetchAllPaged(baseUrl, size = 50, maxPages = 200) {
   const all = [];
   let page = 0;
@@ -101,40 +87,26 @@ async function fetchAllPaged(baseUrl, size = 50, maxPages = 200) {
     const res = await authFetch(url);
     if (!res.ok) break;
     const data = await res.json().catch(() => ({}));
-    const list = Array.isArray(data?.content) ? data.content
-               : (Array.isArray(data) ? data : []);
+    const list = Array.isArray(data?.content) ? data.content : (Array.isArray(data) ? data : []);
     if (!list.length) break;
 
     all.push(...list);
 
     const totalPages = Number(data?.totalPages);
     if (Number.isFinite(totalPages) && page >= totalPages - 1) break;
-
     page++;
   }
   return all;
 }
 
-/** Meseros (Empleado + Persona) -> Map(idEmpleado, 'Nombre Apellido') */
 export async function getMeseros() {
   let empleados = [];
   let personas  = [];
-  try {
-    empleados = await fetchAllPaged(`${API_HOST}/apiEmpleado/getDataEmpleado`, 50);
-  } catch (e) {
-    console.warn("[getMeseros] error empleados:", e?.message || e);
-  }
-  try {
-    personas = await fetchAllPaged(`${API_HOST}/apiPersona/getDataPersona`, 50);
-  } catch (e) {
-    console.warn("[getMeseros] error personas:", e?.message || e);
-  }
+  try { empleados = await fetchAllPaged(`${API_HOST}/apiEmpleado/getDataEmpleado`, 50); } catch {}
+  try { personas  = await fetchAllPaged(`${API_HOST}/apiPersona/getDataPersona`, 50); } catch {}
 
   const personasById = new Map(
-    personas.map(p => [
-      Number(p.id ?? p.Id ?? p.idPersona ?? p.IdPersona),
-      p
-    ])
+    personas.map(p => [Number(p.id ?? p.Id ?? p.idPersona ?? p.IdPersona), p])
   );
 
   const S = v => (v == null ? "" : String(v).trim());
@@ -171,7 +143,6 @@ export async function getMeseros() {
       if (per) nombre = nombreDesdePersona(per);
     }
     if (!nombre) nombre = `Empleado ${idEmp}`;
-
     map.set(idEmp, nombre);
   }
   return map;

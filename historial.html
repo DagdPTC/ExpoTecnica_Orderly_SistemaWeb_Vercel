@@ -12,7 +12,7 @@
 <body class="bg-gray-50 min-h-screen font-sans overflow-x-hidden">
   <div class="mobile-overlay" id="mobileOverlay"></div>
 
-  <!-- Sidebar -->
+  <!-- Sidebar (igual que antes) -->
   <div class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
     <div class="logo-container animate-fade-in">
       <div class="flex items-center justify-center">
@@ -50,7 +50,7 @@
         <span class="nav-text ml-3 font-medium">Empleados</span>
       </a>
       <a href="facturas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-        <i class="fas a-file-invoice-dollar w-6 text-center text-lg"></i>
+        <i class="fas fa-file-invoice-dollar w-6 text-center text-lg"></i>
         <span class="nav-text ml-3 font-medium">Facturas</span>
       </a>
 
@@ -130,6 +130,7 @@
                 placeholder="Buscar por historial, pedido o cliente…">
             </div>
 
+            <!-- SIN FECHA -->
             <div class="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
               <div class="relative">
                 <select id="waiterFilter"
@@ -168,11 +169,29 @@
             <tbody id="historial-tbody" class="bg-white divide-y divide-gray-200"></tbody>
           </table>
         </div>
+
+        <!-- PAGINACIÓN -->
+        <div class="flex flex-col md:flex-row items-center justify-between gap-3 p-4 border-t bg-white">
+          <div class="flex items-center gap-2">
+            <label for="pageSize" class="text-sm text-gray-600">Mostrar</label>
+            <select id="pageSize" class="modern-input border rounded-lg px-2 py-1">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+            </select>
+            <span class="text-sm text-gray-600">por página</span>
+          </div>
+
+          <div id="pageInfo" class="text-sm text-gray-600 text-center"></div>
+
+          <div id="pagination" class="flex flex-wrap items-center gap-2"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Detalles (SIN campo Fecha) -->
+  <!-- Modal Detalles -->
   <div id="detalles-modal" class="fixed inset-0 z-[100] hidden">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
     <div class="relative mx-auto my-10 w-[min(96vw,780px)] rounded-2xl bg-white shadow-2xl border border-gray-200">

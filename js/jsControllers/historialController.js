@@ -11,22 +11,25 @@ import {
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const money = (n) => `$${Number(n || 0).toFixed(2)}`;
-
 const fmtId = (num, pfx="HIST-") => `${pfx}${String(Number(num||0)).padStart(4,"0")}`;
 
 /* ====================== refs ====================== */
 const TBody        = $("#historial-tbody");
 const searchInput  = $("#searchInput");
 const waiterFilter = $("#waiterFilter");
-// 🔥 SIN FECHA
 const statusFilter = $("#statusFilter");
 
-/* ====================== catálogos & cache ====================== */
-let MAP_ESTADOS     = new Map(); // idEstado -> nombre
-let MAP_MESEROS     = new Map(); // idEmpleado -> nombre completo
-let MAP_PLATILLOS   = new Map(); // idPlatillo -> nombre
+// Paginación
+const pageSizeSelect = $("#pageSize");
+const paginationBox  = $("#pagination");
+const pageInfo       = $("#pageInfo");
 
-const PEDIDO_CACHE  = new Map(); // idPedido -> PedidoDTO
+/* ====================== catálogos & cache ====================== */
+let MAP_ESTADOS   = new Map(); // idEstado -> nombre
+let MAP_MESEROS   = new Map(); // idEmpleado -> nombre
+let MAP_PLATILLOS = new Map(); // idPlatillo -> nombre
+
+const PEDIDO_CACHE = new Map(); // idPedido -> PedidoDTO
 
 /* ====================== datos ====================== */
 let PAGE = { number: 0, size: 20, totalPages: 0, totalElements: 0 };
@@ -37,10 +40,9 @@ document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
   try {
-    // Cargar catálogos primero
     const [estados, meseros, plats] = await Promise.all([
       getEstadosPedido(),
-      getMeseros(),     // ← Empleado + Persona
+      getMeseros(),
       getPlatillos(),
     ]);
     MAP_ESTADOS   = estados;
@@ -50,13 +52,26 @@ async function init() {
     fillWaiterFilter(MAP_MESEROS);
     fillStatusFilter(MAP_ESTADOS);
 
-    // Cargar historial (página 0)
-    await cargarHistorial(0, 20);
+    // 1) Hacemos una carga rápida para conocer totalPages
+    await cargarHistorial(0, Number(pageSizeSelect?.value || 20), {silent:true});
 
-    // Filtros (sin fecha)
+    // 2) Vamos DIRECTO a la última página (lo más reciente)
+    const lastPage = Math.max(0, Number(PAGE.totalPages || 1) - 1);
+    await cargarHistorial(lastPage, Number(pageSizeSelect?.value || 20));
+
+    // Filtros
     searchInput?.addEventListener("input",  onFiltersChange);
     waiterFilter?.addEventListener("change", onFiltersChange);
-    statusFilter?.addEventListener("change",onFiltersChange);
+    statusFilter?.addEventListener("change", onFiltersChange);
+
+    // Paginación
+    pageSizeSelect?.addEventListener("change", async () => {
+      const size = Number(pageSizeSelect.value || 20);
+      // recargar para conocer nuevo total y saltar al final
+      await cargarHistorial(0, size, {silent:true});
+      const last = Math.max(0, Number(PAGE.totalPages || 1) - 1);
+      await cargarHistorial(last, size);
+    });
 
     bindSidebarToggles();
   } catch (e) {
@@ -70,9 +85,11 @@ async function init() {
   }
 }
 
-async function cargarHistorial(page = 0, size = 20) {
-  TBody.innerHTML = `
-    <tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">Cargando…</td></tr>`;
+async function cargarHistorial(page = 0, size = 20, opts = {}) {
+  if (!opts?.silent) {
+    TBody.innerHTML = `
+      <tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">Cargando…</td></tr>`;
+  }
 
   const resp = await getHistorial(page, size);
   PAGE.number        = Number(resp?.number || 0);
@@ -82,7 +99,7 @@ async function cargarHistorial(page = 0, size = 20) {
 
   HISTORIAL = Array.isArray(resp?.content) ? resp.content : [];
 
-  // Pre-hidratar con sus pedidos (en paralelo, con caché)
+  // Pre-hidratar pedidos
   const ids = HISTORIAL.map(h => Number(h.IdPedido ?? h.idPedido ?? h.idpedido)).filter(Boolean);
   await Promise.all(ids.map(async (id) => {
     if (!PEDIDO_CACHE.has(id)) {
@@ -90,11 +107,18 @@ async function cargarHistorial(page = 0, size = 20) {
     }
   }));
 
-  renderTabla(applyFilters(HISTORIAL));
+  render();
+}
+
+function render() {
+  const filtered = applyFilters(HISTORIAL);
+  renderTabla(filtered);
+  renderPagination();
+  renderPageInfo();
 }
 
 function onFiltersChange() {
-  renderTabla(applyFilters(HISTORIAL));
+  render();
 }
 
 /* ====================== filtros ====================== */
@@ -104,7 +128,6 @@ function nombreEstado(idEstado) {
 function nombreMesero(idEmpleado) {
   return MAP_MESEROS.get(Number(idEmpleado)) || null;
 }
-
 function badgeEstado(nombre) {
   const n = (nombre || "").toLowerCase();
   if (n.includes("pend")) return "bg-yellow-100 text-yellow-800 ring-1 ring-yellow-200";
@@ -120,7 +143,16 @@ function applyFilters(arr) {
   const waiter = waiterFilter?.value || "";
   const estado = statusFilter?.value || "";
 
-  return (arr || []).filter((h) => {
+  // Orden "último -> primero" por IdHistorial (desc) y fallback por IdPedido (desc)
+  const ord = [...(arr || [])].sort((a, b) => {
+    const aIdH = Number(a.Id ?? a.id ?? a.ID);
+    const bIdH = Number(b.Id ?? b.id ?? b.ID);
+    const aKey = Number.isFinite(aIdH) ? aIdH : Number(a.IdPedido ?? a.idPedido ?? a.idpedido);
+    const bKey = Number.isFinite(bIdH) ? bIdH : Number(b.IdPedido ?? b.idPedido ?? b.idpedido);
+    return (bKey || 0) - (aKey || 0);
+  });
+
+  return ord.filter((h) => {
     const idHist   = Number(h.Id ?? h.id ?? h.ID);
     const idPedido = Number(h.IdPedido ?? h.idPedido ?? h.idpedido);
 
@@ -182,11 +214,11 @@ function renderTabla(lista) {
     const idPedido = Number(h.IdPedido ?? h.idPedido ?? h.idpedido);
 
     const p = PEDIDO_CACHE.get(idPedido) || {};
-    const cliente    = String(p.nombreCliente ?? p.nombrecliente ?? p.cliente ?? "") || "—";
-    const idMesa     = p.idMesa ?? p.IdMesa ?? p.mesaId ?? "—";
-    const estadoNom  = nombreEstado(p.idEstadoPedido ?? p.IdEstadoPedido);
-    const estadoCss  = badgeEstado(estadoNom);
-    const meseroNom  = nombreMesero(p.idEmpleado ?? p.IdEmpleado) || "—";
+    const cliente   = String(p.nombreCliente ?? p.nombrecliente ?? p.cliente ?? "") || "—";
+    const idMesa    = p.idMesa ?? p.IdMesa ?? p.mesaId ?? "—";
+    const estadoNom = nombreEstado(p.idEstadoPedido ?? p.IdEstadoPedido);
+    const estadoCss = badgeEstado(estadoNom);
+    const meseroNom = nombreMesero(p.idEmpleado ?? p.IdEmpleado) || "—";
 
     return `
       <tr class="hover:bg-gray-50 transition" data-idpedido="${idPedido}">
@@ -228,7 +260,6 @@ modal?.addEventListener("click", (e) => { if (e.target === modal) cerrarModal();
 
 function cerrarModal() { modal.classList.add("hidden"); }
 
-/** Encuentra el IdHistorial asociado a un IdPedido en la página cargada */
 function findHistIdForPedido(idPedido) {
   const h = (HISTORIAL || []).find(x =>
     Number(x.IdPedido ?? x.idPedido ?? x.idpedido) === Number(idPedido)
@@ -244,24 +275,20 @@ async function abrirModalDetalles(idPedido) {
       PEDIDO_CACHE.set(idPedido, data);
     }
 
-    const cliente    = String(data.nombreCliente ?? data.cliente ?? "—");
-    const idMesa     = data.idMesa ?? data.mesaId ?? "—";
-    const estadoNom  = nombreEstado(data.idEstadoPedido ?? data.IdEstadoPedido);
-    const meseroNom  = nombreMesero(data.idEmpleado ?? data.IdEmpleado) || "—";
+    const cliente   = String(data.nombreCliente ?? data.cliente ?? "—");
+    const idMesa    = data.idMesa ?? data.mesaId ?? "—";
+    const estadoNom = nombreEstado(data.idEstadoPedido ?? data.IdEstadoPedido);
+    const meseroNom = nombreMesero(data.idEmpleado ?? data.IdEmpleado) || "—";
 
-    // ID Historial desde la lista cargada
     const idHist = findHistIdForPedido(idPedido);
 
-    // Cabecera
     $("#det-title").textContent   = `#${idPedido}`;
     $("#det-hist").textContent    = idHist != null ? fmtId(idHist, "HIST-") : "—";
     $("#det-cliente").textContent = cliente;
     $("#det-mesero").textContent  = meseroNom;
     $("#det-mesa").textContent    = idMesa;
-    // 🔥 SIN FECHA: no tocamos #det-fecha
     $("#det-estado").textContent  = estadoNom;
 
-    // Items
     const tbody = $("#det-items");
     const items = Array.isArray(data.items) ? data.items : [];
 
@@ -287,7 +314,6 @@ async function abrirModalDetalles(idPedido) {
       }).join("");
     }
 
-    // Totales (fallback si no vienen)
     const sub = Number(data.subtotal ?? data.Subtotal);
     const tip = Number(data.propina  ?? data.Propina);
     const tot = Number(data.totalPedido ?? data.TotalPedido);
@@ -306,18 +332,74 @@ async function abrirModalDetalles(idPedido) {
   }
 }
 
+/* ====================== paginación ====================== */
+function renderPageInfo() {
+  const start = PAGE.totalElements === 0 ? 0 : (PAGE.number * PAGE.size) + 1;
+  const end   = Math.min(PAGE.totalElements, (PAGE.number + 1) * PAGE.size);
+  pageInfo.textContent = `Mostrando ${start}–${end} de ${PAGE.totalElements}`;
+}
+
+function renderPagination() {
+  const total = PAGE.totalPages || 1;
+  const cur   = PAGE.number || 0;
+
+  const btn = (label, disabled, handler, isActive=false) => `
+    <button
+      class="px-3 py-1.5 rounded-lg border ${isActive ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 hover:bg-gray-50'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}"
+      ${disabled ? 'disabled' : ''}
+      data-action="${handler}">
+      ${label}
+    </button>`;
+
+  const parts = [];
+  parts.push(btn("« Primero", cur <= 0, "first"));
+  parts.push(btn("‹ Anterior", cur <= 0, "prev"));
+
+  // Rango de páginas visible (ventana)
+  const windowSize = 5;
+  const start = Math.max(0, cur - Math.floor(windowSize/2));
+  const end   = Math.min(total - 1, start + windowSize - 1);
+  const realStart = Math.max(0, end - windowSize + 1);
+
+  if (realStart > 0) parts.push(`<span class="px-2 text-gray-500">…</span>`);
+  for (let i = realStart; i <= end; i++) {
+    parts.push(btn(String(i+1), false, `page:${i}`, i === cur));
+  }
+  if (end < total - 1) parts.push(`<span class="px-2 text-gray-500">…</span>`);
+
+  parts.push(btn("Siguiente ›", cur >= total - 1, "next"));
+  parts.push(btn("Último »", cur >= total - 1, "last"));
+
+  paginationBox.innerHTML = parts.join("");
+
+  // Bind
+  $$("button[data-action]", paginationBox).forEach(b => {
+    const action = b.getAttribute("data-action");
+    b.addEventListener("click", async () => {
+      if (!action) return;
+      const size = Number(pageSizeSelect?.value || 20);
+      if (action === "first") return cargarHistorial(0, size);
+      if (action === "prev")  return cargarHistorial(Math.max(0, PAGE.number - 1), size);
+      if (action === "next")  return cargarHistorial(Math.min(PAGE.totalPages - 1, PAGE.number + 1), size);
+      if (action === "last")  return cargarHistorial(Math.max(0, PAGE.totalPages - 1), size);
+      if (action.startsWith("page:")) {
+        const p = Number(action.split(":")[1]);
+        return cargarHistorial(p, size);
+      }
+    });
+  });
+}
+
 /* ====================== miscelánea (sidebar) ====================== */
 function bindSidebarToggles() {
   const sidebar = $("#sidebar");
   const mobileOverlay = $("#mobileOverlay");
   const t1 = $("#sidebarToggle");
   const t2 = $("#sidebarToggleDesktop");
-
   const toggle = () => {
     sidebar?.classList.toggle("open");
     mobileOverlay?.classList.toggle("open");
   };
-
   t1?.addEventListener("click", toggle);
   t2?.addEventListener("click", toggle);
   mobileOverlay?.addEventListener("click", toggle);
