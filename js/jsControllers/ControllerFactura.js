@@ -6,6 +6,7 @@ import {
   getPlatillos,
   getPlatilloById,
   updateFacturaCompleta,
+  getEstadosFactura,
 } from "../jsService/ServiceFactura.js";
 
 /* ========================= Estado / helpers ========================= */
@@ -13,6 +14,7 @@ const state = {
   page: 0, size: 10, totalPages: 0, totalElements: 0,
   search: "", date: "",
   platillos: [],           // [{id, nombre, precio}]
+  estadosFactura: [],      // [{Id, EstadoFactura}]
   pedidoCache: new Map(),  // id -> PedidoDTO
 };
 
@@ -24,8 +26,8 @@ const fmtPref= (id,pfx)=>`${pfx}${String(Number(id||0)).padStart(4,"0")}`;
 const safeNum= (v)=> (Number.isFinite(Number(v))?Number(v):0);
 const getV   = (obj,K1,K2)=>(K1 in obj?obj[K1]:obj[K2]);
 
-/* ---------- helpers alias / paths ---------- */
-const path = (obj, p) => p.split('.').reduce((a,k)=> (a && a[k]!==undefined ? a[k] : undefined), obj);
+/* ---------- helper paths & pick ---------- */
+const path = (obj, p) => p?.toString().split('.').reduce((a,k)=> (a && a[k]!==undefined ? a[k] : undefined), obj);
 function pick(obj, ...keys){
   for(const k of keys){
     const v = k.includes('.') ? path(obj,k) : obj?.[k];
@@ -39,7 +41,7 @@ const DETAIL_KEYS = [
   'detallePedido','items','lineas','lineasPedido',
   'detallesPedido','detallePedidos'
 ];
-function detailsArray(ped){
+const detailsArray=(ped)=>{
   for(const k of DETAIL_KEYS){
     const v = ped?.[k];
     if(Array.isArray(v) && v.length) return v;
@@ -49,14 +51,28 @@ function detailsArray(ped){
     if(Array.isArray(v) && v.length) return v;
   }
   return [];
-}
-function firstDetail(ped){ const d = detailsArray(ped); return d[0]; }
+};
+const firstDetail=(ped)=>{ const d = detailsArray(ped); return d[0]; };
 
-function getDetalleId(det){
-  return pick(det,
-    'IdDetalle','idDetalle','idPedidoDetalle','IdPedidoDetalle',
-    'detalleId','DetalleId','id','Id'
-  );
+/* ---------- fechas/horas ---------- */
+function toDate(val){
+  if(!val) return null;
+  if(val instanceof Date) return val;
+  // Permite 'YYYY-MM-DDTHH:mm:ss', 'YYYY-MM-DD HH:mm:ss' y epoch numérico
+  if(typeof val === "number") return new Date(val);
+  const s = String(val).replace(" ", "T");
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+function formatHora(val){
+  const d = toDate(val);
+  if(!d) return "-";
+  return d.toLocaleTimeString("es-SV",{hour:"2-digit",minute:"2-digit",hour12:false});
+}
+function formatFecha(val){
+  const d = toDate(val);
+  if(!d) return "-";
+  return d.toLocaleDateString("es-SV",{day:"2-digit",month:"2-digit",year:"numeric"});
 }
 
 /* ========================= DOM refs ========================= */
@@ -64,26 +80,19 @@ let $tbody,$search,$date;
 let $itemsPerPage,$pagContainer,$prev,$next,$nums,$curr,$tot;
 
 /* ========================= Init ========================= */
-document.addEventListener("DOMContentLoaded", async () => {
-  await initializeApp();
-});
+document.addEventListener("DOMContentLoaded", async () => { await initializeApp(); });
 
 async function initializeApp() {
   try {
-    // Inicializar referencias DOM
     initializeDOMReferences();
-    
-    // Adjuntar event listeners
     attachFilters();
     attachPaginationEvents();
     attachModalEvents();
-    
-    // Precargar datos
+
     await preloadPlatillos();
-    
-    // Cargar datos iniciales
+    await preloadEstadosFactura();
+
     await loadAndRender();
-    
     console.log("Aplicación de facturas inicializada correctamente");
   } catch (error) {
     console.error("Error al inicializar la aplicación:", error);
@@ -92,15 +101,15 @@ async function initializeApp() {
 }
 
 function initializeDOMReferences() {
-  $tbody = $("#invoicesTableBody"); 
-  $search = $("#searchInput"); 
+  $tbody = $("#invoicesTableBody");
+  $search = $("#searchInput");
   $date = $("#dateFilter");
   $itemsPerPage = $("#itemsPerPage");
   $pagContainer = $("#paginationContainer");
-  $prev = $("#prevPage"); 
+  $prev = $("#prevPage");
   $next = $("#nextPage");
-  $nums = $("#pageNumbers"); 
-  $curr = $("#currentPage"); 
+  $nums = $("#pageNumbers");
+  $curr = $("#currentPage");
   $tot = $("#totalPages");
 }
 
@@ -115,7 +124,6 @@ function attachPaginationEvents() {
 }
 
 function attachModalEvents() {
-  // Cerrar modales con ESC
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       $("#editModal")?.classList.add("hidden");
@@ -123,51 +131,37 @@ function attachModalEvents() {
       $("#confirmModal")?.classList.add("hidden");
     }
   });
-  
-  // Cerrar modales haciendo click fuera
   document.querySelectorAll(".modal-overlay").forEach(modal => {
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        modal.classList.add("hidden");
-      }
-    });
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.add("hidden"); });
   });
 }
 
 /* ========================= Filtros ========================= */
 function attachFilters(){
   let t;
-  $search?.addEventListener("input",()=>{ clearTimeout(t); t=setTimeout(async()=>{
-    state.search=$search.value.trim(); state.page=0; await loadAndRender();
-  },300); });
+  $search?.addEventListener("input",()=>{
+    clearTimeout(t);
+    t=setTimeout(async()=>{ state.search=$search.value.trim(); state.page=0; await loadAndRender(); },300);
+  });
   $date?.addEventListener("change",async()=>{ state.date=$date.value||""; state.page=0; await loadAndRender(); });
 }
 
-/* ========================= Platillos ========================= */
+/* ========================= Preloads ========================= */
 async function preloadPlatillos(){
   try{
     const page=await getPlatillos(0,50);
     const content=Array.isArray(page?.content)?page.content:[];
-    state.platillos=content.map(x=>({
-      id:     getV(x,"Id","id"),
-      nombre: getV(x,"NomPlatillo","nomPlatillo"),
-      precio: Number(getV(x,"Precio","precio")||0),
-    }));
-  }catch(e){
-    console.warn("No se pudieron cargar platillos",e);
-    state.platillos=[];
-  }
+    state.platillos=content.map(x=>({ id:getV(x,"Id","id"), nombre:getV(x,"NomPlatillo","nomPlatillo"), precio:Number(getV(x,"Precio","precio")||0) }));
+  }catch{ state.platillos=[]; }
 }
-function findPlatilloLocally(id){
-  return state.platillos.find(p=>String(p.id)===String(id))||null;
+async function preloadEstadosFactura(){
+  try{ state.estadosFactura = await getEstadosFactura(); }
+  catch{ state.estadosFactura = []; }
 }
+const findPlatilloLocally=(id)=> state.platillos.find(p=>String(p.id)===String(id))||null;
 function mapPlatilloDTO(dto){
   if(!dto) return null;
-  return {
-    id:     getV(dto,"Id","id"),
-    nombre: getV(dto,"NomPlatillo","nomPlatillo","nombre"),
-    precio: Number(getV(dto,"Precio","precio")||0),
-  };
+  return { id:getV(dto,"Id","id"), nombre:getV(dto,"NomPlatillo","nomPlatillo","nombre"), precio:Number(getV(dto,"Precio","precio")||0) };
 }
 async function getPlatilloSafeById(id){
   if(id==null) return null;
@@ -180,11 +174,12 @@ async function getPlatilloSafeById(id){
     return obj;
   }catch{ return null; }
 }
+const getEstadoFacturaById=(id)=> state.estadosFactura.find(e=>String(e.Id)===String(id))||null;
 
 /* ========================= Tabla ========================= */
 async function loadAndRender(){
   try{
-    $tbody.innerHTML=`<tr><td colspan="6" class="px-8 py-10 text-center text-gray-400">Cargando facturas...</td></tr>`;
+    $tbody.innerHTML=`<tr><td colspan="9" class="px-8 py-10 text-center text-gray-400">Cargando facturas...</td></tr>`;
     const page=await getFacturas(state.page,state.size);
     const items=Array.isArray(page?.content)?page.content:[];
     state.totalElements=Number(page?.totalElements||0);
@@ -206,13 +201,7 @@ async function loadAndRender(){
     renderPagination();
   }catch(e){
     console.error(e);
-    $tbody.innerHTML=`
-      <tr><td colspan="6" class="px-8 py-12 text-center">
-        <div class="flex flex-col items-center">
-          <i class="fas fa-triangle-exclamation text-4xl text-red-400 mb-3"></i>
-          <div class="text-gray-600">No se pudieron cargar las facturas.</div>
-        </div>
-      </td></tr>`;
+    $tbody.innerHTML=`<tr><td colspan="9" class="px-8 py-12 text-center text-red-500">No se pudieron cargar las facturas.</td></tr>`;
     if ($pagContainer) $pagContainer.style.display = "none";
   }
 }
@@ -220,7 +209,7 @@ async function loadAndRender(){
 function renderPagination(){
   const totalPages = Number(state.totalPages || 1);
   const number     = Number(state.page || 0);
-  if(!$pagContainer || !$prev || !$next || !$nums || !$curr || !$tot) return;
+  if(!$pagContainer||!$prev||!$next||!$nums||!$curr||!$tot) return;
 
   $curr.textContent = String(number + 1);
   $tot.textContent  = String(totalPages);
@@ -232,31 +221,32 @@ function renderPagination(){
   $next.onclick = async ()=>{ if(state.page < totalPages - 1){ state.page++; await loadAndRender(); } };
 
   $nums.innerHTML = "";
-  const max = 5;
-  let start = Math.max(0, number - Math.floor(max/2));
-  let end   = Math.min(totalPages - 1, start + max - 1);
+  const max=5;
+  let start=Math.max(0, number - Math.floor(max/2));
+  let end=Math.min(totalPages-1, start+max-1);
   if (end - start + 1 < max) start = Math.max(0, end - max + 1);
   for (let i = start; i <= end; i++){
-    const b = document.createElement("button");
-    b.className = `pagination-btn ${i === number ? "active" : ""}`;
-    b.textContent = String(i + 1);
-    if (i !== number) b.onclick = async ()=>{ state.page = i; await loadAndRender(); };
+    const b=document.createElement("button");
+    b.className=`pagination-btn ${i===number?"active":""}`;
+    b.textContent=String(i+1);
+    if(i!==number) b.onclick=async()=>{ state.page=i; await loadAndRender(); };
     $nums.appendChild(b);
   }
   $pagContainer.style.display = totalPages > 1 ? "flex" : "none";
 }
 
+function getEstadoBadgeClass(estado) {
+  const s = (estado||"").toLowerCase();
+  if (s.includes("pag")) return "bg-green-100 text-green-800";
+  if (s.includes("pend")) return "bg-yellow-100 text-yellow-800";
+  if (s.includes("anul") || s.includes("cancel")) return "bg-red-100 text-red-800";
+  return "bg-gray-100 text-gray-800";
+}
+
 function renderRows(items){
   $tbody.innerHTML="";
   if(!items.length){
-    $tbody.innerHTML=`
-      <tr><td colspan="6" class="px-8 py-12 text-center">
-        <div class="flex flex-col items-center">
-          <i class="fas fa-file-invoice text-6xl text-gray-300 mb-4"></i>
-          <h3 class="text-xl font-semibold text-gray-500 mb-2">No se encontraron facturas</h3>
-          <p class="text-gray-400">Intenta ajustar los filtros de búsqueda</p>
-        </div>
-      </td></tr>`;
+    $tbody.innerHTML=`<tr><td colspan="9" class="px-8 py-12 text-center text-gray-500">No se encontraron facturas</td></tr>`;
     return;
   }
 
@@ -265,6 +255,7 @@ function renderRows(items){
     const idPedido =getV(fx,"IdPedido","idPedido");
     const desc     =safeNum(getV(fx,"Descuento","descuento"));
     const totalFx  =safeNum(getV(fx,"Total","total"));
+    const estadoFacturaId = getV(fx,"IdEstadoFactura","idEstadoFactura");
 
     const tr=document.createElement("tr");
     tr.className="table-row hover:bg-gray-50";
@@ -272,6 +263,7 @@ function renderRows(items){
     tr.dataset.pid=idPedido;
     tr.dataset.desc=String(desc); 
     tr.dataset.totalfx=String(totalFx);
+    tr.dataset.estado=estadoFacturaId;
 
     tr.innerHTML=`
       <td class="px-8 py-6 text-sm font-bold text-gray-900">
@@ -283,6 +275,13 @@ function renderRows(items){
       <td class="px-8 py-6 text-sm text-gray-600 font-medium">${fmtPref(idPedido,"PED-")}</td>
       <td class="px-8 py-6 text-sm text-gray-700 font-medium js-cli">-</td>
       <td class="px-8 py-6 text-sm text-gray-600 js-fecha">-</td>
+      <td class="px-8 py-6 text-sm text-gray-600 js-hora-inicio">-</td>
+      <td class="px-8 py-6 text-sm text-gray-600 js-hora-fin">-</td>
+      <td class="px-8 py-6">
+        <span class="px-3 py-1 rounded-full text-xs font-semibold estado-badge ${getEstadoBadgeClass(getEstadoFacturaById(estadoFacturaId)?.EstadoFactura)}">
+          ${getEstadoFacturaById(estadoFacturaId)?.EstadoFactura || "Pendiente"}
+        </span>
+      </td>
       <td class="px-8 py-6">
         <button class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-lg transition-all text-sm btn-detalles">
           <i class="fas fa-eye mr-2"></i>Ver Detalles
@@ -298,34 +297,43 @@ function renderRows(items){
     tr.querySelector(".btn-detalles").addEventListener("click",onShowDetails);
     tr.querySelector(".btn-editar").addEventListener("click",onOpenEdit);
     tr.querySelector(".btn-eliminar").addEventListener("click",onAskDelete);
-    fillClienteFecha(tr,idPedido);
+    fillClienteHoras(tr,idPedido);
   });
 }
 
-async function fillClienteFecha(tr,idPedido){
+async function fillClienteHoras(tr,idPedido){
   try{
     let ped=state.pedidoCache.get(idPedido);
     if(!ped){ ped=await getPedidoById(idPedido); state.pedidoCache.set(idPedido,ped); }
 
     const cliente = (
       pick(ped,'Nombrecliente','nombrecliente','nombreCliente') ??
-      pick(ped,'cliente.nombre','persona.nombre','cliente.persona.nombre') ??
-      "-"
+      pick(ped,'cliente.nombre','persona.nombre','cliente.persona.nombre') ?? "-"
     );
 
+    const fechaBase = pick(ped,'FechaPedido','fechaPedido','FPedido','fPedido','HoraInicio','horaInicio');
+    const horaInicio = pick(ped,'HoraInicio','horaInicio','FechaPedido','fechaPedido');
+    const horaFin = pick(ped,'HoraFin','horaFin');
+
     tr.querySelector(".js-cli").textContent=String(cliente);
-    tr.querySelector(".js-fecha").textContent="-";
+    tr.querySelector(".js-fecha").textContent=formatFecha(fechaBase);
+    tr.querySelector(".js-hora-inicio").textContent=formatHora(horaInicio);
+    tr.querySelector(".js-hora-fin").textContent=formatHora(horaFin);
   }catch{
     tr.querySelector(".js-cli").textContent="-";
     tr.querySelector(".js-fecha").textContent="-";
+    tr.querySelector(".js-hora-inicio").textContent="-";
+    tr.querySelector(".js-hora-fin").textContent="-";
   }
 }
 
-/* ========================= Detalles (mostrar) ========================= */
+/* ========================= Detalles ========================= */
 async function onShowDetails(ev){
   const tr=ev.currentTarget.closest("tr");
   const idFactura=Number(tr.dataset.fid);
   const idPedido =Number(tr.dataset.pid);
+  const estadoFacturaId = tr.dataset.estado;
+  const estadoFactura = getEstadoFacturaById(estadoFacturaId);
 
   const $modal=$("#detailsModal");
   if(!$modal) return alert("Agrega el modal de detalles al HTML.");
@@ -333,9 +341,16 @@ async function onShowDetails(ev){
   $("#modalInvoiceNumber").textContent=fmtPref(idFactura,"FAC-");
   $("#modalOrderNumber").textContent  =fmtPref(idPedido,"PED-");
 
-  const $cli=$("#modalClientName"), $date=$("#modalDate");
-  const $mb=$("#modalProductsBody"), $sub=$("#modalSubtotal");
-  const $tip=$("#modalTip"), $tot=$("#modalTotal"), $disc=$("#modalDiscount");
+  const $cli=$("#modalClientName"),
+        $fecha=$("#modalDate"),
+        $hIni=$("#modalHoraInicio"),
+        $hFin=$("#modalHoraFin"),
+        $estado=$("#modalEstado");
+  const $mb=$("#modalProductsBody"),
+        $sub=$("#modalSubtotal"),
+        $tip=$("#modalTip"),
+        $tot=$("#modalTotal");
+
   $mb.innerHTML=`<tr><td colspan="4" class="px-4 py-6 text-center text-gray-400">Cargando...</td></tr>`;
 
   try{
@@ -344,11 +359,18 @@ async function onShowDetails(ev){
 
     const cliente = (
       pick(ped,'Nombrecliente','nombrecliente','nombreCliente') ??
-      pick(ped,'cliente.nombre','persona.nombre','cliente.persona.nombre') ??
-      "-"
+      pick(ped,'cliente.nombre','persona.nombre','cliente.persona.nombre') ?? "-"
     );
+    const fecha = pick(ped,'FechaPedido','fechaPedido','FPedido','fPedido','HoraInicio','horaInicio');
+    const hIni  = pick(ped,'HoraInicio','horaInicio','FechaPedido','fechaPedido');
+    const hFin  = pick(ped,'HoraFin','horaFin');
+
     $cli.textContent=cliente;
-    $date.textContent="-";
+    $fecha.textContent=formatFecha(fecha);
+    $hIni.textContent=formatHora(hIni);
+    $hFin.textContent=formatHora(hFin);
+    $estado.textContent=estadoFactura?.EstadoFactura || "Pendiente";
+    $estado.className=`px-3 py-1 rounded-full text-xs font-semibold ${getEstadoBadgeClass(estadoFactura?.EstadoFactura)}`;
 
     const lines = detailsArray(ped);
     $mb.innerHTML="";
@@ -422,6 +444,9 @@ async function onShowDetails(ev){
     $mb.innerHTML=`<tr><td colspan="4" class="px-4 py-6 text-center text-red-400">No se pudo cargar el pedido.</td></tr>`;
     $("#modalClientName").textContent = "-";
     $("#modalDate").textContent= "-";
+    $("#modalHoraInicio").textContent= "-";
+    $("#modalHoraFin").textContent= "-";
+    $("#modalEstado").textContent= "-";
     $("#modalSubtotal").textContent="—"; 
     $("#modalTip").textContent="—"; 
     $("#modalDiscount").textContent="—"; 
@@ -434,146 +459,79 @@ async function onShowDetails(ev){
 
 /* ========================= Notificaciones ========================= */
 function showNotification(message, type = "info") {
-  // Crear notificación toast
   const toast = document.createElement("div");
   toast.className = `fixed top-4 right-4 p-4 rounded-xl shadow-lg z-50 transform transition-all duration-300 ${
     type === "success" ? "bg-green-500 text-white" :
     type === "error" ? "bg-red-500 text-white" :
     "bg-blue-500 text-white"
   }`;
-  
   toast.innerHTML = `
     <div class="flex items-center">
-      <i class="fas ${
-        type === "success" ? "fa-check-circle" :
-        type === "error" ? "fa-exclamation-triangle" :
-        "fa-info-circle"
-      } mr-2"></i>
+      <i class="fas ${ type === "success" ? "fa-check-circle" : type === "error" ? "fa-exclamation-triangle" : "fa-info-circle" } mr-2"></i>
       <span>${message}</span>
-    </div>
-  `;
-  
+    </div>`;
   document.body.appendChild(toast);
-  
-  // Auto-remover después de 5 segundos
   setTimeout(() => {
     toast.style.transform = "translateX(100%)";
-    setTimeout(() => {
-      if (toast.parentNode) {
-        toast.parentNode.removeChild(toast);
-      }
-    }, 300);
+    setTimeout(() => { toast.parentNode && toast.parentNode.removeChild(toast); }, 300);
   }, 5000);
 }
 
-/* ========================= Manejo de Errores ========================= */
-function handleUpdateError(error) {
-  let errorMessage = "Error al actualizar la factura";
-  
-  try {
-    // Intentar parsear como JSON de validación
-    const errorData = JSON.parse(error.message);
-    
-    if (errorData.errors && Array.isArray(errorData.errors)) {
-      // Errores de validación de Spring
-      errorMessage = "Errores de validación:\n" + 
-        errorData.errors.map(err => `• ${err.field}: ${err.defaultMessage}`).join('\n');
-    } else if (errorData.message) {
-      // Error general del backend
-      errorMessage = errorData.message;
-    }
-  } catch {
-    // Si no es JSON, usar el mensaje directo
-    errorMessage = error.message || errorMessage;
-  }
-  
-  showNotification(errorMessage, "error");
-}
-
-/* ========================= Editar (SOLO DESCUENTO) ========================= */
+/* ========================= Editar (descuento + estado) ========================= */
 let currentEdit = { factura: null, pedido: null };
 
 function renderPlatillosTable(platillos) {
   const $tableBody = $("#editPlatillosTableBody");
   if (!$tableBody) return;
-  
   $tableBody.innerHTML = "";
-  
-  if (!platillos || platillos.length === 0) {
-    $tableBody.innerHTML = `
-      <tr>
-        <td colspan="4" class="px-4 py-6 text-center text-gray-500">
-          No hay platillos en este pedido
-        </td>
-      </tr>
-    `;
-    return;
+  if (!platillos || !platillos.length) {
+    $tableBody.innerHTML = `<tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">No hay platillos en este pedido</td></tr>`;
+    $("#editSubtotal").textContent = "$0.00";
+    $("#editPropina").textContent = "$0.00";
+    $("#editTotalPedido").textContent = "$0.00";
+    return { subtotal:0, propina:0, totalPedido:0 };
   }
-
   let subtotalTotal = 0;
-  
-  platillos.forEach((platillo, index) => {
-    const subtotal = round2(platillo.precio * platillo.cantidad);
-    subtotalTotal += subtotal;
-    
-    const tr = document.createElement("tr");
-    tr.className = index % 2 === 0 ? "bg-white" : "bg-gray-50";
+  platillos.forEach((p, i)=>{
+    const sub = round2(p.precio * p.cantidad);
+    subtotalTotal += sub;
+    const tr=document.createElement("tr");
+    tr.className = i % 2 === 0 ? "bg-white" : "bg-gray-50";
     tr.innerHTML = `
-      <td class="px-4 py-3 text-sm text-gray-900">${platillo.nombre}</td>
-      <td class="px-4 py-3 text-sm text-gray-600 text-right">${platillo.cantidad}</td>
-      <td class="px-4 py-3 text-sm text-gray-600 text-right">${money(platillo.precio)}</td>
-      <td class="px-4 py-3 text-sm text-gray-900 font-medium text-right">${money(subtotal)}</td>
-    `;
+      <td class="px-4 py-3 text-sm text-gray-900">${p.nombre}</td>
+      <td class="px-4 py-3 text-sm text-gray-600 text-right">${p.cantidad}</td>
+      <td class="px-4 py-3 text-sm text-gray-600 text-right">${money(p.precio)}</td>
+      <td class="px-4 py-3 text-sm text-gray-900 font-medium text-right">${money(sub)}</td>`;
     $tableBody.appendChild(tr);
   });
-
-  // Actualizar totales
   const propina = round2(subtotalTotal * 0.10);
   const totalPedido = round2(subtotalTotal + propina);
-  
   $("#editSubtotal").textContent = money(subtotalTotal);
   $("#editPropina").textContent = money(propina);
   $("#editTotalPedido").textContent = money(totalPedido);
-  
   return { subtotal: subtotalTotal, propina, totalPedido };
 }
 
 function refreshPreview() {
   const descuentoPct = clamp(Number($("#editDescuento").value) || 0, 0, 100);
-  
-  // Obtener el total del pedido desde la tabla
-  const totalPedidoText = $("#editTotalPedido").textContent;
-  const totalPedido = parseFloat(totalPedidoText.replace(/[^\d.-]/g, '')) || 0;
-  
-  // Calcular descuento y total final
-  const descuentoMonto = round2(totalPedido * (descuentoPct / 100));
+  const totalPedido = parseFloat($("#editTotalPedido").textContent.replace(/[^\d.-]/g,'')) || 0;
+  const descuentoMonto = round2(totalPedido * (descuentoPct/100));
   const totalFactura = round2(Math.max(0, totalPedido - descuentoMonto));
-
-  // Actualizar la UI
   $("#editDescuentoMonto").textContent = money(descuentoMonto);
   $("#editPreviewTotalFactura").textContent = money(totalFactura);
-  
-  console.log("Cálculos actualizados:", {
-    descuentoPct,
-    totalPedido,
-    descuentoMonto,
-    totalFactura
-  });
 }
 
 async function onOpenEdit(ev) {
   const tr = ev.currentTarget.closest("tr");
   const idFactura = Number(tr.dataset.fid);
   const idPedido = Number(tr.dataset.pid);
+  const estadoFacturaId = tr.dataset.estado;
 
   currentEdit = { factura: { id: idFactura }, pedido: null };
 
   try {
     let ped = state.pedidoCache.get(idPedido);
-    if (!ped) { 
-      ped = await getPedidoById(idPedido); 
-      state.pedidoCache.set(idPedido, ped); 
-    }
+    if (!ped) { ped = await getPedidoById(idPedido); state.pedidoCache.set(idPedido, ped); }
     currentEdit.pedido = ped;
   } catch (error) {
     console.error("Error cargando pedido:", error);
@@ -581,116 +539,78 @@ async function onOpenEdit(ev) {
     return;
   }
 
-  // Llenar datos básicos
   $("#editFacturaId").value = idFactura;
   $("#editPedidoId").value = idPedido;
   $("#editFacturaNum").value = fmtPref(idFactura, "FAC-");
   $("#editPedidoNum").value = fmtPref(idPedido, "PED-");
 
-  // Obtener y mostrar platillos del pedido
   const ped = currentEdit.pedido;
-  const detalles = detailsArray(ped);
-  const platillosData = [];
+  $("#editHoraInicio").value = formatHora(pick(ped,'HoraInicio','horaInicio','FechaPedido','fechaPedido'));
+  $("#editHoraFin").value    = formatHora(pick(ped,'HoraFin','horaFin'));
 
-  for (const detalle of detalles) {
-    const idPlatillo = pick(detalle, 'IdPlatillo', 'idPlatillo', 'platilloId', 'platillo.id');
-    const cantidad = Math.max(1, Number(pick(detalle, 'Cantidad', 'cantidad')) || 1);
-    
-    if (idPlatillo) {
-      const platillo = findPlatilloLocally(idPlatillo) || await getPlatilloSafeById(idPlatillo);
-      if (platillo) {
-        platillosData.push({
-          id: platillo.id,
-          nombre: platillo.nombre,
-          precio: platillo.precio,
-          cantidad: cantidad
-        });
-      } else {
-        // Si no se encuentra el platillo, mostrar datos básicos
-        platillosData.push({
-          id: idPlatillo,
-          nombre: `Platillo #${idPlatillo}`,
-          precio: 0,
-          cantidad: cantidad
-        });
-      }
+  const $estadoSelect = $("#editEstadoFactura");
+  $estadoSelect.innerHTML = '<option value="">Seleccionar estado</option>';
+  state.estadosFactura.forEach(estado=>{
+    const opt=document.createElement("option");
+    opt.value = estado.Id;
+    opt.textContent = estado.EstadoFactura;
+    if(String(estado.Id)===String(estadoFacturaId)) opt.selected = true;
+    $estadoSelect.appendChild(opt);
+  });
+
+  const detalles = detailsArray(ped);
+  const platillosData=[];
+  for(const d of detalles){
+    const idPlat = pick(d,'IdPlatillo','idPlatillo','platilloId','platillo.id');
+    const cantidad = Math.max(1, Number(pick(d,'Cantidad','cantidad')) || 1);
+    if(idPlat){
+      const pl = findPlatilloLocally(idPlat) || await getPlatilloSafeById(idPlat);
+      platillosData.push({ id:idPlat, nombre: pl?.nombre ?? `Platillo #${idPlat}`, precio: pl?.precio ?? 0, cantidad });
     }
   }
-
-  // Renderizar tabla de platillos
   const totales = renderPlatillosTable(platillosData);
 
-  // Obtener y mostrar descuento actual
   const descuentoActual = safeNum(tr.dataset.desc || 0);
-  const totalPedidoActual = totales?.totalPedido || safeNum(pick(ped, 'TotalPedido', 'totalPedido', 'total')) || 1;
-  const descuentoPctActual = totalPedidoActual > 0 ? round2((descuentoActual / totalPedidoActual) * 100) : 0;
-  
+  const totalPedidoActual = totales?.totalPedido || safeNum(pick(ped, 'TotalPedido','totalPedido','total')) || 1;
+  const descuentoPctActual = totalPedidoActual>0 ? round2((descuentoActual/totalPedidoActual)*100) : 0;
   $("#editDescuento").value = clamp(descuentoPctActual, 0, 100);
-
-  // Configurar event listener para el input de descuento
   $("#editDescuento").addEventListener("input", refreshPreview);
-
-  // Calcular vista previa inicial
   refreshPreview();
 
-  // Mostrar modal
   $("#editModal").classList.remove("hidden");
-  
-  // Configurar botones
   $("#saveInvoiceBtn").onclick = onSaveEdit;
   $("#cancelEditBtn").onclick = () => {
     $("#editModal").classList.add("hidden");
-    // Limpiar event listener
     $("#editDescuento").oninput = null;
   };
 }
 
 async function onSaveEdit() {
   const idFactura = Number($("#editFacturaId").value);
-  const idPedido = Number($("#editPedidoId").value);
-  
+  const idPedido  = Number($("#editPedidoId").value);
+
   const $btn = $("#saveInvoiceBtn");
-  const originalBtnText = $btn.innerHTML;
-  $btn.disabled = true;
-  $btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
+  const original = $btn.innerHTML;
+  $btn.disabled = true; $btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
 
   try {
-    // Solo obtener el descuento (los platillos y cantidades son de solo lectura)
     const descuentoPct = Number($("#editDescuento").value) || 0;
+    const idEstadoFactura = Number($("#editEstadoFactura").value);
+    if (descuentoPct < 0 || descuentoPct > 100) throw new Error("El descuento debe estar entre 0% y 100%");
+    if (!idEstadoFactura) throw new Error("Debe seleccionar un estado de factura");
 
-    // Validación básica
-    if (descuentoPct < 0 || descuentoPct > 100) {
-      throw new Error("El descuento debe estar entre 0% y 100%");
-    }
+    const payload = { IdPedido: idPedido, DescuentoPct: descuentoPct, IdEstadoFactura: idEstadoFactura };
+    await updateFacturaCompleta(idFactura, payload);
 
-    // Preparar payload SOLO con descuento
-    const payload = {
-      IdPedido: idPedido,
-      DescuentoPct: descuentoPct
-      // No enviar IdPlatillo ni Cantidad - son de solo lectura
-    };
-
-    console.log("Enviando payload al backend:", payload);
-
-    // Ejecutar actualización
-    const resultado = await updateFacturaCompleta(idFactura, payload);
-    
-    // Cerrar modal y refrescar
     $("#editModal").classList.add("hidden");
-    
-    // Limpiar cache y recargar
     state.pedidoCache.delete(idPedido);
     await loadAndRender();
-    
-    // Mostrar confirmación
     showNotification("Factura actualizada correctamente", "success");
-    
   } catch (error) {
     console.error("Error al actualizar factura:", error);
     handleUpdateError(error);
   } finally {
-    $btn.disabled = false;
-    $btn.innerHTML = originalBtnText;
+    $btn.disabled = false; $btn.innerHTML = original;
   }
 }
 
@@ -701,13 +621,8 @@ function onAskDelete(ev){
   const $m=$("#confirmModal"),$ok=$("#confirmDeleteBtn"),$cc=$("#cancelDeleteBtn");
   $ok.dataset.id=id; $m.classList.remove("hidden");
   $ok.onclick=async()=>{
-    try{ 
-      await deleteFactura(Number($ok.dataset.id)); 
-      $m.classList.add("hidden"); 
-      await loadAndRender(); 
-    }catch{ 
-      alert("No se pudo eliminar la factura."); 
-    } 
+    try{ await deleteFactura(Number($ok.dataset.id)); $m.classList.add("hidden"); await loadAndRender(); }
+    catch{ alert("No se pudo eliminar la factura."); }
   };
   $cc.onclick=()=> $m.classList.add("hidden");
 }

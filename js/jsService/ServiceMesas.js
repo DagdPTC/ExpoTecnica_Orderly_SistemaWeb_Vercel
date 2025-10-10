@@ -2,7 +2,7 @@
 // ServiceMesas.js (API layer)
 // ==========================
 
-const API_BASE = "http://localhost:8080"; // Ajusta si tu API está en otro host
+const API_BASE = "https://orderly-api-b53514e40ebd.herokuapp.com";
 
 const ENDPOINTS = {
   mesas: {

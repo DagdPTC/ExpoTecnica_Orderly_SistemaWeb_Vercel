@@ -11,7 +11,7 @@
   <!-- Iconos -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
-  <!-- Estilos locales (SIN pleca inicial) -->
+  <!-- Estilos locales -->
   <link rel="stylesheet" href="css/style.css"/>
   <link rel="stylesheet" href="css/factura.css"/>
 </head>
@@ -20,18 +20,16 @@
   <!-- Overlay móvil -->
   <div class="mobile-overlay" id="mobileOverlay"></div>
 
-  <!-- Sidebar -->
+  <!-- Sidebar (… tu sidebar igual que antes …) -->
   <div class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
     <div class="logo-container animate-fade-in">
       <div class="flex items-center justify-center">
         <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
-          <!-- SIN pleca; respeta el nombre exacto del archivo -->
           <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo w-10 h-10">
         </div>
         <span class="logo-text ml-3 text-xl font-bold text-white">Orderly</span>
       </div>
     </div>
-
     <div class="flex-1 overflow-y-auto px-4">
       <div class="section-title">MAIN</div>
       <a href="index.html" class="nav-item flex items-center p-3 rounded-xl mb-2 text-white hover:text-white">
@@ -49,7 +47,7 @@
         <span class="nav-text ml-3 font-medium">Menú</span>
       </a>
       <a href="reservas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-        <i class="fas a-calendar-check w-6 text-center text-lg"></i>
+        <i class="fas fa-calendar-check w-6 text-center text-lg"></i>
         <span class="nav-text ml-3 font-medium">Reservaciones</span>
       </a>
 
@@ -59,7 +57,6 @@
         <span class="nav-text ml-3 font-medium">Empleados</span>
       </a>
 
-      <!-- Activo: Facturas -->
       <a href="facturas.html"
          class="nav-item flex items-center p-3 rounded-xl mb-2 text-white hover:text-white active bg-gradient-to-r from-blue-500 to-blue-600">
         <i class="fas fa-file-invoice-dollar w-6 text-center text-lg"></i>
@@ -90,54 +87,43 @@
     </div>
   </div>
 
-  <!-- Main content -->
+  <!-- Main -->
   <div class="main-content flex flex-col min-h-screen">
     <header class="main-header flex items-center justify-between px-6 animate-fade-in">
       <div class="flex items-center">
-        <button id="sidebarToggle"
-                class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
+        <button id="sidebarToggle" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
           <i class="fas fa-bars text-lg"></i>
         </button>
-        <button id="sidebarToggleDesktop"
-                class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
+        <button id="sidebarToggleDesktop" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
           <i class="fas fa-bars text-lg"></i>
         </button>
         <h1 class="text-2xl font-bold text-gray-800">Facturas</h1>
       </div>
 
       <div class="flex items-center space-x-4">
-        <div class="relative">
-          <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
-            <i class="fas fa-bell text-lg"></i>
-            <span class="notification-badge">3</span>
-          </button>
-        </div>
-        <div class="relative">
-          <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
-            <i class="fas fa-envelope text-lg"></i>
-            <span class="notification-badge bg-blue-500">5</span>
-          </button>
-        </div>
-        <div class="relative">
-          <button class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
-              <i class="fas fa-user"></i>
-            </div>
-            <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
-            <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
-          </button>
-        </div>
+        <button class="text-gray-600 hover:text-gray-800 p-2 rounded-xl hover:bg-gray-100 transition-colors">
+          <i class="fas fa-bell text-lg"></i><span class="notification-badge">3</span>
+        </button>
+        <button class="text-gray-600 hover:text-gray-800 p-2 rounded-xl hover:bg-gray-100 transition-colors">
+          <i class="fas fa-envelope text-lg"></i><span class="notification-badge bg-blue-500">5</span>
+        </button>
+        <button class="flex items-center p-2 rounded-xl hover:bg-gray-100 transition-colors">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+            <i class="fas fa-user"></i>
+          </div>
+          <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
+          <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
+        </button>
       </div>
     </header>
 
-    <!-- Contenido -->
     <main class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
       <!-- Filtros -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="relative">
           <input type="text" id="searchInput" placeholder="Buscar factura, orden o cliente..."
                  class="modern-input w-full pl-12 pr-4 py-4 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-          <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg"></i>
+          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
         </div>
         <div>
           <input type="date" id="dateFilter"
@@ -158,14 +144,17 @@
       <div class="table-container scrollbar-custom">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="gradient-bg sticky top-0 z-10">
-          <tr>
-            <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">#Factura</th>
-            <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">#Orden</th>
-            <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Cliente</th>
-            <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Fecha</th>
-            <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Detalles</th>
-            <th class="px-8 py-6 text-right text-sm font-bold text-white uppercase tracking-wider">Acciones</th>
-          </tr>
+            <tr>
+              <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">#Factura</th>
+              <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">#Orden</th>
+              <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Cliente</th>
+              <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Fecha</th>
+              <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Hora inicio</th>
+              <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Hora fin</th>
+              <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Estado</th>
+              <th class="px-8 py-6 text-left text-sm font-bold text-white uppercase tracking-wider">Detalles</th>
+              <th class="px-8 py-6 text-right text-sm font-bold text-white uppercase tracking-wider">Acciones</th>
+            </tr>
           </thead>
           <tbody id="invoicesTableBody" class="bg-white divide-y divide-gray-200"></tbody>
         </table>
@@ -174,13 +163,9 @@
       <!-- Paginación -->
       <div id="paginationContainer" class="mt-6 flex items-center justify-between" style="display:none;">
         <div class="flex items-center gap-2">
-          <button id="prevPage" class="pagination-btn" title="Anterior">
-            <i class="fas fa-chevron-left"></i>
-          </button>
+          <button id="prevPage" class="pagination-btn" title="Anterior"><i class="fas fa-chevron-left"></i></button>
           <div id="pageNumbers" class="flex items-center gap-2"></div>
-          <button id="nextPage" class="pagination-btn" title="Siguiente">
-            <i class="fas fa-chevron-right"></i>
-          </button>
+          <button id="nextPage" class="pagination-btn" title="Siguiente"><i class="fas fa-chevron-right"></i></button>
         </div>
         <div class="text-sm text-gray-600">
           Página <span id="currentPage">1</span> de <span id="totalPages">1</span>
@@ -204,25 +189,27 @@
           <div><strong class="text-gray-700">Factura:</strong> <span id="modalInvoiceNumber" class="text-blue-600 font-semibold"></span></div>
           <div><strong class="text-gray-700">Orden:</strong>   <span id="modalOrderNumber"   class="text-blue-600 font-semibold"></span></div>
           <div><strong class="text-gray-700">Cliente:</strong> <span id="modalClientName"    class="text-gray-800 font-medium"></span></div>
-          <div class="md:col-span-2"><strong class="text-gray-700">Fecha:</strong> <span id="modalDate" class="text-gray-800 font-medium"></span></div>
+          <div><strong class="text-gray-700">Fecha:</strong>   <span id="modalDate"         class="text-gray-800 font-medium"></span></div>
+          <div><strong class="text-gray-700">Hora inicio:</strong> <span id="modalHoraInicio" class="text-gray-800 font-medium"></span></div>
+          <div><strong class="text-gray-700">Hora fin:</strong>    <span id="modalHoraFin"    class="text-gray-800 font-medium"></span></div>
+          <div class="md:col-span-2"><strong class="text-gray-700">Estado:</strong> <span id="modalEstado" class="px-3 py-1 rounded-full text-xs font-semibold"></span></div>
         </div>
       </div>
 
       <div class="overflow-hidden rounded-xl border border-gray-200 mb-6">
         <table class="w-full text-sm">
           <thead class="gradient-bg">
-          <tr>
-            <th class="px-4 py-3 text-left  font-bold text-white">Producto</th>
-            <th class="px-4 py-3 text-right font-bold text-white">Cantidad</th>
-            <th class="px-4 py-3 text-right font-bold text-white">Precio Unit.</th>
-            <th class="px-4 py-3 text-right font-bold text-white">Subtotal</th>
-          </tr>
+            <tr>
+              <th class="px-4 py-3 text-left  font-bold text-white">Producto</th>
+              <th class="px-4 py-3 text-right font-bold text-white">Cantidad</th>
+              <th class="px-4 py-3 text-right font-bold text-white">Precio Unit.</th>
+              <th class="px-4 py-3 text-right font-bold text-white">Subtotal</th>
+            </tr>
           </thead>
           <tbody id="modalProductsBody" class="bg-white divide-y divide-gray-200"></tbody>
         </table>
       </div>
 
-      <!-- Tarjetas de totales: incluye Descuento como tarjeta grande -->
       <div class="stat-card p-6 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
           <div class="bg-blue-50 rounded-lg p-4">
@@ -250,115 +237,109 @@
     </div>
   </div>
 
- <!-- Modal EDITAR (Actualizar) - SOLO DESCUENTO -->
-<div id="editModal" class="modal-overlay hidden">
-  <div class="modal-content animate-fade-in max-w-4xl">
-    <div class="flex items-center mb-6">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white mr-4">
-        <i class="fas fa-pen-to-square"></i>
+  <!-- Modal EDITAR -->
+  <div id="editModal" class="modal-overlay hidden">
+    <div class="modal-content animate-fade-in max-w-4xl">
+      <div class="flex items-center mb-6">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white mr-4">
+          <i class="fas fa-pen-to-square"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800">Editar Factura</h2>
       </div>
-      <h2 class="text-2xl font-bold text-gray-800">Editar Factura</h2>
-    </div>
 
-    <!-- Información básica -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <div>
-        <label class="text-sm text-gray-600 font-medium">Factura</label>
-        <input id="editFacturaNum" class="modern-input w-full bg-gray-100" readonly>
-        <input id="editFacturaId" type="hidden">
-      </div>
-      <div>
-        <label class="text-sm text-gray-600 font-medium">Pedido</label>
-        <input id="editPedidoNum" class="modern-input w-full bg-gray-100" readonly>
-        <input id="editPedidoId" type="hidden">
-      </div>
-    </div>
-
-    <!-- Tabla de Platillos (SOLO LECTURA) -->
-    <div class="mb-6">
-      <h3 class="text-lg font-semibold text-gray-800 mb-3">Platillos del Pedido</h3>
-      <div class="overflow-hidden rounded-xl border border-gray-200">
-        <table class="w-full text-sm">
-          <thead class="gradient-bg">
-            <tr>
-              <th class="px-4 py-3 text-left font-bold text-white">Producto</th>
-              <th class="px-4 py-3 text-right font-bold text-white">Cantidad</th>
-              <th class="px-4 py-3 text-right font-bold text-white">Precio Unit.</th>
-              <th class="px-4 py-3 text-right font-bold text-white">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody id="editPlatillosTableBody" class="bg-white divide-y divide-gray-200"></tbody>
-          <tfoot class="bg-gray-50">
-            <tr>
-              <td colspan="3" class="px-4 py-3 text-right font-medium text-gray-700">Subtotal:</td>
-              <td id="editSubtotal" class="px-4 py-3 text-right font-bold text-blue-600">$0.00</td>
-            </tr>
-            <tr>
-              <td colspan="3" class="px-4 py-3 text-right font-medium text-gray-700">Propina (10%):</td>
-              <td id="editPropina" class="px-4 py-3 text-right font-bold text-green-600">$0.00</td>
-            </tr>
-            <tr class="border-t border-gray-200">
-              <td colspan="3" class="px-4 py-3 text-right font-medium text-gray-700">Total Pedido:</td>
-              <td id="editTotalPedido" class="px-4 py-3 text-right font-bold text-purple-600 text-lg">$0.00</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-
-    <!-- Control de Descuento -->
-    <div class="bg-white rounded-xl border p-6 mb-6">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">Aplicar Descuento</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Información básica -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
-          <label class="block text-sm text-gray-600 font-medium mb-2">Porcentaje de Descuento (%)</label>
-          <input id="editDescuento" type="number" min="0" max="100" step="0.01" 
-                 class="modern-input w-full border-2 border-blue-200 focus:border-blue-500" 
-                 value="0" placeholder="0">
-          <div class="text-xs text-gray-500 mt-1">Rango: 0% - 100%</div>
+          <label class="text-sm text-gray-600 font-medium">Factura</label>
+          <input id="editFacturaNum" class="modern-input w-full bg-gray-100" readonly>
+          <input id="editFacturaId" type="hidden">
         </div>
-        <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
-          <div class="text-sm text-gray-600 font-medium">Monto de Descuento</div>
-          <div id="editDescuentoMonto" class="text-2xl font-bold text-amber-600">$0.00</div>
+        <div>
+          <label class="text-sm text-gray-600 font-medium">Pedido</label>
+          <input id="editPedidoNum" class="modern-input w-full bg-gray-100" readonly>
+          <input id="editPedidoId" type="hidden">
         </div>
       </div>
-    </div>
 
-    <!-- Resumen Final -->
-    <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 mb-6 text-center text-white shadow-lg">
-      <div class="text-sm font-medium opacity-90">Total Final de Factura</div>
-      <div id="editPreviewTotalFactura" class="text-3xl font-bold">$0.00</div>
-      <div class="text-xs opacity-80 mt-2">(Total Pedido - Descuento)</div>
-    </div>
+      <!-- Info de tiempos y estado -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div>
+          <label class="text-sm text-gray-600 font-medium">Hora inicio</label>
+          <input id="editHoraInicio" class="modern-input w-full bg-gray-100" readonly>
+        </div>
+        <div>
+          <label class="text-sm text-gray-600 font-medium">Hora fin</label>
+          <input id="editHoraFin" class="modern-input w-full bg-gray-100" readonly>
+        </div>
+        <div>
+          <label class="text-sm text-gray-600 font-medium">Estado factura</label>
+          <select id="editEstadoFactura" class="modern-input w-full"></select>
+        </div>
+      </div>
 
-    <!-- Botones -->
-    <div class="grid grid-cols-2 gap-3">
-      <button id="cancelEditBtn" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-xl transition-colors">
-        <i class="fas fa-times mr-2"></i> Cancelar
-      </button>
-      <button id="saveInvoiceBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-colors">
-        <i class="fas fa-floppy-disk mr-2"></i> Guardar Cambios
-      </button>
+      <!-- Tabla de Platillos -->
+      <div class="mb-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Platillos del Pedido</h3>
+        <div class="overflow-hidden rounded-xl border border-gray-200">
+          <table class="w-full text-sm">
+            <thead class="gradient-bg">
+              <tr>
+                <th class="px-4 py-3 text-left font-bold text-white">Producto</th>
+                <th class="px-4 py-3 text-right font-bold text-white">Cantidad</th>
+                <th class="px-4 py-3 text-right font-bold text-white">Precio Unit.</th>
+                <th class="px-4 py-3 text-right font-bold text-white">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody id="editPlatillosTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+            <tfoot class="bg-gray-50">
+              <tr>
+                <td colspan="3" class="px-4 py-3 text-right font-medium text-gray-700">Subtotal:</td>
+                <td id="editSubtotal" class="px-4 py-3 text-right font-bold text-blue-600">$0.00</td>
+              </tr>
+              <tr>
+                <td colspan="3" class="px-4 py-3 text-right font-medium text-gray-700">Propina (10%):</td>
+                <td id="editPropina" class="px-4 py-3 text-right font-bold text-green-600">$0.00</td>
+              </tr>
+              <tr class="border-t border-gray-200">
+                <td colspan="3" class="px-4 py-3 text-right font-medium text-gray-700">Total Pedido:</td>
+                <td id="editTotalPedido" class="px-4 py-3 text-right font-bold text-purple-600 text-lg">$0.00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Descuento -->
+      <div class="bg-white rounded-xl border p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Aplicar Descuento</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm text-gray-600 font-medium mb-2">Porcentaje de Descuento (%)</label>
+            <input id="editDescuento" type="number" min="0" max="100" step="0.01"
+                   class="modern-input w-full border-2 border-blue-200 focus:border-blue-500"
+                   value="0" placeholder="0">
+            <div class="text-xs text-gray-500 mt-1">Rango: 0% - 100%</div>
+          </div>
+          <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
+            <div class="text-sm text-gray-600 font-medium">Monto de Descuento</div>
+            <div id="editDescuentoMonto" class="text-2xl font-bold text-amber-600">$0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen -->
+      <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 mb-6 text-center text-white shadow-lg">
+        <div class="text-sm font-medium opacity-90">Total Final de Factura</div>
+        <div id="editPreviewTotalFactura" class="text-3xl font-bold">$0.00</div>
+        <div class="text-xs opacity-80 mt-2">(Total Pedido - Descuento)</div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <button id="cancelEditBtn" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-xl"><i class="fas fa-times mr-2"></i>Cancelar</button>
+        <button id="saveInvoiceBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl"><i class="fas fa-floppy-disk mr-2"></i>Guardar Cambios</button>
+      </div>
     </div>
   </div>
-</div>
-    <!-- Resumen Final -->
-    <div class="bg-purple-50 rounded-lg p-6 mb-6 text-center">
-      <div class="text-sm text-gray-600 font-medium">Total Final de Factura</div>
-      <div id="editPreviewTotalFactura" class="text-3xl font-bold text-purple-600">$0.00</div>
-    </div>
-
-    <!-- Botones -->
-    <div class="grid grid-cols-2 gap-3">
-      <button id="cancelEditBtn" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-xl transition-colors">
-        <i class="fas fa-times mr-2"></i> Cancelar
-      </button>
-      <button id="saveInvoiceBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-colors">
-        <i class="fas fa-floppy-disk mr-2"></i> Guardar Cambios
-      </button>
-    </div>
-  </div>
-</div>
 
   <!-- Modal CONFIRMAR ELIMINACIÓN -->
   <div id="confirmModal" class="modal-overlay hidden">
@@ -371,22 +352,15 @@
       </div>
       <p class="text-gray-700 mb-6">¿Seguro que deseas eliminar esta factura? Esta acción no se puede deshacer.</p>
       <div class="grid grid-cols-2 gap-3">
-        <button id="cancelDeleteBtn" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-xl">
-          Cancelar
-        </button>
-        <button id="confirmDeleteBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl">
-          Eliminar
-        </button>
+        <button id="cancelDeleteBtn" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-xl">Cancelar</button>
+        <button id="confirmDeleteBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl">Eliminar</button>
       </div>
     </div>
   </div>
 
-  <!-- JS generales (SIN pleca) -->
+  <!-- JS -->
   <script src="js/script.js"></script>
   <script src="js/factura.js"></script>
-
-  <!-- Controlador de la vista (modules con rutas relativas) -->
   <script type="module" src="js/jsControllers/ControllerFactura.js"></script>
 </body>
 </html>
-
