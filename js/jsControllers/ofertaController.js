@@ -1,13 +1,40 @@
 // js/jsControllers/ofertasController.js
+// Opción A aplicada: setea el token ANTES de tocar la API.
+// CRUD de ofertas + imagen, mensajes formales, sin botón “Nueva oferta” al estar vacío.
+
 import {
   getOfertas,
   crearOferta,
   actualizarOferta,
   eliminarOferta,
-  subirImagenOferta
+  crearOfertaConImagen,
+  actualizarOfertaConImagen,
+  __dto,
+  setAuthToken
 } from "../jsService/ofertaService.js";
 
-/* ================= Placeholder “Sin imagen” (SVG inline) ================= */
+/* ====== Forzar uso del token ANTES del init ====== */
+(function ensureAuthHeader() {
+  // 1) Busca token en llaves comunes
+  let jwt =
+    localStorage.getItem("AUTH_TOKEN") ||
+    localStorage.getItem("token") ||
+    sessionStorage.getItem("AUTH_TOKEN") ||
+    sessionStorage.getItem("token");
+
+  // 2) Prueba si existe objeto "user" con token
+  if (!jwt) {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || sessionStorage.getItem("user") || "{}");
+      jwt = user?.token || user?.jwt || user?.access_token || null;
+    } catch {}
+  }
+
+  // 3) Settea si existe (sin "Bearer ", sin comillas)
+  if (jwt) setAuthToken(jwt);
+})();
+
+/* ====== Fallback imagen ====== */
 window.__fallbackSVG = function () {
   return `
   <svg viewBox="0 0 268 196" class="w-full h-full rounded-lg select-none" aria-hidden="true"
@@ -33,20 +60,17 @@ function injectFallbackNodeAndRemove(imgEl) {
   } catch { imgEl.remove(); }
 }
 
-/* ================= Estado ================= */
+/* ====== Estado ====== */
 let ofertas = [];
 let editMode = false;
 let editId = null;
 let lastFile = null;
 let lastPreviewUrl = "";
-let lastCloudUrl  = "";
-const DEFAULT_PLATILLO_ID = 1; // ajusta cuando tengas selector real
+const DEFAULT_PLATILLO_ID = 1; // Asegura FK válida si es NOT NULL
 
-/* ================= DOM helpers ================= */
-const $  = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const $ = (s, r = document) => r.querySelector(s);
 
-/* ================= Utils ================= */
+/* ====== Helpers ====== */
 function escapeHtml(str) {
   return String(str || "")
     .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
@@ -65,32 +89,51 @@ function getStatus(start, end) {
   if (hoy > f) return "Vencido";
   return "Activo";
 }
+function showNotice(message, type = "info") {
+  const el = document.createElement("div");
+  el.className = `fixed bottom-6 right-6 z-[100] px-4 py-3 rounded-xl shadow text-sm ${
+    type === "error" ? "bg-red-600 text-white"
+    : type === "success" ? "bg-emerald-600 text-white"
+    : "bg-gray-900 text-white"
+  } opacity-0 transition-opacity`;
+  el.textContent = message;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.style.opacity = "1");
+  setTimeout(() => { el.style.opacity = "0"; setTimeout(() => el.remove(), 220); }, 2200);
+}
+let _busyTimer = null;
+function showBusy(text = "Procesando…") {
+  clearTimeout(_busyTimer);
+  let el = document.getElementById("__busy");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "__busy";
+    el.className = "fixed top-4 right-4 z-[100] bg-black/80 text-white px-4 py-2 rounded-xl shadow";
+    document.body.appendChild(el);
+  }
+  el.textContent = text;
+  el.style.display = "block";
+}
+function hideBusy() {
+  _busyTimer = setTimeout(() => {
+    const el = document.getElementById("__busy");
+    if (el) el.style.display = "none";
+  }, 140);
+}
 
-/* ================= Render ================= */
+/* ====== Render (sin “nueva oferta” al estar vacío) ====== */
 function renderOfertas(list = ofertas) {
   const container = $('#offersContainer');
   const emptyState = $('#emptyState');
   container.innerHTML = '';
 
   if (!Array.isArray(list) || list.length === 0) {
-    if (emptyState) {
-      emptyState.classList.remove('hidden');
-      emptyState.innerHTML = `
-        <i class="fas fa-search"></i>
-        <h3>No se encontraron ofertas</h3>
-        <p>Intenta con otros términos de búsqueda o ajusta los filtros</p>
-        <div class="mt-4">
-          <button id="addFromEmpty" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            <i class="fas fa-plus mr-2"></i>Nueva Oferta
-          </button>
-        </div>`;
-      $('#addFromEmpty')?.addEventListener('click', () => openModal());
-    }
+    if (emptyState) emptyState.classList.remove('hidden');
     return;
   }
-  emptyState?.classList.add('hidden');
+  if (emptyState) emptyState.classList.add('hidden');
 
-  list.forEach((offer, index) => {
+  list.forEach((offer) => {
     const status = getStatus(offer.startDate, offer.endDate);
     const statusColor = status === "Activo" ? "bg-green-500"
                       : status === "Próximo" ? "bg-blue-500"
@@ -104,7 +147,6 @@ function renderOfertas(list = ofertas) {
 
     const card = document.createElement('div');
     card.className = "card bg-white rounded-xl shadow-md overflow-hidden transition duration-300 relative flex flex-col";
-    card.style.animationDelay = `${index * 0.08}s`;
     card.innerHTML = `
       <div class="relative">
         ${imgHtml}
@@ -145,7 +187,7 @@ function renderOfertas(list = ofertas) {
   };
 }
 
-/* ================= Filtros ================= */
+/* ====== Filtros ====== */
 function filterOfertas() {
   const search = ($('#searchInput')?.value || "").toLowerCase().trim();
   const status = $('#statusFilter')?.value || "all";
@@ -166,28 +208,27 @@ function filterOfertas() {
   renderOfertas(filtered);
 }
 
-/* ================= Modal ================= */
+/* ====== Modal ====== */
 function openModal(id = null) {
   resetModal();
-  editMode = false; editId = null; lastFile = null; lastPreviewUrl = ""; lastCloudUrl = "";
+  editMode = false; editId = null; lastFile = null; lastPreviewUrl = "";
 
-  $('#modal-title').innerText = id ? "Editar Oferta" : "Agregar Oferta";
+  document.getElementById('modal-title').innerText = id ? "Editar Oferta" : "Agregar Oferta";
 
   if (id) {
     editMode = true; editId = id;
     const o = ofertas.find(x => Number(x.id) === Number(id));
     if (o) {
-      $('#offer-title').value = o.title || "";
+      $('#offer-title').value       = o.title || "";
       $('#offer-description').value = o.description || "";
-      $('#offer-discount').value = o.discount || "";
-      $('#offer-start').value = o.startDate || "";
-      $('#offer-end').value = o.endDate || "";
+      $('#offer-discount').value    = o.discount || "";
+      $('#offer-start').value       = o.startDate || "";
+      $('#offer-end').value         = o.endDate || "";
       const prev = $('#img-preview');
       prev.innerHTML = o.image
         ? `<img src="${o.image}" class="w-full h-28 object-cover rounded mb-2"
                  onerror="this.onerror=null; injectFallbackNodeAndRemove(this);">`
         : (window.__fallbackSVG && window.__fallbackSVG());
-      lastCloudUrl = o.image || "";
     }
   } else {
     $('#img-preview').innerHTML = window.__fallbackSVG();
@@ -197,21 +238,24 @@ function openModal(id = null) {
   document.body.style.overflow = 'hidden';
   $('#offer-title')?.focus({ preventScroll: true });
 }
-
-function closeModal() { $('#offer-modal').classList.add('hidden'); document.body.style.overflow = ''; resetModal(); }
+function closeModal() {
+  $('#offer-modal')?.classList.add('hidden');
+  document.body.style.overflow = '';
+  resetModal();
+}
 function resetModal() {
   $('#offerForm')?.reset();
   const prev = $('#img-preview');
   if (prev) prev.innerHTML = window.__fallbackSVG();
-  $$('.error-text').forEach(e => e.innerText = '');
-  $$('#offerForm input, #offerForm textarea').forEach(f => f.classList.remove('invalid'));
-  lastFile = null; lastPreviewUrl = ""; lastCloudUrl = "";
+  document.querySelectorAll('.error-text').forEach(e => e.innerText = '');
+  document.querySelectorAll('#offerForm input, #offerForm textarea').forEach(f => f.classList.remove('invalid'));
+  lastFile = null; lastPreviewUrl = "";
 }
 
-/* ================= Imagen (preview + subida) ================= */
+/* ====== Imagen (preview local) ====== */
 function previewImg(e) {
   const file = e.target.files?.[0];
-  const prev = $('#img-preview');
+  const prev = document.getElementById('img-preview');
   lastFile = null; lastPreviewUrl = "";
 
   if (!file) { prev.innerHTML = window.__fallbackSVG(); return; }
@@ -225,7 +269,7 @@ function previewImg(e) {
   reader.readAsDataURL(file);
 }
 
-/* ================= Validación ================= */
+/* ====== Validación (formal) ====== */
 function validateForm() {
   const title = $('#offer-title');
   const description = $('#offer-description');
@@ -234,116 +278,117 @@ function validateForm() {
   const end = $('#offer-end');
 
   let valid = true;
-  if (!title.value.trim() || title.value.trim().length < 5) { title.classList.add('invalid'); $('#offer-title-err').innerText = "El título debe tener al menos 5 caracteres."; valid = false; } else { title.classList.remove('invalid'); $('#offer-title-err').innerText = ""; }
-  if (!description.value.trim() || description.value.trim().length < 10) { description.classList.add('invalid'); $('#offer-description-err').innerText = "La descripción debe tener al menos 10 caracteres."; valid = false; } else { description.classList.remove('invalid'); $('#offer-description-err').innerText = ""; }
-  if (!discount.value.trim() || discount.value.trim().length < 2) { discount.classList.add('invalid'); $('#offer-discount-err').innerText = "Ingresa una promoción válida (ej: 2x1, 20% dcto, etc)."; valid = false; } else { discount.classList.remove('invalid'); $('#offer-discount-err').innerText = ""; }
-  if (!start.value) { start.classList.add('invalid'); $('#offer-start-err').innerText = "La fecha de inicio es requerida."; valid = false; } else { start.classList.remove('invalid'); $('#offer-start-err').innerText = ""; }
-  if (!end.value) { end.classList.add('invalid'); $('#offer-end-err').innerText = "La fecha de fin es requerida."; valid = false; } else { end.classList.remove('invalid'); $('#offer-end-err').innerText = ""; }
+
+  if (!title.value.trim() || title.value.trim().length < 5) {
+    title.classList.add('invalid'); $('#offer-title-err').innerText = "El título debe poseer al menos cinco caracteres."; valid = false;
+  } else { title.classList.remove('invalid'); $('#offer-title-err').innerText = ""; }
+
+  if (!description.value.trim() || description.value.trim().length < 10) {
+    description.classList.add('invalid'); $('#offer-description-err').innerText = "La descripción debe poseer al menos diez caracteres."; valid = false;
+  } else { description.classList.remove('invalid'); $('#offer-description-err').innerText = ""; }
+
+  if (!discount.value.trim()) {
+    discount.classList.add('invalid'); $('#offer-discount-err').innerText = "Indique el beneficio (porcentaje o precio de oferta)."; valid = false;
+  } else { discount.classList.remove('invalid'); $('#offer-discount-err').innerText = ""; }
+
+  if (!start.value) { start.classList.add('invalid'); $('#offer-start-err').innerText = "La fecha de inicio es obligatoria."; valid = false; }
+  else { start.classList.remove('invalid'); $('#offer-start-err').innerText = ""; }
+
+  if (!end.value) { end.classList.add('invalid'); $('#offer-end-err').innerText = "La fecha de fin es obligatoria."; valid = false; }
+  else { end.classList.remove('invalid'); $('#offer-end-err').innerText = ""; }
+
   return { valid };
 }
 
-/* ================= Guardar ================= */
+/* ====== Guardar (elegir multipart si hay archivo) ====== */
 async function onSubmit(e) {
   e?.preventDefault?.();
   const { valid } = validateForm();
   if (!valid) return;
 
   try {
-    showBusy("Guardando oferta…");
+    showBusy("Guardando la oferta…");
 
-    if (lastFile instanceof File) {
-      showBusy("Subiendo imagen…");
-      lastCloudUrl = await subirImagenOferta(lastFile, "menu");
+    const discountText = $('#offer-discount').value.trim();
+    let precioOferta = null;
+    if (/(\$|USD)\s*\d/i.test(discountText)) {
+      const m = discountText.replace(",", ".").match(/(\d+(\.\d+)?)/);
+      if (m) precioOferta = Number(m[1]);
     }
 
-    const payload = {
-      title: $('#offer-title').value.trim(),
+    const dto = __dto.buildOfertaDTO({
       description: $('#offer-description').value.trim(),
-      discount: $('#offer-discount').value.trim(),
+      discountText,
+      precioOferta,
       startDate: $('#offer-start').value,
       endDate: $('#offer-end').value,
       activa: true,
       idPlatillo: DEFAULT_PLATILLO_ID,
-    };
+      imagenUrl: null,
+      publicId: null,
+    });
 
     let saved;
     if (editMode && editId != null) {
-      saved = await actualizarOferta(editId, payload);
-      saved.image = lastCloudUrl || lastPreviewUrl || saved.image || "";
-      ofertas = ofertas.map(o => Number(o.id) === Number(editId) ? saved : o);
-      toast("✅ Oferta actualizada");
+      if (lastFile instanceof File) saved = await actualizarOfertaConImagen(editId, dto, lastFile);
+      else                          saved = await actualizarOferta(editId, dto);
     } else {
-      saved = await crearOferta(payload);
-      saved.image = lastCloudUrl || lastPreviewUrl || saved.image || "";
+      if (lastFile instanceof File) saved = await crearOfertaConImagen(dto, lastFile);
+      else                          saved = await crearOferta(dto);
+    }
+
+    saved.image = saved.image || saved.imagenUrl || lastPreviewUrl || "";
+
+    if (editMode) {
+      ofertas = ofertas.map(o => Number(o.id) === Number(editId) ? saved : o);
+      showNotice("La oferta ha sido actualizada correctamente.", "success");
+    } else {
       ofertas.push(saved);
-      toast("✅ Oferta creada");
+      showNotice("La oferta ha sido registrada exitosamente.", "success");
     }
 
     closeModal();
     filterOfertas();
   } catch (err) {
     console.error(err);
-    alert(err?.message || "No se pudo guardar la oferta");
+    showNotice(err?.message || "No fue posible procesar la solicitud.", "error");
   } finally {
     hideBusy();
   }
 }
 
-/* ================= Eliminar ================= */
+/* ====== Eliminar ====== */
 async function onDelete(id) {
-  if (!confirm("¿Seguro que deseas eliminar esta oferta?")) return;
+  if (!confirm("¿Confirma que desea eliminar esta oferta?")) return;
   try {
-    showBusy("Eliminando…");
+    showBusy("Eliminando la oferta…");
     await eliminarOferta(id);
     ofertas = ofertas.filter(o => Number(o.id) !== Number(id));
     filterOfertas();
-    toast("🗑️ Oferta eliminada");
+    showNotice("La oferta ha sido eliminada satisfactoriamente.", "success");
   } catch (err) {
     console.error(err);
-    alert(err?.message || "No se pudo eliminar la oferta");
+    showNotice(err?.message || "No fue posible eliminar la oferta.", "error");
   } finally {
     hideBusy();
   }
 }
 
-/* ================= Busy/Toast ================= */
-let _busyTimer = null;
-function showBusy(text = "Cargando…") {
-  clearTimeout(_busyTimer);
-  let el = $("#__busy");
-  if (!el) {
-    el = document.createElement("div");
-    el.id = "__busy";
-    el.className = "fixed top-4 right-4 z-[100] bg-black/80 text-white px-4 py-2 rounded-xl shadow";
-    document.body.appendChild(el);
-  }
-  el.textContent = text;
-  el.style.display = "block";
-}
-function hideBusy() {
-  _busyTimer = setTimeout(() => {
-    const el = $("#__busy");
-    if (el) el.style.display = "none";
-  }, 180);
-}
-function toast(text = "Listo") {
-  const el = document.createElement("div");
-  el.className = "fixed bottom-6 right-6 z-[100] bg-gray-900 text-white px-4 py-2 rounded-xl shadow opacity-0 transition-opacity";
-  el.textContent = text;
-  document.body.appendChild(el);
-  requestAnimationFrame(() => { el.style.opacity = "1"; });
-  setTimeout(() => { el.style.opacity = "0"; setTimeout(() => el.remove(), 250); }, 1600);
-}
-
-/* ================= Init ================= */
+/* ====== Init ====== */
 async function init() {
   try {
-    showBusy("Cargando ofertas…");
+    showBusy("Cargando información…");
     ofertas = await getOfertas(0, 100);
   } catch (err) {
     console.error("[ofertasController] Error al cargar ofertas:", err);
     ofertas = [];
-    alert(err?.message || "No se pudieron cargar las ofertas");
+    // Mensaje formal (sin redirecciones)
+    showNotice(
+      (String(err?.message || "").toLowerCase().includes("no autorizado"))
+        ? "Acceso no autorizado. Por favor, autentíquese para visualizar el listado."
+        : (err?.message || "No fue posible cargar el listado de ofertas."),
+      "error"
+    );
   } finally {
     hideBusy();
   }
@@ -370,7 +415,7 @@ async function init() {
     if (e.target.id === 'offer-modal') closeModal();
   });
 
-  // Cortafuegos global imágenes rotas
+  // Cortafuegos de imágenes rotas
   window.addEventListener("error", (ev) => {
     const el = ev.target;
     if (el && el.tagName === "IMG" && !el.dataset.fallbackApplied) {
