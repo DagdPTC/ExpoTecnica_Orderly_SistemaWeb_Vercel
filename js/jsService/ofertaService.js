@@ -1,5 +1,5 @@
 // js/jsService/ofertaService.js
-// Endpoints backend:
+// Endpoints backend de Ofertas:
 //   GET  /apiOfertas/getDataOfertas?page=&size=
 //   POST /apiOfertas/createOfertas
 //   PUT  /apiOfertas/modificarOfertas/{id}
@@ -9,38 +9,49 @@
 
 const API_BASE = "https://orderly-api-b53514e40ebd.herokuapp.com";
 
-/* ===================== AUTH (sin redirecciones) ===================== */
+/* ===================== AUTH (robusto) ===================== */
 export function setAuthToken(token) {
   if (!token) {
     localStorage.removeItem("AUTH_TOKEN");
     sessionStorage.removeItem("AUTH_TOKEN");
   } else {
-    localStorage.setItem("AUTH_TOKEN", token);
+    const t = String(token).replace(/^bearer\s+/i, "").replace(/^"(.*)"$/, "$1").trim();
+    localStorage.setItem("AUTH_TOKEN", t);
   }
 }
+
 function readAnyToken() {
-  // Busca en llaves comunes (por si tu login usa otra)
-  const keys = ["AUTH_TOKEN", "auth_token", "token", "jwt", "JWT", "access_token"];
+  try {
+    const u = new URL(location.href);
+    const q = u.searchParams.get("token");
+    if (q) return q;
+  } catch {}
+  const meta = document.querySelector('meta[name="auth-token"]');
+  if (meta?.content) return meta.content;
+
+  const keys = [
+    "AUTH_TOKEN","auth_token","token","jwt","JWT","access_token","mi_token_login"
+  ];
   for (const k of keys) {
     const v = localStorage.getItem(k) || sessionStorage.getItem(k);
     if (v) return v;
   }
-  // También intenta en un objeto "user" con token
   try {
-    const user = JSON.parse(localStorage.getItem("user") || sessionStorage.getItem("user") || "{}");
+    const user =
+      JSON.parse(localStorage.getItem("user") || "{}") ||
+      JSON.parse(sessionStorage.getItem("user") || "{}");
     if (user && (user.token || user.jwt || user.access_token)) {
       return user.token || user.jwt || user.access_token;
     }
   } catch {}
+  if (window.AUTH_TOKEN) return window.AUTH_TOKEN;
   return null;
 }
 function sanitizeToken(raw) {
   if (!raw) return null;
   let t = String(raw).trim();
-  if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
-    t = t.slice(1, -1);
-  }
-  if (/^bearer\s+/i.test(t)) t = t.replace(/^bearer\s+/i, "").trim();
+  if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) t = t.slice(1,-1);
+  if (/^bearer\s+/i.test(t)) t = t.replace(/^bearer\s+/i,"").trim();
   return t || null;
 }
 export function getAuthToken() {
@@ -53,10 +64,9 @@ function buildHeaders(json = false) {
   const token = getAuthToken();
   if (token) {
     h.set("Authorization", `Bearer ${token}`);
-    if (!__onceAuthLog) {
-      __onceAuthLog = true;
-      console.info("[ofertaService] Authorization listo (Bearer <token>)");
-    }
+    if (!__onceAuthLog) { __onceAuthLog = true; console.info("[ofertaService] Enviando Authorization: Bearer <token>"); }
+  } else if (!__onceAuthLog) {
+    __onceAuthLog = true; console.warn("[ofertaService] No se encontró token. Requests sin Authorization.");
   }
   if (json) h.set("Content-Type", "application/json");
   return h;
@@ -124,7 +134,7 @@ function normalizeOferta(raw) {
     id: raw.id ?? null,
     title: String(raw.descripcion || "").trim() || "Oferta",
     description: String(raw.descripcion || "").trim(),
-    image: raw.imagenUrl || "",
+    image: raw.imagenUrl || "",       // mantenido por si lo usas luego
     startDate: raw.fechaInicio || "",
     endDate: raw.fechaFin || "",
     discount: discountText,
@@ -165,13 +175,18 @@ function buildOfertaDTO({
   };
 }
 
-/* ===================== ENDPOINTS JSON ===================== */
-export async function getOfertas(page = 0, size = 100) {
+/* ===================== ENDPOINTS (con paginación) ===================== */
+export async function getOfertas(page = 0, size = 8) {
   const url = `${API_BASE}/apiOfertas/getDataOfertas?page=${page}&size=${size}`;
   const json = await apiGet(url);
-  const arr = Array.isArray(json?.data) ? json.data : [];
-  return arr.map(normalizeOferta).filter(Boolean);
+  const list = Array.isArray(json?.data) ? json.data : [];
+  const items = list.map(normalizeOferta).filter(Boolean);
+  const totalElements = Number(json?.totalElements ?? items.length);
+  const totalPages = Number(json?.totalPages ?? 1);
+  const currentPage = Number(json?.currentPage ?? page);
+  return { items, totalElements, totalPages, currentPage };
 }
+
 export async function crearOferta(dto) {
   const url = `${API_BASE}/apiOfertas/createOfertas`;
   const json = await apiJSON(url, "POST", dto);
@@ -192,7 +207,7 @@ export async function eliminarOferta(id) {
   return true;
 }
 
-/* ===================== ENDPOINTS con imagen (multipart) ===================== */
+/* === multipart (crear/actualizar con imagen) === */
 function buildFD(ofertaDto, file) {
   const fd = new FormData();
   fd.append("oferta", new Blob([JSON.stringify(ofertaDto)], { type: "application/json" }));

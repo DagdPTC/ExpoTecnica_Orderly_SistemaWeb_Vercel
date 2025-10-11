@@ -8,11 +8,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/historial.css">
 </head>
-
 <body class="bg-gray-50 min-h-screen font-sans overflow-x-hidden">
   <div class="mobile-overlay" id="mobileOverlay"></div>
 
-  <!-- Sidebar (igual que antes) -->
+  <!-- Sidebar (estático) -->
   <div class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
     <div class="logo-container animate-fade-in">
       <div class="flex items-center justify-center">
@@ -72,7 +71,7 @@
           <i class="fas fa-user text-white"></i>
         </div>
         <div class="user-info-text ml-3">
-          <div class="text-sm font-semibold text-white">Admin User</div>
+          <div class="text-sm font-semibold text-white" id="sidebarUserName">Admin User</div>
           <div class="text-xs text-white/70">Administrator</div>
         </div>
       </div>
@@ -94,26 +93,22 @@
         <h1 class="text-2xl font-bold text-gray-800">Historial de Pedidos</h1>
       </div>
 
-      <div class="flex items-center space-x-4">
-        <div class="relative">
-          <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
-            <i class="fas fa-bell text-lg"></i>
-            <span class="notification-badge">3</span>
-          </button>
-        </div>
-        <div class="relative">
-          <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
-            <i class="fas fa-envelope text-lg"></i>
-            <span class="notification-badge bg-blue-500">5</span>
-          </button>
-        </div>
-        <div class="relative">
-          <button class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
-              <i class="fas fa-user"></i>
-            </div>
-            <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
-            <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
+      <!-- Admin menu -->
+      <div class="relative">
+        <button id="adminBtn" class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+            <i class="fas fa-user"></i>
+          </div>
+          <span id="topUserName" class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
+          <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
+        </button>
+
+        <!-- Dropdown (se reubica a <body> por JS y se vuelve position:fixed) -->
+        <div id="adminMenu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-[10000]">
+          <div class="px-4 py-2 text-sm text-gray-600" id="userMenuName">Mi cuenta</div>
+          <hr class="border-gray-200">
+          <button id="logoutBtn" class="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600">
+            <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
           </button>
         </div>
       </div>
@@ -130,7 +125,6 @@
                 placeholder="Buscar por historial, pedido o cliente…">
             </div>
 
-            <!-- SIN FECHA -->
             <div class="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
               <div class="relative">
                 <select id="waiterFilter"
@@ -147,8 +141,21 @@
                 </select>
                 <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
               </div>
+
+              <div class="relative">
+                <select id="pageSize"
+                  class="modern-input appearance-none bg-white border rounded-lg pl-4 pr-10 py-3 focus:ring-blue-500 focus:border-blue-500 min-w-[120px]">
+                  <option value="5">5 / pág</option>
+                  <option value="10" selected>10 / pág</option>
+                  <option value="20">20 / pág</option>
+                  <option value="50">50 / pág</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+              </div>
             </div>
           </div>
+          <!-- Aviso de auth -->
+          <div id="authWarning" class="hidden mt-3 text-sm text-red-600"></div>
         </div>
       </div>
 
@@ -170,23 +177,8 @@
           </table>
         </div>
 
-        <!-- PAGINACIÓN -->
-        <div class="flex flex-col md:flex-row items-center justify-between gap-3 p-4 border-t bg-white">
-          <div class="flex items-center gap-2">
-            <label for="pageSize" class="text-sm text-gray-600">Mostrar</label>
-            <select id="pageSize" class="modern-input border rounded-lg px-2 py-1">
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="20" selected>20</option>
-              <option value="50">50</option>
-            </select>
-            <span class="text-sm text-gray-600">por página</span>
-          </div>
-
-          <div id="pageInfo" class="text-sm text-gray-600 text-center"></div>
-
-          <div id="pagination" class="flex flex-wrap items-center gap-2"></div>
-        </div>
+        <!-- Paginación -->
+        <div id="paginator" class="flex items-center justify-between p-4 border bg-white"></div>
       </div>
     </div>
   </div>

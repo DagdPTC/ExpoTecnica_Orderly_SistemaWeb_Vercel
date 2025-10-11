@@ -1294,3 +1294,10 @@
                 transform: rotate(360deg);
             }
         }
+
+/* Menú del usuario siempre encima */
+#adminMenu{
+  position: fixed !important;
+  z-index: 10000 !important;
+  margin-top: 0 !important;
+}

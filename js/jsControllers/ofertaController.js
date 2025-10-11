@@ -1,73 +1,28 @@
-// js/jsControllers/ofertasController.js
-// Opción A aplicada: setea el token ANTES de tocar la API.
-// CRUD de ofertas + imagen, mensajes formales, sin botón “Nueva oferta” al estar vacío.
+// js/jsControllers/ofertaController.js
+// - SIN imagen en tarjetas.
+// - Paginación real contra backend.
+// - Menú de usuario con "Cerrar sesión" (fixed + z-index alto).
 
 import {
   getOfertas,
   crearOferta,
   actualizarOferta,
   eliminarOferta,
-  crearOfertaConImagen,
-  actualizarOfertaConImagen,
   __dto,
-  setAuthToken
+  __internal
 } from "../jsService/ofertaService.js";
-
-/* ====== Forzar uso del token ANTES del init ====== */
-(function ensureAuthHeader() {
-  // 1) Busca token en llaves comunes
-  let jwt =
-    localStorage.getItem("AUTH_TOKEN") ||
-    localStorage.getItem("token") ||
-    sessionStorage.getItem("AUTH_TOKEN") ||
-    sessionStorage.getItem("token");
-
-  // 2) Prueba si existe objeto "user" con token
-  if (!jwt) {
-    try {
-      const user = JSON.parse(localStorage.getItem("user") || sessionStorage.getItem("user") || "{}");
-      jwt = user?.token || user?.jwt || user?.access_token || null;
-    } catch {}
-  }
-
-  // 3) Settea si existe (sin "Bearer ", sin comillas)
-  if (jwt) setAuthToken(jwt);
-})();
-
-/* ====== Fallback imagen ====== */
-window.__fallbackSVG = function () {
-  return `
-  <svg viewBox="0 0 268 196" class="w-full h-full rounded-lg select-none" aria-hidden="true"
-       xmlns="http://www.w3.org/2000/svg" role="img">
-    <rect width="268" height="196" rx="12" fill="#e5e7eb"/>
-    <g transform="translate(0,8)">
-      <circle cx="134" cy="64" r="36" fill="#9ca3af"/>
-      <rect x="84" y="112" width="100" height="10" rx="5" fill="#9ca3af"/>
-      <text x="134" y="152" text-anchor="middle"
-            font-family="system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif"
-            font-size="14" fill="#6b7280">Sin imagen</text>
-    </g>
-  </svg>`;
-};
-function injectFallbackNodeAndRemove(imgEl) {
-  if (!imgEl) return;
-  try {
-    const wrap = document.createElement("div");
-    wrap.innerHTML = (window.__fallbackSVG && window.__fallbackSVG()) || "";
-    const node = wrap.firstElementChild;
-    if (node) imgEl.replaceWith(node);
-    else imgEl.remove();
-  } catch { imgEl.remove(); }
-}
 
 /* ====== Estado ====== */
 let ofertas = [];
 let editMode = false;
 let editId = null;
-let lastFile = null;
-let lastPreviewUrl = "";
-const DEFAULT_PLATILLO_ID = 1; // Asegura FK válida si es NOT NULL
 
+let currentPage = 0;
+let pageSize = 8;
+let totalPages = 1;
+let totalElements = 0;
+
+const DEFAULT_PLATILLO_ID = 1;
 const $ = (s, r = document) => r.querySelector(s);
 
 /* ====== Helpers ====== */
@@ -89,14 +44,12 @@ function getStatus(start, end) {
   if (hoy > f) return "Vencido";
   return "Activo";
 }
-function showNotice(message, type = "info") {
+function showNotice(msg, type = "info") {
   const el = document.createElement("div");
   el.className = `fixed bottom-6 right-6 z-[100] px-4 py-3 rounded-xl shadow text-sm ${
-    type === "error" ? "bg-red-600 text-white"
-    : type === "success" ? "bg-emerald-600 text-white"
-    : "bg-gray-900 text-white"
-  } opacity-0 transition-opacity`;
-  el.textContent = message;
+    type === "error" ? "bg-red-600 text-white" :
+    type === "success" ? "bg-emerald-600 text-white" : "bg-gray-900 text-white"} opacity-0 transition-opacity`;
+  el.textContent = msg;
   document.body.appendChild(el);
   requestAnimationFrame(() => el.style.opacity = "1");
   setTimeout(() => { el.style.opacity = "0"; setTimeout(() => el.remove(), 220); }, 2200);
@@ -121,17 +74,105 @@ function hideBusy() {
   }, 140);
 }
 
-/* ====== Render (sin “nueva oferta” al estar vacío) ====== */
+/* ====== Sidebar toggles (móvil) ====== */
+function bindSidebarToggles() {
+  const sidebar = $("#sidebar");
+  const mobileOverlay = $("#mobileOverlay");
+  const t1 = $("#sidebarToggle");
+  const t2 = $("#sidebarToggleDesktop");
+  const toggle = () => {
+    sidebar?.classList.toggle("open");
+    mobileOverlay?.classList.toggle("open");
+  };
+  t1?.addEventListener("click", toggle);
+  t2?.addEventListener("click", toggle);
+  mobileOverlay?.addEventListener("click", toggle);
+}
+
+/* ====== Menú de usuario (Mi cuenta / Cerrar sesión) ====== */
+function bindAdminMenu() {
+  const btn = document.getElementById("adminBtn");
+  if (!btn) return;
+
+  let menu = document.getElementById("adminMenu");
+  if (!menu) {
+    menu = document.createElement("div");
+    menu.id = "adminMenu";
+    menu.className = "hidden w-48 bg-white border rounded-lg shadow-lg";
+    menu.innerHTML = `
+      <div class="px-4 py-2 text-sm text-gray-600" id="userMenuName">Mi cuenta</div>
+      <hr class="border-gray-200">
+      <button id="logoutBtn" class="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600">
+        <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
+      </button>`;
+  }
+
+  // Reubicar a <body> y fijar (evita stacking/overflow)
+  if (menu.parentElement !== document.body) document.body.appendChild(menu);
+  menu.style.position = "fixed";
+  menu.style.zIndex   = "10000";
+  menu.style.marginTop = "0";
+
+  const place = () => {
+    const r = btn.getBoundingClientRect();
+    const w = menu.offsetWidth || 208;
+    const left = Math.min(r.right - w, window.innerWidth - w - 8);
+    menu.style.top  = `${Math.round(r.bottom + 8)}px`;
+    menu.style.left = `${Math.round(Math.max(8, left))}px`;
+  };
+  const open  = () => { menu.classList.remove("hidden"); place(); };
+  const close = () => { menu.classList.add("hidden"); };
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    menu.classList.contains("hidden") ? open() : close();
+  });
+  document.addEventListener("click", (e) => { if (!menu.contains(e.target) && !btn.contains(e.target)) close(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  window.addEventListener("resize", () => { if (!menu.classList.contains("hidden")) place(); });
+  window.addEventListener("scroll", () => { if (!menu.classList.contains("hidden")) place(); }, { passive: true });
+
+  // Nombre
+  const token = __internal?.getAuthToken?.();
+  const name = token ? "Admin" : "Invitado";
+  const topUserName = document.getElementById("topUserName");
+  const userMenuName = document.getElementById("userMenuName");
+  if (topUserName) topUserName.textContent = name;
+  if (userMenuName) userMenuName.textContent = "Mi cuenta";
+
+  // Logout
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (!logoutBtn.__bound__) {
+    logoutBtn.__bound__ = true;
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        await fetch("https://orderly-api-b53514e40ebd.herokuapp.com/api/auth/logout", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" }
+        }).catch(() => {});
+      } finally {
+        try { localStorage.removeItem("AUTH_TOKEN"); } catch {}
+        try { localStorage.removeItem("token"); } catch {}
+        sessionStorage.clear();
+        window.location.href = "inicioSesion.html";
+      }
+    });
+  }
+}
+
+/* ====== Render tarjetas (sin imagen) ====== */
 function renderOfertas(list = ofertas) {
   const container = $('#offersContainer');
   const emptyState = $('#emptyState');
   container.innerHTML = '';
 
   if (!Array.isArray(list) || list.length === 0) {
-    if (emptyState) emptyState.classList.remove('hidden');
+    emptyState?.classList.remove('hidden');
+    renderPagination();
     return;
   }
-  if (emptyState) emptyState.classList.add('hidden');
+  emptyState?.classList.add('hidden');
 
   list.forEach((offer) => {
     const status = getStatus(offer.startDate, offer.endDate);
@@ -139,33 +180,28 @@ function renderOfertas(list = ofertas) {
                       : status === "Próximo" ? "bg-blue-500"
                       : status === "Vencido" ? "bg-red-500" : "bg-gray-400";
 
-    const imgHtml = offer.image
-      ? `<img src="${offer.image}" alt="${escapeHtml(offer.title || "Oferta")}"
-              class="w-full h-48 object-cover"
-              onerror="this.onerror=null; injectFallbackNodeAndRemove(this);">`
-      : (window.__fallbackSVG && window.__fallbackSVG());
-
     const card = document.createElement('div');
     card.className = "card bg-white rounded-xl shadow-md overflow-hidden transition duration-300 relative flex flex-col";
+
     card.innerHTML = `
-      <div class="relative">
-        ${imgHtml}
-        <div class="absolute top-4 right-4 bg-white rounded-full px-3 py-1 shadow-md font-semibold text-indigo-700">
+      <div class="p-6 pb-0 flex items-center justify-between">
+        <span class="inline-block text-xs font-semibold px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full">
           ${escapeHtml(offer.discount ?? "—")}
-        </div>
+        </span>
+        <span class="text-xs px-2 py-1 rounded-full text-white ${statusColor}">
+          ${status}
+        </span>
       </div>
-      <div class="p-6 flex flex-col flex-1">
-        <div class="flex justify-between items-start mb-2">
-          <h3 class="text-xl font-bold text-gray-800">${escapeHtml(offer.title || "Oferta")}</h3>
-          <span class="text-xs px-2 py-1 rounded-full text-white ${statusColor}">
-            ${status}
-          </span>
-        </div>
+
+      <div class="p-6 pt-3 flex flex-col flex-1">
+        <h3 class="text-xl font-bold text-gray-800 mb-1">${escapeHtml(offer.title || "Oferta")}</h3>
         <p class="text-gray-600 mb-4">${escapeHtml(offer.description || "Sin descripción")}</p>
+
         <div class="flex justify-between text-sm text-gray-500 mb-4">
           <div><i class="fas fa-calendar-alt mr-1"></i> Inicio: ${formatDate(offer.startDate)}</div>
           <div><i class="fas fa-calendar-times mr-1"></i> Fin: ${formatDate(offer.endDate)}</div>
         </div>
+
         <div class="flex justify-end gap-3 mt-auto">
           <button class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm" data-edit="${offer.id}">
             <i class="fas fa-pen"></i> Editar
@@ -185,33 +221,78 @@ function renderOfertas(list = ofertas) {
     if (editBtn) openModal(Number(editBtn.getAttribute('data-edit')));
     if (delBtn)  onDelete(Number(delBtn.getAttribute('data-del')));
   };
+
+  renderPagination();
 }
 
-/* ====== Filtros ====== */
-function filterOfertas() {
-  const search = ($('#searchInput')?.value || "").toLowerCase().trim();
-  const status = $('#statusFilter')?.value || "all";
-
-  let filtered = (ofertas || []).filter(o =>
-    (o.title?.toLowerCase().includes(search) || o.description?.toLowerCase().includes(search))
-  );
-
-  if (status !== "all") {
-    filtered = filtered.filter(o => {
-      const s = getStatus(o.startDate, o.endDate);
-      if (status === 'active') return s === "Activo";
-      if (status === 'upcoming') return s === "Próximo";
-      if (status === 'expired') return s === "Vencido";
-      return true;
-    });
+/* ====== Render paginación ====== */
+function renderPagination() {
+  const wrapId = "offersPagination";
+  let wrap = document.getElementById(wrapId);
+  if (!wrap) {
+    wrap = document.createElement("div");
+    wrap.id = wrapId;
+    wrap.className = "mt-6 flex items-center justify-center gap-2";
+    $('#offersContainer')?.parentElement?.appendChild(wrap);
   }
-  renderOfertas(filtered);
+  wrap.innerHTML = "";
+
+  if (totalPages <= 1) return;
+
+  const makeBtn = (label, disabled, handler, active=false) => {
+    const b = document.createElement("button");
+    b.textContent = label;
+    b.className =
+      "px-3 py-2 rounded-lg border text-sm " +
+      (active
+        ? "bg-blue-600 text-white border-blue-600"
+        : disabled
+          ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+          : "bg-white text-gray-700 hover:bg-gray-50 border-gray-200");
+    if (!disabled) b.addEventListener("click", handler);
+    return b;
+  };
+
+  wrap.appendChild(makeBtn("«", currentPage <= 0, () => goToPage(0)));
+  wrap.appendChild(makeBtn("‹", currentPage <= 0, () => goToPage(currentPage - 1)));
+
+  const span = 2;
+  const start = Math.max(0, currentPage - span);
+  const end = Math.min(totalPages - 1, currentPage + span);
+  if (start > 0) wrap.appendChild(makeBtn("1", false, () => goToPage(0), currentPage === 0));
+  if (start > 1) {
+    const dots = document.createElement("span");
+    dots.textContent = "…";
+    dots.className = "px-1 text-gray-500";
+    wrap.appendChild(dots);
+  }
+  for (let p = start; p <= end; p++) {
+    wrap.appendChild(makeBtn(String(p + 1), false, () => goToPage(p), currentPage === p));
+  }
+  if (end < totalPages - 2) {
+    const dots = document.createElement("span");
+    dots.textContent = "…";
+    dots.className = "px-1 text-gray-500";
+    wrap.appendChild(dots);
+  }
+  if (end < totalPages - 1) {
+    wrap.appendChild(makeBtn(String(totalPages), false, () => goToPage(totalPages - 1), currentPage === totalPages - 1));
+  }
+
+  wrap.appendChild(makeBtn("›", currentPage >= totalPages - 1, () => goToPage(currentPage + 1)));
+  wrap.appendChild(makeBtn("»", currentPage >= totalPages - 1, () => goToPage(totalPages - 1)));
 }
 
-/* ====== Modal ====== */
+async function goToPage(p) {
+  if (p < 0 || p > totalPages - 1) return;
+  currentPage = p;
+  await loadPage();
+}
+
+/* ====== Modal (sin imagen) ====== */
 function openModal(id = null) {
   resetModal();
-  editMode = false; editId = null; lastFile = null; lastPreviewUrl = "";
+  editMode = false; editId = null;
 
   document.getElementById('modal-title').innerText = id ? "Editar Oferta" : "Agregar Oferta";
 
@@ -224,14 +305,7 @@ function openModal(id = null) {
       $('#offer-discount').value    = o.discount || "";
       $('#offer-start').value       = o.startDate || "";
       $('#offer-end').value         = o.endDate || "";
-      const prev = $('#img-preview');
-      prev.innerHTML = o.image
-        ? `<img src="${o.image}" class="w-full h-28 object-cover rounded mb-2"
-                 onerror="this.onerror=null; injectFallbackNodeAndRemove(this);">`
-        : (window.__fallbackSVG && window.__fallbackSVG());
     }
-  } else {
-    $('#img-preview').innerHTML = window.__fallbackSVG();
   }
 
   $('#offer-modal').classList.remove('hidden');
@@ -245,31 +319,11 @@ function closeModal() {
 }
 function resetModal() {
   $('#offerForm')?.reset();
-  const prev = $('#img-preview');
-  if (prev) prev.innerHTML = window.__fallbackSVG();
   document.querySelectorAll('.error-text').forEach(e => e.innerText = '');
   document.querySelectorAll('#offerForm input, #offerForm textarea').forEach(f => f.classList.remove('invalid'));
-  lastFile = null; lastPreviewUrl = "";
 }
 
-/* ====== Imagen (preview local) ====== */
-function previewImg(e) {
-  const file = e.target.files?.[0];
-  const prev = document.getElementById('img-preview');
-  lastFile = null; lastPreviewUrl = "";
-
-  if (!file) { prev.innerHTML = window.__fallbackSVG(); return; }
-  const reader = new FileReader();
-  reader.onload = (x) => {
-    lastPreviewUrl = x.target.result;
-    prev.innerHTML = `<img src="${lastPreviewUrl}" class="w-full h-28 object-cover rounded mb-2"
-                        onerror="this.onerror=null; injectFallbackNodeAndRemove(this);">`;
-    lastFile = file;
-  };
-  reader.readAsDataURL(file);
-}
-
-/* ====== Validación (formal) ====== */
+/* ====== Validación ====== */
 function validateForm() {
   const title = $('#offer-title');
   const description = $('#offer-description');
@@ -300,7 +354,7 @@ function validateForm() {
   return { valid };
 }
 
-/* ====== Guardar (elegir multipart si hay archivo) ====== */
+/* ====== Guardar (sin imagen) ====== */
 async function onSubmit(e) {
   e?.preventDefault?.();
   const { valid } = validateForm();
@@ -328,27 +382,16 @@ async function onSubmit(e) {
       publicId: null,
     });
 
-    let saved;
     if (editMode && editId != null) {
-      if (lastFile instanceof File) saved = await actualizarOfertaConImagen(editId, dto, lastFile);
-      else                          saved = await actualizarOferta(editId, dto);
-    } else {
-      if (lastFile instanceof File) saved = await crearOfertaConImagen(dto, lastFile);
-      else                          saved = await crearOferta(dto);
-    }
-
-    saved.image = saved.image || saved.imagenUrl || lastPreviewUrl || "";
-
-    if (editMode) {
-      ofertas = ofertas.map(o => Number(o.id) === Number(editId) ? saved : o);
+      await actualizarOferta(editId, dto);
       showNotice("La oferta ha sido actualizada correctamente.", "success");
     } else {
-      ofertas.push(saved);
+      await crearOferta(dto);
       showNotice("La oferta ha sido registrada exitosamente.", "success");
     }
 
     closeModal();
-    filterOfertas();
+    await loadPage();
   } catch (err) {
     console.error(err);
     showNotice(err?.message || "No fue posible procesar la solicitud.", "error");
@@ -363,9 +406,9 @@ async function onDelete(id) {
   try {
     showBusy("Eliminando la oferta…");
     await eliminarOferta(id);
-    ofertas = ofertas.filter(o => Number(o.id) !== Number(id));
-    filterOfertas();
     showNotice("La oferta ha sido eliminada satisfactoriamente.", "success");
+    if (ofertas.length === 1 && currentPage > 0) currentPage -= 1;
+    await loadPage();
   } catch (err) {
     console.error(err);
     showNotice(err?.message || "No fue posible eliminar la oferta.", "error");
@@ -374,26 +417,53 @@ async function onDelete(id) {
   }
 }
 
-/* ====== Init ====== */
-async function init() {
+/* ====== Carga de página (paginación) ====== */
+async function loadPage() {
   try {
-    showBusy("Cargando información…");
-    ofertas = await getOfertas(0, 100);
+    showBusy("Cargando ofertas…");
+    const { items, totalElements: te, totalPages: tp, currentPage: cp } =
+      await getOfertas(currentPage, pageSize);
+    ofertas = items;
+    totalElements = te;
+    totalPages = tp || 1;
+    currentPage = cp;
   } catch (err) {
-    console.error("[ofertasController] Error al cargar ofertas:", err);
+    console.error("[ofertaController] Error al cargar ofertas:", err);
     ofertas = [];
-    // Mensaje formal (sin redirecciones)
-    showNotice(
-      (String(err?.message || "").toLowerCase().includes("no autorizado"))
-        ? "Acceso no autorizado. Por favor, autentíquese para visualizar el listado."
-        : (err?.message || "No fue posible cargar el listado de ofertas."),
-      "error"
-    );
+    totalElements = 0;
+    totalPages = 1;
+    showNotice(err?.message || "No fue posible cargar el listado de ofertas.", "error");
   } finally {
     hideBusy();
   }
+  filterOfertas();
+}
 
-  renderOfertas(ofertas);
+/* ====== Filtros (sobre la página actual) ====== */
+function filterOfertas() {
+  const search = ($('#searchInput')?.value || "").toLowerCase().trim();
+  const status = $('#statusFilter')?.value || "all";
+
+  let filtered = (ofertas || []).filter(o =>
+    (o.title?.toLowerCase().includes(search) || o.description?.toLowerCase().includes(search))
+  );
+
+  if (status !== "all") {
+    filtered = filtered.filter(o => {
+      const s = getStatus(o.startDate, o.endDate);
+      if (status === 'active') return s === "Activo";
+      if (status === 'upcoming') return s === "Próximo";
+      if (status === 'expired') return s === "Vencido";
+      return true;
+    });
+  }
+  renderOfertas(filtered);
+}
+
+/* ====== Init ====== */
+async function init() {
+  bindSidebarToggles();
+  bindAdminMenu();
 
   $('#searchInput')?.addEventListener('input', () => setTimeout(filterOfertas, 200));
   $('#statusFilter')?.addEventListener('change', filterOfertas);
@@ -405,7 +475,6 @@ async function init() {
     if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') e.preventDefault();
   });
 
-  $('#offer-image')?.addEventListener('change', previewImg);
   $('#offer-cancel-btn')?.addEventListener('click', () => closeModal());
 
   document.addEventListener('keydown', (e) => {
@@ -415,16 +484,7 @@ async function init() {
     if (e.target.id === 'offer-modal') closeModal();
   });
 
-  // Cortafuegos de imágenes rotas
-  window.addEventListener("error", (ev) => {
-    const el = ev.target;
-    if (el && el.tagName === "IMG" && !el.dataset.fallbackApplied) {
-      el.dataset.fallbackApplied = "1";
-      el.onerror = null;
-      el.removeAttribute("srcset");
-      injectFallbackNodeAndRemove(el);
-    }
-  }, true);
+  await loadPage();
 }
 
 document.addEventListener('DOMContentLoaded', init);

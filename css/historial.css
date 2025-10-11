@@ -680,3 +680,10 @@
     color: #92400e;
     border: 1px solid #fed7aa;
 }
+
+#adminMenu{
+  position: fixed !important;
+  z-index: 10000 !important;
+  margin-top: 0 !important;
+}
+

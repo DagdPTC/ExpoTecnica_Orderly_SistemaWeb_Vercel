@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ofertas Especiales</title>
+
+  <!-- Tailwind + Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Estilos propios (opcional) -->
   <link rel="stylesheet" href="css/ofertas.css">
 </head>
 
 <body class="bg-gray-50 font-sans overflow-x-hidden">
   <div class="mobile-overlay" id="mobileOverlay"></div>
 
+  <!-- ===== Sidebar ===== -->
   <aside class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
     <div class="logo-container animate-fade-in">
       <div class="flex items-center justify-center">
@@ -56,7 +59,7 @@
 
       <div class="section-title">REPORTS</div>
       <a href="ofertas.html"
-        class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2 active bg-gradient-to-r from-blue-500 to-blue-600">
+         class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2 active bg-gradient-to-r from-blue-500 to-blue-600">
         <i class="fas fa-tags w-6 text-center text-lg"></i>
         <span class="nav-text ml-3 font-medium">Ofertas</span>
       </a>
@@ -79,6 +82,7 @@
     </div>
   </aside>
 
+  <!-- ===== Main ===== -->
   <div class="main-content flex flex-col min-h-screen">
     <header class="main-header flex items-center justify-between px-6 animate-fade-in">
       <div class="flex items-center">
@@ -104,15 +108,26 @@
           <i class="fas fa-envelope text-lg"></i>
           <span class="notification-badge bg-blue-500">5</span>
         </button>
-        <button
+
+        <!-- Botón de usuario + menú -->
+        <button id="adminBtn"
           class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
           <div
             class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
             <i class="fas fa-user"></i>
           </div>
-          <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
+          <span id="topUserName" class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
           <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
         </button>
+
+        <!-- El menú se reubica a <body> por JS y se hace position:fixed -->
+        <div id="adminMenu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-[10000]">
+          <div class="px-4 py-2 text-sm text-gray-600" id="userMenuName">Mi cuenta</div>
+          <hr class="border-gray-200">
+          <button id="logoutBtn" class="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600">
+            <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
+          </button>
+        </div>
       </div>
     </header>
 
@@ -123,6 +138,7 @@
           <p>Descubre nuestras increíbles promociones y ahorra en tus platillos favoritos</p>
         </header>
 
+        <!-- ===== Buscador / Filtros ===== -->
         <section class="search-container">
           <div class="flex flex-col md:flex-row gap-4">
             <div class="flex-1 search-input-wrapper">
@@ -141,8 +157,10 @@
           </div>
         </section>
 
+        <!-- ===== Grid de ofertas ===== -->
         <section id="offersContainer" class="offers-grid"></section>
 
+        <!-- Vacio -->
         <section id="emptyState" class="empty-state hidden">
           <i class="fas fa-search"></i>
           <h3>No se encontraron ofertas</h3>
@@ -152,25 +170,17 @@
     </main>
   </div>
 
-  <button id="fab" class="fab">
+  <!-- FAB -->
+  <button id="fab" class="fab" title="Nueva oferta">
     <i class="fas fa-plus"></i>
   </button>
 
-  <!-- Modal -->
+  <!-- ===== Modal (SIN imagen) ===== -->
   <div id="offer-modal" class="modal hidden">
     <div class="modal-content">
       <h2 id="modal-title" class="modal-title">Agregar Oferta</h2>
-      <form id="offerForm" autocomplete="off" novalidate>
-        <div class="form-group">
-          <label class="form-label">
-            <i class="fas fa-image mr-2"></i>
-            Imagen
-          </label>
-          <input id="offer-image" type="file" accept="image/*" class="form-input">
-          <div id="img-preview" class="img-preview"></div>
-          <div id="offer-image-err" class="error-text"></div>
-        </div>
 
+      <form id="offerForm" autocomplete="off" novalidate>
         <div class="form-group">
           <label class="form-label">
             <i class="fas fa-tag mr-2"></i>
@@ -196,7 +206,7 @@
             Descuento / Promoción breve
           </label>
           <input id="offer-discount" type="text" maxlength="40" class="form-input"
-            placeholder="Ej: 2x1, 20% dcto, etc.">
+            placeholder="Ej: 2x1, 20% dcto, $5.00 off">
           <div id="offer-discount-err" class="error-text"></div>
         </div>
 
@@ -232,7 +242,7 @@
     </div>
   </div>
 
+  <!-- Controller (módulo ES) -->
   <script type="module" src="js/jsControllers/ofertaController.js"></script>
 </body>
-
 </html>
