@@ -1,5 +1,5 @@
 // js/jsService/ServiceReservas.js
-const BASE = "http://localhost:8080"; // ajusta si usas otro host/puerto
+const BASE = "https://orderly-api-b53514e40ebd.herokuapp.com"; // ajusta si usas otro host/puerto
 const PAGE_SIZE = 200;                // tamaño por página para “fetch-all”
 
 // -------- fetch base con cookies (HttpOnly) ----------
