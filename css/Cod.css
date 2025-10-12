@@ -1,0 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --primaryA:#234fe0;
+  --primaryB:#2b5aeb;
+  --ink:#0f172a;
+  --ring:rgba(37,99,235,.16);
+  /* mismo límite de ancho que en login/recu */
+  --form-max-w: 620px;
+}
+
+/* Base */
+*{ box-sizing:border-box }
+html,body{ height:100% }
+body{
+  font-family:'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color:var(--ink);
+  overflow:hidden;
+}
+
+/* Fondo wallpaper como en login/recu */
+.orderly-container{
+  background-image: url("../img/login-bg-out.png") !important;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+
+/* El sheet inferior transparente para ver el wallpaper detrás */
+#loginCard{ background: transparent !important; }
+
+/* Límite y centrado del formulario (glass) */
+#loginCard > div{
+  width: clamp(320px, 92vw, var(--form-max-w));
+  margin-inline: auto;
+  /* ---- animación de entrada (igual a recu) ---- */
+  animation: fadeUp .6s cubic-bezier(.32,.08,.24,1) both;
+}
+@media (min-width:768px){
+  #loginCard > div{ width:min(84vw, var(--form-max-w)); }
+}
+@media (min-width:1024px){
+  #loginCard > div{ width:var(--form-max-w); }
+}
+
+/* Botón igual que en login, con animación de entrada */
+.btn-login{
+  display:inline-flex; align-items:center; justify-content:center;
+  border:none; border-radius:14px; color:#fff; font-weight:600; letter-spacing:.02em;
+  background: linear-gradient(90deg, var(--primaryA) 0%, var(--primaryB) 100%);
+  box-shadow: 0 16px 34px -16px color-mix(in oklab, var(--primaryA) 40%, transparent),
+              0 8px 16px -14px rgba(17,24,39,.18);
+  transition: transform .14s ease, box-shadow .2s ease, filter .2s ease, background .2s ease;
+  /* animación de carga (como recuButtonFadeIn) */
+  opacity:0; transform: translateY(10px) scale(.98);
+  animation: btnIn .55s .40s forwards;
+}
+.btn-login:hover{
+  filter:brightness(1.03); transform:translateY(-1px);
+  box-shadow:0 22px 44px -18px color-mix(in oklab, var(--primaryA) 50%, transparent);
+}
+.btn-login:active{ transform:translateY(0) }
+
+/* Marca (logo ancho) + pop de entrada (como recuPopIn) */
+.brand--wide{
+  padding:.55rem .8rem;
+  background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.10));
+  border:1px solid rgba(255,255,255,.28);
+  border-radius:16px;
+  backdrop-filter:blur(6px) saturate(120%);
+  -webkit-backdrop-filter:blur(6px) saturate(120%);
+  box-shadow:0 10px 26px -12px rgba(10,24,68,.45), inset 0 1px 0 rgba(255,255,255,.25);
+  animation: logoPop .9s cubic-bezier(.48,.05,.19,1.02) both;
+}
+.brand-img{ display:block; image-rendering:auto !important; transform:translateZ(0); filter:drop-shadow(0 1px 6px rgba(0,0,0,.18)); }
+.brand-img--wide{ width:clamp(160px, 46vw, 220px); height:auto; }
+
+/* Flecha con círculo (mismo tamaño final que acordamos) */
+#loginHeader .back-arrow{
+  position:absolute; z-index:30;
+  top: clamp(12px, 2.2vw, 18px);
+  left: clamp(12px, 2.2vw, 18px);
+  width: 64px; height: 64px;        /* tamaño final que dejaste OK */
+  border-radius: 9999px;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.35);
+  box-shadow: 0 6px 22px rgba(2,6,23,.25), inset 0 1px 0 rgba(255,255,255,.35);
+  backdrop-filter: blur(6px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  transition: transform .12s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+#loginHeader .back-arrow:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.16);
+  border-color: rgba(255,255,255,.45);
+}
+#loginHeader .back-arrow:active{ transform: translateY(0); }
+#loginHeader .back-arrow svg{
+  width: 30px; height: 30px; stroke: #fff; stroke-width: 3;
+}
+
+/* Inputs OTP con entrada escalonada (como los inputs de recu) */
+.codinput-container{ display:flex; justify-content:center; gap:18px; margin-bottom:28px; }
+.codinput-input{
+  width:32px; height:36px; font-size:1.8rem; color:#222e3a; text-align:center;
+  border:none; border-bottom:3px solid #666; background:transparent; outline:none; transition:border-color .2s;
+  opacity:0; transform: translateY(10px) scale(.97);
+  animation: otpIn .45s forwards;
+}
+.codinput-container input:nth-child(1){ animation-delay:.15s }
+.codinput-container input:nth-child(2){ animation-delay:.20s }
+codinput-container input:nth-child(3){ animation-delay:.25s } /* fallback si falta el punto */
+.codinput-container input:nth-child(3){ animation-delay:.25s }
+.codinput-container input:nth-child(4){ animation-delay:.30s }
+.codinput-container input:nth-child(5){ animation-delay:.35s }
+.codinput-container input:nth-child(6){ animation-delay:.40s }
+.codinput-input:focus{ border-bottom-color:#2563eb; }
+
+@media (max-width:600px){
+  .codinput-input{ width:28px; height:32px; font-size:1.1rem; }
+  .codinput-container{ gap:12px; }
+}
+
+/* ===== Animaciones (idénticas en espíritu a Recu) ===== */
+@keyframes fadeUp{ from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none} }
+@keyframes logoPop{
+  0%{ opacity:0; transform:scale(.86) }
+  70%{ transform:scale(1.06) }
+  100%{ opacity:1; transform:scale(1) }
+}
+@keyframes otpIn{ to{ opacity:1; transform:none } }
+@keyframes btnIn{ to{ opacity:1; transform:none } }

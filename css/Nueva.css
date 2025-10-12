@@ -1,0 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --primaryA:#234fe0;
+  --primaryB:#2b5aeb;
+  --ink:#0f172a;
+  --ring:rgba(37,99,235,.16);
+  --form-max-w: 620px; /* mismo límite que login/recu/cod */
+}
+
+/* Base */
+*{ box-sizing:border-box }
+html,body{ height:100% }
+body{ font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); overflow:hidden }
+
+/* Wallpaper fijo (sin zoom) */
+.orderly-container{
+  background-image:url("../img/login-bg-out.png")!important;
+  background-size:cover;
+  background-position:center top;
+  background-repeat:no-repeat;
+}
+
+/* Hacer visible el wallpaper bajo el form */
+#loginCard{ background:transparent!important }
+
+/* Glass card centrada con límite */
+#loginCard>div{
+  width:clamp(320px,92vw,var(--form-max-w));
+  margin-inline:auto;
+  animation:fadeUp .6s cubic-bezier(.32,.08,.24,1) both;
+}
+@media (min-width:768px){ #loginCard>div{ width:min(84vw,var(--form-max-w)) } }
+@media (min-width:1024px){ #loginCard>div{ width:var(--form-max-w) } }
+
+/* Título */
+h2{ letter-spacing:-.01em; line-height:1.1 }
+
+/* Inputs consistentes */
+.group{ display:grid; gap:.5rem }
+.field-row{ position:relative }
+.input-field{
+  appearance:none; border-radius:14px;
+  border:1px solid #e6eaf2;
+  background:#f8fafc;
+  color:var(--ink);
+  transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.input-field::placeholder{ color:#94a3b8 }
+.input-field:hover{ transform:translateY(-1px); background:#f9fbff }
+.input-field:focus{
+  background:#fff; border-color:var(--primaryB);
+  box-shadow:0 0 0 5px var(--ring), 0 10px 18px -12px color-mix(in oklab,var(--primaryA) 22%,transparent);
+  outline:none; transform:translateY(-1px)
+}
+
+/* Iconos izquierda/derecha */
+.input-icon,.input-action{
+  position:absolute; top:50%; transform:translateY(-50%); z-index:3
+}
+.input-icon{ left:.75rem; color:#9fb3ff; pointer-events:none }
+.field-row:has(.input-field:focus) .input-icon{ color:var(--primaryB) }
+
+.input-action{
+  right:.5rem; width:36px; height:36px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  background:transparent; color:#9fb3ff; border:none; padding:0; cursor:pointer;
+  transition: background-color .15s ease, color .15s ease, transform .1s ease;
+}
+.input-action:hover{ background:#eef2ff; color:var(--primaryB) }
+.input-action:active{ transform:translateY(calc(-50% + 1px)) }
+.hidden{ display:none!important }
+
+/* Botón primario (igual al login) + animación */
+.btn-login{
+  display:inline-flex; align-items:center; justify-content:center;
+  border:none; border-radius:14px; color:#fff; font-weight:600; letter-spacing:.02em;
+  background:linear-gradient(90deg,var(--primaryA) 0%,var(--primaryB) 100%);
+  box-shadow:0 16px 34px -16px color-mix(in oklab,var(--primaryA) 40%,transparent),
+             0 8px 16px -14px rgba(17,24,39,.18);
+  transition:transform .14s ease, box-shadow .2s ease, filter .2s ease, background .2s ease;
+  opacity:0; transform:translateY(10px) scale(.98); animation:btnIn .55s .35s forwards;
+}
+.btn-login:hover{
+  filter:brightness(1.03); transform:translateY(-1px);
+  box-shadow:0 22px 44px -18px color-mix(in oklab,var(--primaryA) 50%,transparent)
+}
+.btn-login:active{ transform:translateY(0) }
+
+/* Marca (logo ancho) con pop de entrada */
+.brand--wide{
+  padding:.55rem .8rem;
+  background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.10));
+  border:1px solid rgba(255,255,255,.28);
+  border-radius:16px;
+  backdrop-filter:blur(6px) saturate(120%);
+  -webkit-backdrop-filter:blur(6px) saturate(120%);
+  box-shadow:0 10px 26px -12px rgba(10,24,68,.45), inset 0 1px 0 rgba(255,255,255,.25);
+  animation:logoPop .9s cubic-bezier(.48,.05,.19,1.02) both;
+}
+.brand-img{ display:block; image-rendering:auto!important; transform:translateZ(0); filter:drop-shadow(0 1px 6px rgba(0,0,0,.18)) }
+.brand-img--wide{ width:clamp(160px,46vw,220px); height:auto }
+
+/* Flecha con círculo – tamaño aprobado (un poco menor que 64px) */
+#loginHeader .back-arrow{
+  position:absolute; z-index:30;
+  top:clamp(12px,2.2vw,18px);
+  left:clamp(12px,2.2vw,18px);
+  width:52px; height:52px;            /* tamaño final OK */
+  border-radius:9999px;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.35);
+  box-shadow:0 6px 22px rgba(2,6,23,.25), inset 0 1px 0 rgba(255,255,255,.35);
+  backdrop-filter:blur(6px) saturate(120%);
+  -webkit-backdrop-filter:blur(6px) saturate(120%);
+  transition:transform .12s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+#loginHeader .back-arrow:hover{
+  transform:translateY(-1px);
+  background:rgba(255,255,255,.16);
+  border-color:rgba(255,255,255,.45)
+}
+#loginHeader .back-arrow:active{ transform:translateY(0) }
+#loginHeader .back-arrow svg{ width:26px; height:26px; stroke:#fff }
+
+/* Animaciones */
+@keyframes fadeUp{ from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none} }
+@keyframes logoPop{ 0%{opacity:0; transform:scale(.86)} 70%{transform:scale(1.06)} 100%{opacity:1; transform:scale(1)} }
+@keyframes btnIn{ to{ opacity:1; transform:none } }
