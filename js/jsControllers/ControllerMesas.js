@@ -1,12 +1,26 @@
 // ==========================
-// ControllerMesas.js (Tarjetas + Buscador + API robusta)
+// ControllerMesas.js
+// - Buscador expandible
+// - Tarjetas teñidas por estado
+// - Bloqueos:
+//   * HARD: Historial / Factura => no editar ni eliminar
+//   * SOFT: Pedido activo / Reserva vigente => solo cambiar estado; no eliminar
+// - No permitir setear manualmente Ocupada/Reservada
+// - Colores: Disponible=Verde, Ocupada=Rojo, Reservada=Azul, Limpieza=Amarillo, Fuera=Gris
 // ==========================
 import ServiceMesas, { ApiError } from "../jsService/ServiceMesas.js";
 
+const DEBUG = false;
+
 /* Catálogos y datos */
-let estadosCatalog = []; // { id, nombre, color }
+let estadosCatalog = []; // { id, label, slug, color }
 let tiposCatalog   = []; // { id, nombre, capacidad }
-let mesas          = []; // { id, nombre, idEstadoMesa, idTipoMesa, estado, color, tipoNombre, capacidad }
+let mesas          = []; // { id, nombre, idEstadoMesa, idTipoMesa, estado, estadoLabel, color, tipoNombre, capacidad, blocked, blockMode }
+
+let pedidosRaw   = [];
+let historialRaw = [];
+let reservasRaw  = [];
+let facturasRaw  = [];
 
 let currentFilter = "all";
 let currentEditingId = null;
@@ -18,26 +32,138 @@ const norm = (v) => (v ?? "").toString().trim().toLowerCase();
 const esc  = (x) => String(x)
   .replaceAll("&","&amp;").replaceAll("<","&lt;")
   .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+const idEq = (a,b)=> String(a ?? "") === String(b ?? "");
 
-function pickCollection(res) {
-  if (Array.isArray(res)) return res;
-  const keys = ["data","Data","datos","Datos","rows","Rows","items","Items","result","results","Result","Results","content","Content","value","values","Value","Values","lista","Lista","list","List","records","Records"];
-  if (res && typeof res === "object") {
-    for (const k of keys) {
-      if (Array.isArray(res[k])) return res[k];
-      if (res[k] && typeof res[k] === "object") {
-        for (const kk of keys) if (Array.isArray(res[k][kk])) return res[k][kk];
-      }
-    }
-    for (const v of Object.values(res)) if (Array.isArray(v) && v.length && typeof v[0]==="object") return v;
-  }
-  return [];
+const COLOR_BY_SLUG = {
+  libre:     "#22c55e", // Disponible - verde
+  ocupada:   "#ef4444", // rojo
+  reservada: "#3b82f6", // azul
+  limpieza:  "#f59e0b", // amarillo
+  fuera:     "#6b7280", // gris
+};
+
+function estadoToSlug(label){
+  const n = norm(label);
+  if (n.startsWith("dispon")) return "libre";
+  if (n.startsWith("ocupa"))  return "ocupada";
+  if (n.startsWith("reser"))  return "reservada";
+  if (n.startsWith("limp"))   return "limpieza";
+  return "fuera";
 }
 
-const isBlocked = (estado) => {
-  const e = norm(estado);
-  return e === "ocupada" || e === "reservada";
-};
+/* ===== Tiempo ===== */
+function hoyISO(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+function hhmmNow(){
+  const d = new Date();
+  const hh = String(d.getHours()).padStart(2,"0");
+  const mm = String(d.getMinutes()).padStart(2,"0");
+  return `${hh}:${mm}`;
+}
+function hmToMinutes(hm){
+  if (!hm || typeof hm !== "string") return null;
+  const [h,m] = hm.split(":").map(Number);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+  return h*60 + m;
+}
+
+/* ===== Actividad (visual) ===== */
+function isPedidoActivo(p){
+  const finNull = p.horaFin == null;
+  const cerrado = p.idEstadoPedido === 5 || p.idEstadoPedido === 6;
+  return finNull && !cerrado;
+}
+function isReservaActivaAhora(r){
+  const dia = (r.fReserva || r.freserva || "").slice(0,10);
+  if (String(r.idEstadoReserva) !== "1") return false;
+  if (dia !== hoyISO()) return false;
+  const now = hmToMinutes(hhmmNow());
+  const i = hmToMinutes(r.horaI);
+  const f = hmToMinutes(r.horaF);
+  if (now == null || i == null || f == null) return false;
+  return now >= i && now <= f;
+}
+
+/* ===== Bloqueos ===== */
+function mapPedidosToMesaId(pedidos){
+  const pedidoToMesa = new Map();
+  (pedidos || []).forEach(p=>{
+    if (p && p.id != null && p.idMesa != null) pedidoToMesa.set(String(p.id), String(p.idMesa));
+  });
+  return pedidoToMesa;
+}
+function fallbackBlockSetFromIds(itemsWithPedidoId, mesasRows){
+  const set = new Set();
+  const mesaIds = new Set((mesasRows || []).map(m => String(m.id)));
+  (itemsWithPedidoId || []).forEach(it=>{
+    const pid = it?.idPedido != null ? String(it.idPedido) : null;
+    if (pid && mesaIds.has(pid)) set.add(pid);
+  });
+  return set;
+}
+function hardBlockAlwaysByMesaEqualsPedidoId(itemsWithPedidoId, mesasRows){
+  const set = new Set();
+  const pedidoIds = new Set((itemsWithPedidoId || []).map(it => String(it?.idPedido ?? "")));
+  (mesasRows || []).forEach(m=>{
+    const mid = String(m.id);
+    if (pedidoIds.has(mid)) set.add(mid);
+  });
+  return set;
+}
+function indexMesasConHistorialBloqueo(historial, pedidos, mesasRows){
+  const pedidoToMesa = mapPedidosToMesaId(pedidos);
+  const set = new Set();
+  (historial || []).forEach(h=>{
+    const pid = h?.idPedido != null ? String(h.idPedido) : null;
+    const mid = pid ? pedidoToMesa.get(pid) : null;
+    if (mid) set.add(mid);
+  });
+  if (set.size === 0 && (historial?.length || 0) > 0 && (pedidos?.length || 0) === 0) {
+    const fb = fallbackBlockSetFromIds(historial, mesasRows);
+    fb.forEach(id => set.add(id));
+  }
+  const always = hardBlockAlwaysByMesaEqualsPedidoId(historial, mesasRows);
+  always.forEach(id => set.add(id));
+  return set;
+}
+function indexMesasConFacturaBloqueo(pedidos, facturas, mesasRows){
+  const pedidoToMesa = mapPedidosToMesaId(pedidos);
+  const set = new Set();
+  (facturas || []).forEach(f=>{
+    const pid = f?.idPedido != null ? String(f.idPedido) : null;
+    const mid = pid ? pedidoToMesa.get(pid) : null;
+    if (mid) set.add(mid);
+  });
+  if (set.size === 0 && (facturas?.length || 0) > 0 && (pedidos?.length || 0) === 0) {
+    const fb = fallbackBlockSetFromIds(facturas, mesasRows);
+    fb.forEach(id => set.add(id));
+  }
+  const always = hardBlockAlwaysByMesaEqualsPedidoId(facturas, mesasRows);
+  always.forEach(id => set.add(id));
+  return set;
+}
+function indexMesasConPedidoBloqueo(pedidos){
+  const set = new Set();
+  (pedidos || []).forEach(p=>{
+    if (!p || p.idMesa == null) return;
+    if (isPedidoActivo(p)) set.add(String(p.idMesa));
+  });
+  return set;
+}
+function indexMesasConReservaBloqueo(reservas){
+  const set = new Set();
+  (reservas || []).forEach(r=>{
+    if (!r || r.idMesa == null) return;
+    const dia = (r.fReserva || r.freserva || "").slice(0,10);
+    if (String(r.idEstadoReserva) === "1" && dia >= hoyISO()) set.add(String(r.idMesa));
+  });
+  return set;
+}
 
 /* ===== Toasts / mensajes ===== */
 function ensureToastHost(){
@@ -72,17 +198,12 @@ function showMessage(elementId, message, type="info"){
 }
 function friendlyApiMessage(error, fallback="Ocurrió un error"){
   if (error instanceof ApiError) {
-    if (error.status === 401) return "Tu sesión no es válida o expiró. Inicia sesión nuevamente.";
-    if (error.status === 403) return "No tienes permisos para realizar esta acción.";
-    if (error.status === 404) return "No se encontró el recurso solicitado.";
-    if (error.status === 409) return "Conflicto: revisa duplicados o dependencias.";
-    if (error.status === 422) {
-      const fields = Array.isArray(error.details)
-        ? error.details.map(d => d?.msg || d?.message || "").filter(Boolean).join(" · ")
-        : null;
-      return fields || "Datos inválidos. Revisa los campos.";
-    }
-    if (error.status === 0) return "Sin conexión o tiempo de espera agotado.";
+    if (error.status === 401) return "No autorizado. Inicia sesión nuevamente.";
+    if (error.status === 403) return "Sin permisos para esta acción.";
+    if (error.status === 404) return "Recurso no encontrado.";
+    if (error.status === 409) return "Conflicto con datos existentes.";
+    if (error.status === 422) return "Datos inválidos. Revisa los campos.";
+    if (error.status === 0)   return "Sin conexión o tiempo de espera agotado.";
     if (error.message) return error.message;
   }
   if (typeof error?.message === "string" && error.message) return error.message;
@@ -92,7 +213,7 @@ function handleApiError(error, { ui="toast", elementId=null, fallback } = {}){
   const msg = friendlyApiMessage(error, fallback);
   if (ui === "toast") showToast(msg, "error");
   else if (ui === "inline" && elementId) showMessage(elementId, msg, "error");
-  console.error("[API ERROR]", error);
+  if (DEBUG) console.error("[API ERROR]", error);
 }
 
 /* ===== Init ===== */
@@ -103,7 +224,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setupUserDropdown();
   setupAnimations();
 
-  // Buscar en vivo
   const search = document.getElementById("search-mesa");
   search?.addEventListener("input", (e)=>{
     searchTerm = (e.target.value || "").trim().toLowerCase();
@@ -122,6 +242,12 @@ async function init(){
 
   await loadEstados();
   await loadTipos();
+
+  await loadPedidos();
+  await loadHistorialPedidos();
+  await loadReservas();
+  await loadFacturas();
+
   populateAddSelects();
   populateUpdateSelects();
 
@@ -133,86 +259,103 @@ async function init(){
 /* ===== Loaders ===== */
 async function loadEstados(){
   try {
-    const res = await ServiceMesas.getEstadosMesa();
-    const arr = pickCollection(res);
+    const arr = await ServiceMesas.getEstadosMesa();
     if (!arr.length) throw new Error("El endpoint de estados no devolvió elementos.");
-
-    estadosCatalog = arr.map((e,i)=>({
-      id: e.Id ?? e.ID ?? e.IdEstadoMesa ?? e.IDESTADOMESA ?? (i+1),
-      nombre: (e.EstadoMesa ?? e.estadoMesa ?? e.Nombre ?? e.nombre ?? "").toString().trim().toLowerCase(),
-      color:  (e.ColorEstadoMesa ?? e.colorEstadoMesa ?? e.Color ?? e.color ?? "#64748b").toString(),
-    }));
-    ensureEstado("libre", "#10b981");
-    ensureEstado("limpieza", "#f59e0b");
-    ensureEstado("ocupada", "#ef4444");
-    ensureEstado("reservada", "#3b82f6");
+    estadosCatalog = arr.map((e,i)=>{
+      const slug = estadoToSlug(e.estadoMesa);
+      return {
+        id:    e.id ?? (i+1),
+        label: e.estadoMesa,
+        slug,
+        color: COLOR_BY_SLUG[slug] || "#64748b",
+      };
+    });
   } catch (e) {
-    estadosCatalog = [
-      { id: 100, nombre:"libre",     color:"#10b981" },
-      { id: 101, nombre:"limpieza",  color:"#f59e0b" },
-      { id: 102, nombre:"ocupada",   color:"#ef4444" },
-      { id: 103, nombre:"reservada", color:"#3b82f6" },
-    ];
+    estadosCatalog = [];
     handleApiError(e,{fallback:"No se pudieron cargar los estados."});
   }
 }
 
 async function loadTipos(){
   try {
-    const res = await ServiceMesas.getTiposMesa();
-    const arr = pickCollection(res);
+    const arr = await ServiceMesas.getTiposMesa();
     if (!arr.length) throw new Error("El endpoint de tipos no devolvió elementos.");
-
     tiposCatalog = arr.map((t,i)=>({
-      id: t.Id ?? t.ID ?? t.IdTipoMesa ?? t.IDTIPOMESA ?? (i+1),
-      nombre: t.Nombre ?? t.nombre ?? t.NomTipoMesa ?? "",
-      capacidad: Number(t.CapacidadPersonas ?? t.capacidadPersonas ?? t.Capacidad ?? 0),
+      id:        t.id ?? (i+1),
+      nombre:    t.nombre ?? "",
+      capacidad: Number(t.capacidadPersonas ?? 0),
     }));
   } catch (e) {
     tiposCatalog = [];
     handleApiError(e,{fallback:"No se pudieron cargar los tipos de mesa."});
   }
 }
+async function loadPedidos(){ try{ pedidosRaw = await ServiceMesas.getPedidos(); } catch(e){ pedidosRaw = []; } }
+async function loadHistorialPedidos(){ try{ historialRaw = await ServiceMesas.getHistorialPedidos(); } catch(e){ historialRaw = []; } }
+async function loadReservas(){ try{ reservasRaw = await ServiceMesas.getReservas(); } catch(e){ reservasRaw = []; } }
+async function loadFacturas(){ try{ facturasRaw = await ServiceMesas.getFacturas(); } catch(e){ facturasRaw = []; } }
 
 async function loadMesas(){
   try {
-    const res = await ServiceMesas.getMesas();
-    const arr = pickCollection(res);
+    const arr = await ServiceMesas.getMesas();
     if (!arr.length) { mesas = []; return; }
 
+    const ocupadasActivas = new Set(
+      (pedidosRaw || []).filter(p => p?.idMesa != null && isPedidoActivo(p)).map(p => String(p.idMesa))
+    );
+    const reservadasActivas = new Set(
+      (reservasRaw || []).filter(r => r?.idMesa != null && isReservaActivaAhora(r)).map(r => String(r.idMesa))
+    );
+
+    const bloqueadasPedido    = indexMesasConPedidoBloqueo(pedidosRaw);                        // suave
+    const bloqueadasReserva   = indexMesasConReservaBloqueo(reservasRaw);                      // suave
+    const bloqueadasHistorial = indexMesasConHistorialBloqueo(historialRaw, pedidosRaw, arr);  // duro
+    const bloqueadasFactura   = indexMesasConFacturaBloqueo(pedidosRaw, facturasRaw, arr);     // duro
+
     mesas = arr.map((m,idx)=>{
-      const id = m.Id ?? m.ID ?? m.IdMesa ?? m.IDMESA ?? (idx+1);
-      const nombre = (m.NomMesa ?? m.NOMBREMESA ?? m.nombre ?? `Mesa ${id}`).toString();
+      const id = m.id ?? (idx+1);
+      const nombre = String(m.nomMesa ?? `Mesa ${id}`);
+      const idEstado = m.idEstadoMesa ?? null;
+      const idTipo   = m.idTipoMesa ?? null;
 
-      const idEstadoMesa = m.IdEstadoMesa ?? m.IDESTADOMESA ?? m.estadoMesaId ?? m.EstadoMesaId ?? m.estadoId ?? null;
-      let est = estadosCatalog.find(e=>`${e.id}`===`${idEstadoMesa}`);
-      if (!est && m.EstadoMesa && typeof m.EstadoMesa === "object") {
-        const nombreEst = norm(m.EstadoMesa.EstadoMesa ?? m.EstadoMesa.nombre);
-        const colorEst  = m.EstadoMesa.ColorEstadoMesa ?? m.EstadoMesa.color ?? "#64748b";
-        est = estadosCatalog.find(e=>e.nombre===nombreEst) || { id:idEstadoMesa, nombre:nombreEst, color: colorEst };
+      const est  = estadosCatalog.find(e => idEq(e.id, idEstado));
+      const tipo = tiposCatalog.find(t => idEq(t.id, idTipo));
+
+      let slug       = est?.slug ?? "libre";
+      let estadoLbl  = est?.label ?? "Disponible";
+      let color      = COLOR_BY_SLUG[slug];
+
+      // override visual por actividad actual
+      if (ocupadasActivas.has(String(id))) {
+        slug = "ocupada"; estadoLbl = "Ocupada"; color = COLOR_BY_SLUG[slug];
+      } else if (reservadasActivas.has(String(id))) {
+        slug = "reservada"; estadoLbl = "Reservada"; color = COLOR_BY_SLUG[slug];
       }
 
-      const idTipoMesa = m.IdTipoMesa ?? m.IDTIPOMESA ?? m.tipoMesaId ?? m.TipoMesaId ?? null;
-      let tipo = tiposCatalog.find(t=>`${t.id}`===`${idTipoMesa}`);
-      if (!tipo && m.TipoMesa && typeof m.TipoMesa === "object") {
-        tipo = {
-          id: m.TipoMesa.Id ?? idTipoMesa,
-          nombre: m.TipoMesa.Nombre ?? m.TipoMesa.nombre ?? "—",
-          capacidad: Number(m.TipoMesa.CapacidadPersonas ?? 0),
-        };
-      }
+      const hard =
+        bloqueadasHistorial.has(String(id)) ||
+        bloqueadasFactura.has(String(id));
+      const soft = !hard && (bloqueadasPedido.has(String(id)) || bloqueadasReserva.has(String(id)));
+
+      const blockMode = hard ? "hard" : (soft ? "soft" : "none");
+      const blocked = hard || soft;
 
       return {
         id,
         nombre,
-        idEstadoMesa: est?.id ?? idEstadoMesa,
-        idTipoMesa:   tipo?.id ?? idTipoMesa,
-        estado: est?.nombre || "libre",
-        color:  est?.color  || "#10b981",
-        tipoNombre: tipo?.nombre || "—",
-        capacidad: tipo?.capacidad ?? 0,
+        idEstadoMesa: idEstado,
+        idTipoMesa:   idTipo,
+        estado:       slug,
+        estadoLabel:  estadoLbl,
+        color,
+        tipoNombre:   tipo?.nombre ?? "—",
+        capacidad:    tipo?.capacidad ?? 0,
+        blocked,
+        blockMode, // "hard" | "soft" | "none"
       };
     });
+
+    if (DEBUG) console.table(mesas.map(m => ({ id: m.id, block: m.blockMode })));
   } catch (e) {
     mesas = [];
     handleApiError(e,{fallback:"No se pudieron cargar las mesas."});
@@ -241,20 +384,13 @@ function populateAddSelects(){
   const selEstado = document.getElementById("add-estadoMesa");
   if (selEstado) {
     selEstado.innerHTML = "";
-    const libre = estadosCatalog.find(e=>e.nombre==="libre");
-    if (libre) {
-      const op = document.createElement("option");
-      op.value = libre.id;
-      op.textContent = "Libre";
-      selEstado.appendChild(op);
-      selEstado.value = libre.id;
-    } else {
-      const op = document.createElement("option");
-      op.value = "";
-      op.textContent = "Libre";
-      selEstado.appendChild(op);
-    }
-    selEstado.disabled = true;
+    const libre = estadosCatalog.find(e=>e.slug==="libre");
+    const op = document.createElement("option");
+    op.value = libre ? libre.id : "";
+    op.textContent = libre ? libre.label : "Disponible";
+    selEstado.appendChild(op);
+    selEstado.value = libre ? libre.id : "";
+    selEstado.disabled = true; // siempre Disponible al crear
   }
 }
 
@@ -273,23 +409,23 @@ function populateUpdateSelects(){
   const selEstado = document.getElementById("update-estadoMesa");
   if (selEstado) {
     selEstado.innerHTML = `<option value="">Seleccione un estado…</option>`;
-    estadosCatalog.forEach(e=>{
-      const op = document.createElement("option");
-      op.value = e.id;
-      op.textContent = cap(e.nombre);
-      selEstado.appendChild(op);
-    });
+    // No permitir Ocupada/Reservada manualmente
+    estadosCatalog
+      .filter(e => e.slug !== "ocupada" && e.slug !== "reservada")
+      .forEach(e=>{
+        const op = document.createElement("option");
+        op.value = e.id;
+        op.textContent = e.label;
+        selEstado.appendChild(op);
+      });
   }
 }
 
-/* ===== Render Tarjetas ===== */
+/* ===== Render Tarjetas (con tinte por estado) ===== */
 function renderCards(filter = currentFilter){
   currentFilter = filter;
 
-  // resalta botón activo
-  document.querySelectorAll(".btn-modern").forEach(b=>{
-    b.classList.remove("active-filter","ring-4","ring-opacity-50");
-  });
+  document.querySelectorAll(".btn-modern").forEach(b=>b.classList.remove("active-filter","ring-4","ring-opacity-50"));
   const byLabel = { all:"Todas las mesas", libre:"Disponibles", ocupada:"Ocupadas", reservada:"Reservadas", limpieza:"En limpieza" };
   const label = byLabel[filter] || "";
   document.querySelectorAll(".btn-modern").forEach(b=>{
@@ -299,33 +435,36 @@ function renderCards(filter = currentFilter){
 
   const container = document.getElementById("cards-container");
   const empty     = document.getElementById("empty-state");
+  if (!container) return;
   container.innerHTML = "";
 
-  // aplica filtro por estado y búsqueda por nombre
   let list = [...mesas];
   if (filter !== "all") list = list.filter(m => m.estado === filter);
   if (searchTerm) list = list.filter(m => norm(m.nombre).includes(searchTerm));
 
-  if (!list.length) {
-    empty?.classList.remove("hidden");
-    return;
-  } else {
-    empty?.classList.add("hidden");
-  }
+  if (!list.length) { empty?.classList.remove("hidden"); return; }
+  empty?.classList.add("hidden");
 
   list.forEach((m, idx)=>{
-    const disabled = isBlocked(m.estado);
+    const hard = m.blockMode === "hard";
+    const soft = m.blockMode === "soft";
 
     const card = document.createElement("div");
-    card.className = "mesa-card bg-white rounded-2xl shadow-lg p-6 border border-slate-100 transition-transform";
+    card.className = "mesa-card rounded-2xl shadow-lg p-6 border transition-transform";
     card.style.animationDelay = `${idx * 0.06}s`;
     card.classList.add("animate-fade-in");
+
+    // Tinte por estado
+    const bgTint   = `${m.color}22`; // ~13% opacidad
+    const brdTint  = `${m.color}55`; // ~33% opacidad
+    card.style.backgroundColor = bgTint;
+    card.style.borderColor     = brdTint;
 
     card.innerHTML = `
       <div class="flex items-start justify-between">
         <div>
           <h3 class="text-2xl font-bold text-slate-800">${esc(m.nombre)}</h3>
-          <p class="text-slate-500 text-sm mt-0.5">ID: ${esc(m.id)}</p>
+          <p class="text-slate-600 text-sm mt-0.5">ID: ${esc(m.id)}</p>
         </div>
         <div class="w-14 h-14 rounded-xl flex items-center justify-center" style="background-color:${m.color}22;border:1px solid ${m.color}55;">
           <i class="fas fa-chair" style="color:${m.color}"></i>
@@ -334,53 +473,48 @@ function renderCards(filter = currentFilter){
 
       <div class="space-y-4 mt-5">
         <div class="flex items-center justify-between">
-          <span class="text-slate-600 font-medium">Estado</span>
-          <span class="px-2.5 py-1 rounded-full text-xs font-semibold" style="background-color:${m.color}22;color:${m.color};border:1px solid ${m.color}55;">${esc(cap(m.estado))}</span>
+          <span class="text-slate-700 font-medium">Estado</span>
+          <span class="px-2.5 py-1 rounded-full text-xs font-semibold" style="background-color:${m.color}22;color:${m.color};border:1px solid ${m.color}55;">
+            ${esc(m.estadoLabel)}
+          </span>
         </div>
 
         <div class="flex items-center justify-between">
-          <span class="text-slate-600 font-medium">Tipo</span>
-          <span class="text-slate-800 font-semibold">${esc(m.tipoNombre)}</span>
+          <span class="text-slate-700 font-medium">Tipo</span>
+          <span class="text-slate-900 font-semibold">${esc(m.tipoNombre)}</span>
         </div>
 
         <div class="flex items-center justify-between">
-          <span class="text-slate-600 font-medium">Capacidad</span>
+          <span class="text-slate-700 font-medium">Capacidad</span>
           <div class="flex items-center">
-            <i class="fas fa-users text-slate-400 mr-2"></i>
-            <span class="text-slate-800 font-semibold">${m.capacidad || 0} personas</span>
+            <i class="fas fa-users text-slate-500 mr-2"></i>
+            <span class="text-slate-900 font-semibold">${m.capacidad || 0} personas</span>
           </div>
         </div>
       </div>
 
-      <div class="mt-6 pt-4 border-t border-slate-100">
+      <div class="mt-6 pt-4 border-t" style="border-color:${m.color}33;">
         <div class="flex gap-2">
-          <button data-id="${m.id}" class="btn-edit flex-1 px-4 py-2 rounded-lg text-white text-sm ${disabled?'bg-slate-300 cursor-not-allowed':'bg-amber-500 hover:bg-amber-600'}">
-            <i class="fa fa-pen mr-2"></i> Editar
+          <button data-id="${m.id}" class="btn-edit flex-1 px-4 py-2 rounded-lg text-white text-sm ${hard?'bg-slate-300 cursor-not-allowed':'bg-amber-500 hover:bg-amber-600'}">
+            <i class="fa fa-pen mr-2"></i> ${soft ? 'Editar (solo estado)' : 'Editar'}
           </button>
-          <button data-id="${m.id}" class="btn-del flex-1 px-4 py-2 rounded-lg text-white text-sm ${disabled?'bg-slate-300 cursor-not-allowed':'bg-red-500 hover:bg-red-600'}">
+          <button data-id="${m.id}" class="btn-del flex-1 px-4 py-2 rounded-lg text-white text-sm ${m.blocked?'bg-slate-300 cursor-not-allowed':'bg-red-500 hover:bg-red-600'}">
             <i class="fa fa-trash mr-2"></i> Eliminar
           </button>
         </div>
       </div>
     `;
-
-    // Hover efectos sutiles
     card.addEventListener("mouseenter", ()=>{ card.style.transform = "scale(1.02)"; });
     card.addEventListener("mouseleave", ()=>{ card.style.transform = "scale(1)"; });
-
     container.appendChild(card);
   });
 
-  // Bind acciones
   container.querySelectorAll(".btn-edit").forEach(btn=>btn.addEventListener("click", onClickEdit));
   container.querySelectorAll(".btn-del").forEach(btn=>btn.addEventListener("click", onClickDelete));
 }
 
 function updateCounters(){
-  const pool = searchTerm
-    ? mesas.filter(m => norm(m.nombre).includes(searchTerm))
-    : mesas;
-
+  const pool = searchTerm ? mesas.filter(m => norm(m.nombre).includes(searchTerm)) : mesas;
   ["libre","ocupada","reservada","limpieza"].forEach(estado=>{
     const el = document.getElementById(`count-${estado}`);
     if (!el) return;
@@ -392,31 +526,42 @@ function updateCounters(){
 
 /* ===== Acciones ===== */
 function onClickEdit(e){
-  const id = e.currentTarget.getAttribute("data-id");
-  const mesa = mesas.find(m=>`${m.id}` === `${id}`);
+  const id = Number(e.currentTarget.getAttribute("data-id"));
+  const mesa = mesas.find(m=>idEq(m.id, id));
   if (!mesa) return;
 
-  if (isBlocked(mesa.estado)) {
-    showToast("No se puede editar una mesa Ocupada o Reservada.", "warning");
+  if (mesa.blockMode === "hard") {
+    showToast("No se puede editar una mesa vinculada a Historial de Pedido o Factura.", "warning");
     return;
   }
-  currentEditingId = mesa.id;
 
+  currentEditingId = mesa.id;
   populateUpdateSelects();
-  document.getElementById("update-nombre").value = mesa.nombre;
-  if (mesa.idTipoMesa)   document.getElementById("update-tipoMesa").value = mesa.idTipoMesa;
-  if (mesa.idEstadoMesa) document.getElementById("update-estadoMesa").value = mesa.idEstadoMesa;
+
+  const inputNombre = document.getElementById("update-nombre");
+  const selectTipo  = document.getElementById("update-tipoMesa");
+  const selectEst   = document.getElementById("update-estadoMesa");
+
+  inputNombre.value = mesa.nombre;
+  if (mesa.idTipoMesa)   selectTipo.value = mesa.idTipoMesa;
+  if (mesa.idEstadoMesa) selectEst.value  = mesa.idEstadoMesa;
+
+  // Bloqueo suave: solo permitir cambiar estado
+  const soft = mesa.blockMode === "soft";
+  inputNombre.disabled = soft;
+  selectTipo.disabled  = soft;
+  selectEst.disabled   = false;
 
   showModal("update-modal");
 }
 
 function onClickDelete(e){
-  const id = e.currentTarget.getAttribute("data-id");
-  const mesa = mesas.find(m=>`${m.id}` === `${id}`);
+  const id = Number(e.currentTarget.getAttribute("data-id"));
+  const mesa = mesas.find(m=>idEq(m.id, id));
   if (!mesa) return;
 
-  if (isBlocked(mesa.estado)) {
-    showToast("No se puede eliminar una mesa Ocupada o Reservada.", "warning");
+  if (mesa.blocked) {
+    showToast("No se puede eliminar mesas con Pedido/Reserva/Historial/Factura asociados.", "warning");
     return;
   }
   document.getElementById("delete-id").value = mesa.id;
@@ -426,20 +571,19 @@ function onClickDelete(e){
 /* ===== CRUD ===== */
 window.addMesa = async ()=>{
   const nombre = (document.getElementById("add-nombre")?.value || "").trim();
-  const idTipo = document.getElementById("add-tipoMesa")?.value || "";
-  const idLibre = document.getElementById("add-estadoMesa")?.value || (estadosCatalog.find(e=>e.nombre==="libre")?.id);
+  const idTipo = Number(document.getElementById("add-tipoMesa")?.value || NaN);
+  const idLibre = estadosCatalog.find(e=>e.slug==="libre")?.id;
 
   if (!nombre){ showMessage("add-message","El nombre es obligatorio","error"); return; }
   if (nombre.length > 100){ showMessage("add-message","Máximo 100 caracteres","error"); return; }
-  if (!idTipo){ showMessage("add-message","Selecciona un tipo de mesa","error"); return; }
-  if (!idLibre){ showMessage("add-message","No se encontró el estado Libre","error"); return; }
+  if (!Number.isFinite(idTipo)){ showMessage("add-message","Selecciona un tipo de mesa","error"); return; }
+  if (!idLibre){ showMessage("add-message","No se encontró el estado Disponible","error"); return; }
 
   try{
     await ServiceMesas.createMesa({
-      Id: null,
-      NomMesa: nombre,
-      IdTipoMesa: Number(idTipo),
-      IdEstadoMesa: Number(idLibre), // siempre Libre
+      nomMesa: nombre,
+      idTipoMesa: idTipo,
+      idEstadoMesa: Number(idLibre),
     });
     showMessage("add-message","¡Mesa creada correctamente!","success");
     await reloadAll();
@@ -451,27 +595,47 @@ window.addMesa = async ()=>{
 
 window.updateMesa = async ()=>{
   if (!currentEditingId){ showMessage("update-message","No hay mesa seleccionada","error"); return; }
-  const nombre  = (document.getElementById("update-nombre")?.value || "").trim();
-  const idTipo  = document.getElementById("update-tipoMesa")?.value || "";
-  const idEstado= document.getElementById("update-estadoMesa")?.value || "";
 
-  const mesaActual = mesas.find(m=>m.id===currentEditingId);
+  const inputNombre = document.getElementById("update-nombre");
+  const selectTipo  = document.getElementById("update-tipoMesa");
+  const selectEst   = document.getElementById("update-estadoMesa");
+
+  const mesaActual = mesas.find(m=>idEq(m.id, currentEditingId));
   if (!mesaActual){ showMessage("update-message","Mesa no encontrada","error"); return; }
-  if (isBlocked(mesaActual.estado)) {
-    showMessage("update-message","No se puede actualizar mesas Ocupadas o Reservadas.","warning"); return;
+
+  if (mesaActual.blockMode === "hard"){
+    showMessage("update-message","No puedes editar mesas con Historial/Factura.","warning"); return;
   }
 
-  if (!nombre){ showMessage("update-message","El nombre es obligatorio","error"); return; }
-  if (nombre.length > 100){ showMessage("update-message","Máximo 100 caracteres","error"); return; }
-  if (!idTipo){ showMessage("update-message","Selecciona un tipo de mesa","error"); return; }
-  if (!idEstado){ showMessage("update-message","Selecciona un estado","error"); return; }
+  // Siempre permitimos cambiar estado (no Ocupada/Reservada manual)
+  const idEstado = Number(selectEst?.value || NaN);
+  const target = estadosCatalog.find(e=>idEq(e.id, idEstado));
+  if (!Number.isFinite(idEstado)){ showMessage("update-message","Selecciona un estado","error"); return; }
+  if (target && (target.slug === "ocupada" || target.slug === "reservada")){
+    showMessage("update-message","No puedes establecer manualmente una mesa como Ocupada o Reservada.","warning");
+    return;
+  }
+
+  const soft = mesaActual.blockMode === "soft";
+  let nombre  = mesaActual.nombre;
+  let idTipo  = mesaActual.idTipoMesa;
+
+  if (!soft){
+    const nuevoNombre = (inputNombre?.value || "").trim();
+    const nuevoTipo   = Number(selectTipo?.value || NaN);
+
+    if (!nuevoNombre){ showMessage("update-message","El nombre es obligatorio","error"); return; }
+    if (!Number.isFinite(nuevoTipo)){ showMessage("update-message","Selecciona un tipo de mesa","error"); return; }
+
+    nombre = nuevoNombre;
+    idTipo = nuevoTipo;
+  }
 
   try{
     await ServiceMesas.updateMesa(currentEditingId, {
-      Id: currentEditingId,
-      NomMesa: nombre,
-      IdTipoMesa: Number(idTipo),
-      IdEstadoMesa: Number(idEstado),
+      nomMesa: nombre,
+      idTipoMesa: idTipo,
+      idEstadoMesa: idEstado,
     });
     showMessage("update-message","¡Mesa actualizada!","success");
     await reloadAll();
@@ -485,10 +649,10 @@ window.deleteMesa = async ()=>{
   const id = parseInt(document.getElementById("delete-id")?.value, 10);
   if (!Number.isInteger(id)){ showMessage("delete-message","Ingresa un ID válido","error"); return; }
 
-  const mesa = mesas.find(m=>m.id===id);
+  const mesa = mesas.find(m=>idEq(m.id, id));
   if (!mesa){ showMessage("delete-message","Mesa no encontrada","error"); return; }
-  if (isBlocked(mesa.estado)) {
-    showMessage("delete-message","No se puede eliminar mesas Ocupadas o Reservadas","warning"); return;
+  if (mesa.blocked) {
+    showMessage("delete-message","No se puede eliminar mesas con Pedido/Reserva/Historial/Factura asociados","warning"); return;
   }
 
   try{
@@ -503,6 +667,10 @@ window.deleteMesa = async ()=>{
 
 /* ===== Refresh ===== */
 async function reloadAll(){
+  await loadPedidos();
+  await loadHistorialPedidos();
+  await loadReservas();
+  await loadFacturas();
   await loadMesas();
   renderCards();
   updateCounters();
@@ -539,7 +707,7 @@ function hideModal(id){
   const modal = document.getElementById(id);
   if (!modal) return;
   const c = modal.querySelector(".modal-content");
-  if (c){ c.style.transform="scale(0.96)"; c.style.opacity="0"; }
+  if (c){ c.style.transform = "scale(0.96)"; c.style.opacity = "0"; }
   setTimeout(()=>{ modal.classList.add("hidden"); modal.classList.remove("show"); },200);
 }
 window.closeAdd = ()=>{ hideModal("add-modal"); document.getElementById("add-message").textContent=""; };
@@ -615,7 +783,7 @@ function setupUserDropdown(){
     document.getElementById("logoutBtn")?.addEventListener("click", ()=>{
       dropdown.classList.remove("show");
       overlay.classList.remove("active");
-      window.location.href = "index.html";
+      window.location.href = "inicioSesion.html";
     });
   }
 }
@@ -637,10 +805,4 @@ function setupAnimations(){
     el.style.transition = "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)";
     observer.observe(el);
   });
-}
-
-function ensureEstado(nombre,color){
-  if (!estadosCatalog.find(e=>e.nombre===nombre)) {
-    estadosCatalog.push({ id: nombre.toUpperCase(), nombre, color });
-  }
 }
