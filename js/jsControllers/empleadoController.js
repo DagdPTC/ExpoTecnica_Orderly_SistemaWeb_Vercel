@@ -1231,7 +1231,7 @@ function setupUserMenu() {
         blockUI("Cerrando sesión...");
         localStorage.removeItem("token");
         sessionStorage.clear();
-        window.location.href = "inicioSesion.html";
+        window.location.href = "index.html";
       } finally {
         unblockUI();
       }

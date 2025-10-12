@@ -155,7 +155,7 @@ function bindAdminMenu() {
         try { localStorage.removeItem("AUTH_TOKEN"); } catch {}
         try { localStorage.removeItem("token"); } catch {}
         sessionStorage.clear();
-        window.location.href = "inicioSesion.html";
+        window.location.href = "index.html";
       }
     });
   }

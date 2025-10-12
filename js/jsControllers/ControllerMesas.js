@@ -615,7 +615,7 @@ function setupUserDropdown(){
     document.getElementById("logoutBtn")?.addEventListener("click", ()=>{
       dropdown.classList.remove("show");
       overlay.classList.remove("active");
-      window.location.href = "inicioSesion.html";
+      window.location.href = "index.html";
     });
   }
 }
