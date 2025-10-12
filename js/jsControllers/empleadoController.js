@@ -95,9 +95,7 @@ function applyFiltersAndRender() {
   const wantsAll = ROLE_FILTERS.has("all");
 
   const filtered = EMP_DATA.filter(e => {
-    // filtro por rol usando el texto tal como lo pintas en tabla
     const roleOk = wantsAll || ROLE_FILTERS.has(String(e.role || "").toUpperCase());
-
     if (!q) return roleOk;
 
     const bag = [
@@ -114,28 +112,195 @@ function applyFiltersAndRender() {
   tbody.innerHTML = filtered.map(rowEmpleado).join("");
 }
 
-export async function cargarTabla(page = 0, size = 20) {
-  try {
-    blockUI("Cargando empleados...");
-    const data = await getEmpleados(page, size);
-    EMP_CACHE = Array.isArray(data) ? data : [];
+// ======= Estado local: cache de empleados para filtrar en cliente =======
+let EMP_CACHE = [];   // se llena en cargarTabla()
+let EMP_FILTER = { by: "all", term: "" };
+
+// ======= Render de filas con filtro aplicado =======
+function renderEmpleados(list) {
+  const body = document.getElementById("employees-tbody") || document.querySelector("tbody");
+  if (!body) return;
+  const rows = list.map(rowEmpleado).join("");
+  body.innerHTML = rows;
+}
+
+// ======= Filtro en cliente según selector =======
+function applyEmployeeFilter() {
+  const by = EMP_FILTER.by;
+  const raw = (EMP_FILTER.term || "").trim().toLowerCase();
+
+  if (!raw || by === "all") {
     renderEmpleados(EMP_CACHE);
-    setupEmployeeFilters();
-    setupUserMenu(); // asegura el menú usuario
-  } catch (e) {
-    console.error("Error cargando empleados:", e);
-    showToast("error", "No se pudo cargar empleados", e.message || "");
-  } finally {
-    unblockUI();
+    return;
+  }
+
+  const norm = (v) => String(v ?? "").toLowerCase();
+  const onlyDigits = (v) => String(v ?? "").replace(/\D/g, "");
+
+  const out = EMP_CACHE.filter(e => {
+    switch (by) {
+      case "role":
+        return norm(e.role).includes(raw);
+      case "dui": {
+        const left = onlyDigits(e.docNumber);
+        const right = onlyDigits(raw);
+        return left.includes(right);
+      }
+      case "name":
+        return `${norm(e.firstName)} ${norm(e.secondName)} ${norm(e.lastNameP)} ${norm(e.lastNameM)}`.includes(raw);
+      case "lastname":
+        return `${norm(e.lastNameP)} ${norm(e.lastNameM)}`.includes(raw);
+      case "email":
+        return norm(e.email).includes(raw);
+      case "username":
+        return norm(e.username).includes(raw);
+      case "address":
+        return norm(e.address).includes(raw);
+      case "hireDate":
+        return norm(e.hireDate).includes(raw);
+      case "birthDate":
+        return norm(e.birthDate).includes(raw);
+      default:
+        return true;
+    }
+  });
+
+  renderEmpleados(out);
+}
+
+// ======= UI de filtros: select + comportamiento del input =======
+function setupEmployeeFilters() {
+  const oldBtn  = document.getElementById("roleBtn");
+  const oldMenu = document.getElementById("roleMenu");
+  if (oldBtn)  oldBtn.style.display  = "none";
+  if (oldMenu) oldMenu.style.display = "none";
+
+  const searchWrap  = document.querySelector(".mb-5 .flex-1") || document.querySelector(".mb-5 .relative");
+  const searchInput = document.getElementById("searchInput");
+  if (!searchWrap || !searchInput) return;
+
+  let sel = document.getElementById("employee-filter-by");
+  if (!sel) {
+    sel = document.createElement("select");
+    sel.id = "employee-filter-by";
+    sel.className = "ml-3 border rounded-xl px-3 py-2 bg-white text-slate-700";
+    sel.innerHTML = `
+      <option value="all">Todos</option>
+      <option value="role">Rol</option>
+      <option value="dui">DUI</option>
+      <option value="name">Nombre</option>
+      <option value="lastname">Apellido</option>
+      <option value="email">Correo</option>
+      <option value="username">Usuario</option>
+      <option value="address">Dirección</option>
+      <option value="hireDate">Fecha de contratación</option>
+      <option value="birthDate">Fecha de nacimiento</option>
+    `;
+    searchWrap.parentElement.insertBefore(sel, searchWrap.nextSibling);
+  }
+
+  const onType = () => {
+    EMP_FILTER.term = searchInput.value;
+    applyEmployeeFilter();
+  };
+
+  searchInput.removeEventListener("input", searchInput.__onType__);
+  searchInput.__onType__ = onType;
+  searchInput.addEventListener("input", onType);
+
+  const duiMask = () => {
+    let v = searchInput.value.replace(/\D/g, "").slice(0, 9);
+    if (v.length > 8) v = v.slice(0, 8) + "-" + v.slice(8);
+    if (searchInput.value !== v) {
+      const pos = searchInput.selectionStart;
+      searchInput.value = v;
+      if (pos !== null) searchInput.setSelectionRange(Math.min(pos, v.length), Math.min(pos, v.length));
+    }
+  };
+  searchInput.__duiMask__ = duiMask;
+
+  EMP_FILTER.by = sel.value;
+  updateSearchInputBehavior(searchInput, sel.value);
+
+  sel.onchange = () => {
+    EMP_FILTER.by = sel.value;
+    searchInput.value = "";
+    EMP_FILTER.term = "";
+    updateSearchInputBehavior(searchInput, sel.value);
+    applyEmployeeFilter();
+  };
+}
+
+function updateSearchInputBehavior(inp, mode) {
+  inp.type = "text";
+  inp.placeholder = "Buscar empleados...";
+  inp.removeAttribute("pattern");
+  inp.removeAttribute("maxLength");
+
+  if (inp.__duiMaskAttached__) {
+    inp.removeEventListener("input", inp.__duiMask__);
+    inp.__duiMaskAttached__ = false;
+  }
+
+  switch (mode) {
+    case "role":
+      inp.placeholder = "Filtrar por rol (ADMIN, MESERO, CAJERO...)";
+      break;
+    case "dui":
+      inp.placeholder = "DUI: ########-#";
+      inp.maxLength = 10;
+      inp.pattern = "^\\d{8}-\\d$";
+      if (inp.__duiMask__ && !inp.__duiMaskAttached__) {
+        inp.addEventListener("input", inp.__duiMask__);
+        inp.__duiMaskAttached__ = true;
+      }
+      break;
+    case "name":
+      inp.placeholder = "Nombre o nombres";
+      break;
+    case "lastname":
+      inp.placeholder = "Apellido paterno/materno";
+      break;
+    case "email":
+      inp.type = "email";
+      inp.placeholder = "correo@dominio.com";
+      break;
+    case "username":
+      inp.placeholder = "Usuario (login)";
+      break;
+    case "address":
+      inp.placeholder = "Dirección";
+      break;
+    case "hireDate":
+      inp.type = "date";
+      inp.placeholder = "YYYY-MM-DD";
+      break;
+    case "birthDate":
+      inp.type = "date";
+      inp.placeholder = "YYYY-MM-DD";
+      break;
+    default:
+      inp.placeholder = "Buscar empleados...";
   }
 }
 
+// -------------------- Botón "Nuevo Empleado" --------------------
+function btnNuevoEmpleado() {
+  return document.getElementById("btn-nuevo-empleado")
+    || document.querySelector('[data-action="nuevo-empleado"]')
+    || [...document.querySelectorAll("button,a,[role='button']")]
+      .find(el => /nuevo\s+empleado/i.test(el.textContent || ""));
+}
 
-
+// Carga inicial
+document.addEventListener("DOMContentLoaded", () => {
+  cargarTabla();
+  const btn = btnNuevoEmpleado();
+  if (btn) btn.addEventListener("click", (e) => { e.preventDefault(); openCreateModal(); });
+});
 
 // -------------------- Delegación de eventos tabla --------------------
 document.addEventListener("click", async (ev) => {
-  // Abrir/cerrar detalles
   const tgl = ev.target.closest(".toggle-details");
   if (tgl) {
     const tr = tgl.closest("tr");
@@ -148,21 +313,15 @@ document.addEventListener("click", async (ev) => {
     return;
   }
 
-  // Editar (engancha tu modal existente si ya lo tienes)
-  // Editar
-  // Editar usando el MISMO modal de create
-  // Editar usando el MISMO modal de create, SIN llamar a get-by-id
-  // Editar usando el MISMO modal de create, SIN llamar a get-by-id
   const edit = ev.target.closest(".edit-btn");
   if (edit) {
     const id = Number(edit.dataset.id);
     try {
-      const tr = edit.closest("tr");                  // fila principal
-      const details = tr?.nextElementSibling;         // fila detalles (ya existe aunque esté hidden)
+      const tr = edit.closest("tr");
+      const details = tr?.nextElementSibling;
 
-      // --- Extraer valores de la tabla ---
       const tds = tr.querySelectorAll("td");
-      const nombreTxt = (tds[0]?.textContent || "").trim(); // "Carlos Gomez"
+      const nombreTxt = (tds[0]?.textContent || "").trim();
       const partes = nombreTxt.split(/\s+/);
       const firstName = partes.shift() || "";
       const lastNameP = partes.join(" ") || "";
@@ -171,16 +330,12 @@ document.addEventListener("click", async (ev) => {
       const email = (tds[2]?.textContent || "").trim();
       const roleText = (tds[3]?.textContent || "").trim();
 
-      // En la fila details, los "cell()" están en este orden:
-      // 0: Segundo Nombre, 1: Apellido Materno, 2: Fecha de Nacimiento,
-      // 3: Teléfono (N/A), 4: Documento (tipo + número), 5: Fecha Contratación, 6: Dirección
       const info = [...(details?.querySelectorAll(".grid .text-sm") || [])].map(el => el.textContent.trim());
-
       const secondName = info[0] || "";
       const lastNameM = info[1] || "";
-      const birthDate = (info[2] && info[2] !== "N/A") ? info[2] : ""; // yyyy-MM-dd
-      const docStr = info[4] || "";                                 // "DUI 12345678-9"
-      const hireDate = (info[5] && info[5] !== "N/A") ? info[5] : ""; // ISO o vacío
+      const birthDate = (info[2] && info[2] !== "N/A") ? info[2] : "";
+      const docStr = info[4] || "";
+      const hireDate = (info[5] && info[5] !== "N/A") ? info[5] : "";
       const address = info[6] || "";
 
       const [docType, ...restDoc] = docStr.split(/\s+/);
@@ -226,7 +381,7 @@ document.addEventListener("click", async (ev) => {
       blockUI("Eliminando registro...");
       await deleteEmpleado(id);
       toast("success", "Empleado eliminado", "El registro se eliminó correctamente.");
-      await cargarTabla(); // refresca lista
+      await cargarTabla();
     } catch (e) {
       toast("error", "No se pudo eliminar", e.message || "Inténtalo de nuevo.");
     } finally {
@@ -235,20 +390,26 @@ document.addEventListener("click", async (ev) => {
   }
 });
 
-// -------------------- Botón "Nuevo Empleado" --------------------
-function btnNuevoEmpleado() {
-  return document.getElementById("btn-nuevo-empleado")
-    || document.querySelector('[data-action="nuevo-empleado"]')
-    || [...document.querySelectorAll("button,a,[role='button']")]
-      .find(el => /nuevo\s+empleado/i.test(el.textContent || ""));
+// -------------------- Cargar tabla --------------------
+export async function cargarTabla(page = 0, size = 20) {
+  try {
+    blockUI("Cargando empleados...");
+    const data = await getEmpleados(page, size); // ← ahora es SIEMPRE un array
+    EMP_CACHE = Array.isArray(data) ? data : [];
+    EMP_DATA  = [...EMP_CACHE];                  // ← para que los filtros usen datos reales
+    renderEmpleados(EMP_CACHE);
+    setupEmployeeFilters();
+    setupUserMenu();
+  } catch (e) {
+    console.error("Error cargando empleados:", e);
+    showToast("error", "No se pudo cargar empleados", e.message || "");
+  } finally {
+    unblockUI();
+  }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  cargarTabla();
-  const btn = btnNuevoEmpleado();
-  if (btn) btn.addEventListener("click", (e) => { e.preventDefault(); openCreateModal(); });
-});
 
+// -------------------- Modal Crear / Editar --------------------
 function ensureCreateModal() {
   let modal = document.getElementById("modal-create-employee");
   if (modal) return modal;
@@ -336,37 +497,29 @@ function ensureCreateModal() {
   `;
   document.body.appendChild(modal);
 
-  // -------- Cierre (overlay / X / Cancelar / Esc) --------
   const close = () => {
     modal.classList.add("hidden");
     document.body.classList.remove("overflow-hidden");
   };
 
-  // overlay
   modal.querySelector('[data-overlay="true"]').addEventListener("click", close);
-  // botón X (asegura cerrar aunque el clic sea sobre el <i>)
   const btnClose = modal.querySelector(".btn-close");
   btnClose.addEventListener("click", (e) => { e.preventDefault(); close(); });
 
-  // botón cancelar
   modal.addEventListener("click", (e) => {
     if (e.target.classList.contains("btn-cancel")) close();
   });
 
-  // tecla ESC
   document.addEventListener("keydown", (e) => {
     if (!modal.classList.contains("hidden") && e.key === "Escape") close();
   });
 
-  // Submit (create); para editar reusamos el mismo formulario pero
-  // interceptamos el submit en openEditUsingCreateModal(...)
   modal.querySelector("#form-create-employee").addEventListener("submit", onSubmitCreate);
 
   return modal;
 }
 
-
-// Limpia todos los campos del modal de "Nuevo empleado" sin tocar listeners ni cierres
+// Limpia campos del modal "Nuevo empleado"
 function resetCreateModalFields() {
   const modal = document.getElementById("modal-create-employee");
   if (!modal) return;
@@ -374,10 +527,8 @@ function resetCreateModalFields() {
   const form = modal.querySelector("#form-create-employee");
   if (!form) return;
 
-  // 1) reset general del formulario
   form.reset();
 
-  // 2) limpiar manualmente por si algún valor quedó seteado por JS
   const names = [
     "firstName","secondName","lastNameP","lastNameM",
     "birthDate","address","docNumber","username","email","hireDate"
@@ -386,40 +537,31 @@ function resetCreateModalFields() {
     if (form.elements[n]) form.elements[n].value = "";
   }
 
-  // 3) selects a primera opción visible (si ya están cargados)
   const selDoc = form.querySelector("#sel-tipo-doc");
   const selRol = form.querySelector("#sel-rol");
   if (selDoc && selDoc.options.length) selDoc.selectedIndex = 0;
   if (selRol && selRol.options.length) selRol.selectedIndex = 0;
 
-  // 4) texto de ayuda del documento
   const help = form.querySelector("#doc-help");
   if (help) help.textContent = "";
 
-  // 5) si usas título/botón en el header, los dejamos en modo "crear" (no afecta edición)
   const title = modal.querySelector(".border-b h3, #emp-modal-title");
   const btn   = form.querySelector('button[type="submit"]');
   if (title) title.textContent = "Nuevo empleado";
   if (btn)   btn.textContent   = "Guardar";
 }
 
-// Abre el modal de "Nuevo empleado" y lo garantiza VACÍO
+// Abre modal de crear (vacío)
 function openCreateModal() {
-  const modal = ensureCreateModal();     // tu función existente
-  resetCreateModalFields();              // ← aquí lo vaciamos SIEMPRE
+  const modal = ensureCreateModal();
+  resetCreateModalFields();
   modal.classList.remove("hidden");
   document.body.classList.add("overflow-hidden");
-
-  // re-inicializa combos/máscaras/límites (no modifica listeners de cierre/edición)
   initCreateForm();
-
-  // foco inicial
   setTimeout(() => modal.querySelector('input[name="firstName"]')?.focus(), 50);
 }
 
-
 // -------------------- Carga de combos + máscaras --------------------
-// Carga combos (Tipos de documento y Roles) + máscara/validación del número de doc
 async function initCreateForm() {
   const form = document.getElementById("form-create-employee");
   const selDoc = document.getElementById("sel-tipo-doc");
@@ -441,7 +583,6 @@ async function initCreateForm() {
       `<option value="${r.id}">${r.rol}</option>`
     ).join("");
 
-    // Máscara según el tipo de documento
     const applyMask = () => {
       const label = (selDoc.options[selDoc.selectedIndex]?.text || "").toUpperCase();
       inpDoc.value = "";
@@ -487,18 +628,14 @@ async function initCreateForm() {
     selDoc.onchange = applyMask;
     applyMask();
 
-    // === límites/validaciones de fechas ===
     const inpBirth = form?.querySelector('input[name="birthDate"]');
     const inpHire  = form?.querySelector('input[name="hireDate"]');
 
-    // nacimiento: debe ser mayor o igual a 18 años
     if (inpBirth) inpBirth.max = minusYearsYYYYMMDD(18);
 
-    // contratación: máximo = AHORA (no permite horas futuras de hoy)
     if (inpHire) {
-      const nowMax = nowLocalYYYYMMDDTHHMM(); // yyyy-MM-ddTHH:mm
+      const nowMax = nowLocalYYYYMMDDTHHMM();
       inpHire.max = nowMax;
-      // si el valor actual excede ahora, recórtalo
       if (inpHire.value && !isHireDateNotFuture(inpHire.value)) {
         inpHire.value = nowMax;
       }
@@ -511,7 +648,6 @@ async function initCreateForm() {
       }
     });
 
-    // valida contra AHORA (minuto actual)
     inpHire?.addEventListener("change", () => {
       if (!isHireDateNotFuture(inpHire.value)) {
         toast("warning", "Fecha inválida", "La contratación no puede ser futura.");
@@ -526,17 +662,12 @@ async function initCreateForm() {
   }
 }
 
-
-
-
-
-// -------------------- Submit: CREATE encadenado --------------------
 // -------------------- Submit: CREATE encadenado --------------------
 async function onSubmitCreate(e) {
   e.preventDefault();
   const form = e.currentTarget;
   const btn = form.querySelector('button[type="submit"]');
-  if (btn) btn.disabled = true; // evita doble submit
+  if (btn) btn.disabled = true;
 
   try {
     showBlock("Creando empleado...");
@@ -544,10 +675,8 @@ async function onSubmitCreate(e) {
     const fd = new FormData(form);
     const v = Object.fromEntries(fd.entries());
 
-    // 0) Password temporal
     const tempPass = `${(v.firstName || "").toLowerCase()}${(v.lastNameP || "").toLowerCase()}123`;
 
-    // 1) Documento Identidad
     const doc = await createDocumentoIdentidad({
       idTipoDocumento: Number(v.docTypeId),
       numeroDocumento: String(v.docNumber || "").trim(),
@@ -564,7 +693,6 @@ async function onSubmitCreate(e) {
       throw new Error("No se recibió IdDocumento de la API");
     }
 
-    // 2) Persona
     const personaPayload = {
       pnombre:   String(v.firstName || "").trim(),
       snombre:   String(v.secondName || "").trim(),
@@ -582,7 +710,6 @@ async function onSubmitCreate(e) {
       persona?.IdPersona;
     if (!idPersona) throw new Error("No se recibió IdPersona de la API");
 
-    // 3) Usuario
     const usuarioPayload = {
       nombreusuario: String(v.username || "").trim(),
       contrasenia:   String(tempPass),
@@ -597,7 +724,6 @@ async function onSubmitCreate(e) {
       usuario?.UsuarioId;
     if (!idUsuario) throw new Error("No se recibió UsuarioId de la API");
 
-    // 4) Empleado
     const hireLocal = String(v.hireDate || "").trim();
     const hireIso   = hireLocal && hireLocal.length === 16 ? `${hireLocal}:00` : hireLocal;
 
@@ -607,13 +733,12 @@ async function onSubmitCreate(e) {
       hireDate:  hireIso,
     });
 
-    // 5) Cerrar modal, refrescar y avisar
     const modal = document.getElementById("modal-create-employee");
     if (modal) {
       modal.classList.add("hidden");
       document.body.classList.remove("overflow-hidden");
     }
-    await cargarTabla(); // al recargar se ordena con los nuevos arriba
+    await cargarTabla();
 
     toast("success", "Empleado creado", `Usuario: ${v.username} • Contraseña temporal: ${tempPass}`);
   } catch (err) {
@@ -626,11 +751,6 @@ async function onSubmitCreate(e) {
   }
 }
 
-
-
-
-
-
 function genTempPassword() {
   const A = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%*?";
   let out = "";
@@ -638,23 +758,14 @@ function genTempPassword() {
   return out;
 }
 
-
-
-
-
-
-// ==================== EDITAR reusando el modal de CREATE ====================
 // ==================== EDITAR reusando el modal de CREATE ====================
 async function openEditUsingCreateModal(emp) {
-  // 1) Abre tu propio modal de create
   const modal = ensureCreateModal();
   modal.classList.remove("hidden");
   document.body.classList.add("overflow-hidden");
 
-  // 2) Asegura combos y máscaras (usa tu función existente)
   await initCreateForm();
 
-  // 3) Cambia título y botón
   const h3 = modal.querySelector("h3");
   const f = document.getElementById("form-create-employee");
   const btnSubmit = f.querySelector('button[type="submit"]');
@@ -662,7 +773,6 @@ async function openEditUsingCreateModal(emp) {
   if (h3) h3.textContent = "Editar empleado";
   if (btnSubmit) btnSubmit.textContent = "Actualizar";
 
-  // 4) Rellena campos
   f.elements.firstName.value  = emp.firstName   || "";
   f.elements.secondName.value = emp.secondName  || "";
   f.elements.lastNameP.value  = emp.lastNameP   || "";
@@ -677,26 +787,22 @@ async function openEditUsingCreateModal(emp) {
   const selRol = document.getElementById("sel-rol");
   const inpDoc = document.getElementById("inp-doc-num");
 
-  // Preselección DOC por texto visible
   if (selDoc && emp.docType) {
     const opt = [...selDoc.options].find(o => (o.text || "").toUpperCase() === String(emp.docType).toUpperCase());
     if (opt) selDoc.value = opt.value;
   }
   if (inpDoc) inpDoc.value = emp.docNumber || "";
 
-  // Preselección ROL por texto visible
   if (selRol && emp.role) {
     const optR = [...selRol.options].find(o => (o.text || "").toUpperCase() === String(emp.role).toUpperCase());
-    if (optR) selRol.value = optR.value; // id del rol en value
+    if (optR) selRol.value = optR.value;
   }
 
-  // 5) Intercepta el submit SOLO en este modo para llamar PUT y no el POST encadenado
   const onSubmitEditCapture = async (e) => {
     e.preventDefault();
     e.stopImmediatePropagation();
     e.stopPropagation();
 
-    // Validaciones duras antes del PUT
     if (!isBirthDateAdult(f.elements.birthDate.value)) {
       toast("error", "Fecha de nacimiento inválida", "La persona debe tener 18 años o más.");
       return;
@@ -707,23 +813,18 @@ async function openEditUsingCreateModal(emp) {
     }
 
     const payload = {
-      // Usuario
       username:  f.elements.username.value?.trim() || undefined,
       email:     f.elements.email.value?.trim()    || undefined,
-      // Persona
       firstName:  f.elements.firstName.value?.trim()  || undefined,
       secondName: f.elements.secondName.value?.trim() || undefined,
       lastNameP:  f.elements.lastNameP.value?.trim()  || undefined,
       lastNameM:  f.elements.lastNameM.value?.trim()  || undefined,
       address:    f.elements.address.value?.trim()    || undefined,
-      birthDate:  f.elements.birthDate.value || undefined,  // yyyy-MM-dd
-      // Documento
+      birthDate:  f.elements.birthDate.value || undefined,
       docType:   selDoc?.options[selDoc.selectedIndex]?.text || undefined,
       docNumber: inpDoc?.value?.trim() || undefined,
-      // Empleado
       hireDate:  (f.elements.hireDate.value && f.elements.hireDate.value.length === 16)
                   ? `${f.elements.hireDate.value}:00` : (f.elements.hireDate.value || undefined),
-      // Rol (si backend lo admite)
       rolId:     selRol ? Number(selRol.value) : undefined,
     };
 
@@ -741,7 +842,6 @@ async function openEditUsingCreateModal(emp) {
       toast("error", "No se pudo actualizar", friendly);
     } finally {
       hideBlock();
-      // Restaurar estado del modal para futuros "crear"
       f.removeEventListener("submit", onSubmitEditCapture, true);
       if (btnSubmit && oldBtnText) btnSubmit.textContent = oldBtnText;
       if (h3) h3.textContent = "Nuevo empleado";
@@ -750,8 +850,6 @@ async function openEditUsingCreateModal(emp) {
 
   f.addEventListener("submit", onSubmitEditCapture, { once: true, capture: true });
 }
-
-
 
 // ======================== TOASTS ========================
 function ensureToastContainer() {
@@ -845,39 +943,35 @@ function minusYearsYYYYMMDD(years) {
   d.setFullYear(d.getFullYear() - years);
   return formatDateYYYYMMDD(d);
 }
-function isBirthDateAdult(value /* yyyy-MM-dd */) {
+function isBirthDateAdult(value) {
   if (!value) return true;
   const d = new Date(value + "T00:00:00");
   const d18 = new Date();
   d18.setFullYear(d18.getFullYear() - 18);
   return d <= d18;
 }
-function isHireDateNotFuture(value /* yyyy-MM-ddTHH:mm */) {
+function isHireDateNotFuture(value) {
   if (!value) return true;
   const v = new Date(value.replace(" ", "T"));
   const now = new Date();
   return v <= now;
 }
 
-
+// Segundo DOMContentLoaded (tal como lo enviaste)
 document.addEventListener("DOMContentLoaded", () => {
   cargarTabla();
 
-  // botón "nuevo empleado" ya lo tienes...
   const btn = btnNuevoEmpleado();
   if (btn) btn.addEventListener("click", (e) => { e.preventDefault(); openCreateModal(); });
 
-  // Filtro por búsqueda (input superior)
   const search = document.getElementById("searchInput");
   if (search) search.addEventListener("input", () => applyFiltersAndRender());
 
-  // Filtro por rol (checkboxes del menú)
   document.addEventListener("change", (ev) => {
     const cb = ev.target.closest(".role-filter");
     if (!cb) return;
 
     if (cb.value === "all") {
-      // 'Todos los roles'
       if (cb.checked) {
         ROLE_FILTERS = new Set(["all"]);
         $$(".role-filter").forEach(x => { if (x.value !== "all") x.checked = false; });
@@ -885,7 +979,6 @@ document.addEventListener("DOMContentLoaded", () => {
         ROLE_FILTERS.delete("all");
       }
     } else {
-      // roles individuales
       const label = (cb.parentElement?.querySelector("span")?.textContent || cb.value || "").toUpperCase();
       if (cb.checked) {
         ROLE_FILTERS.delete("all");
@@ -979,267 +1072,12 @@ function confirmDialog({ title = "Confirmar", message = "¿Continuar?", okText =
     btnOk.addEventListener("click", onOk);
     btnCancel.addEventListener("click", onCancel);
     overlay.addEventListener("click", onCancel);
-    document.addEventListener("keydown", onKey);
 
     m.classList.remove("hidden");
   });
 }
 
-// ======= Estado local: cache de empleados para filtrar en cliente =======
-let EMP_CACHE = [];   // se llena en cargarTabla()
-let EMP_FILTER = { by: "all", term: "" };
-
-// ======= Render de filas con filtro aplicado =======
-function renderEmpleados(list) {
-  const body = document.getElementById("employees-tbody") || document.querySelector("tbody");
-  if (!body) return;
-  // orden: más nuevos arriba (asumo backend ya viene así; si no, invertimos por id)
-  const rows = list.map(rowEmpleado).join("");
-  body.innerHTML = rows;
-}
-
-// ======= Filtro en cliente según selector =======
-function applyEmployeeFilter() {
-  const by = EMP_FILTER.by;
-  const raw = (EMP_FILTER.term || "").trim().toLowerCase();
-
-  if (!raw || by === "all") {
-    renderEmpleados(EMP_CACHE);
-    return;
-  }
-
-  const norm = (v) => String(v ?? "").toLowerCase();
-  const onlyDigits = (v) => String(v ?? "").replace(/\D/g, "");
-
-  const out = EMP_CACHE.filter(e => {
-    switch (by) {
-      case "role":
-        return norm(e.role).includes(raw);
-      case "dui": {
-        // compara por dígitos, tolera que venga con o sin guion
-        const left = onlyDigits(e.docNumber);
-        const right = onlyDigits(raw);
-        return left.includes(right);
-      }
-      case "name":
-        return `${norm(e.firstName)} ${norm(e.secondName)} ${norm(e.lastNameP)} ${norm(e.lastNameM)}`.includes(raw);
-      case "lastname":
-        return `${norm(e.lastNameP)} ${norm(e.lastNameM)}`.includes(raw);
-      case "email":
-        return norm(e.email).includes(raw);
-      case "username":
-        return norm(e.username).includes(raw);
-      case "address":
-        return norm(e.address).includes(raw);
-      case "hireDate":
-        return norm(e.hireDate).includes(raw);
-      case "birthDate":
-        return norm(e.birthDate).includes(raw);
-      default:
-        return true;
-    }
-  });
-
-  renderEmpleados(out);
-}
-
-// ======= UI de filtros: select + comportamiento del input =======
-function setupEmployeeFilters() {
-  // Oculta el filtro viejo por rol
-  const oldBtn  = document.getElementById("roleBtn");
-  const oldMenu = document.getElementById("roleMenu");
-  if (oldBtn)  oldBtn.style.display  = "none";
-  if (oldMenu) oldMenu.style.display = "none";
-
-  const searchWrap  = document.querySelector(".mb-5 .flex-1") || document.querySelector(".mb-5 .relative");
-  const searchInput = document.getElementById("searchInput");
-  if (!searchWrap || !searchInput) return;
-
-  // Crea el <select> si no existe
-  let sel = document.getElementById("employee-filter-by");
-  if (!sel) {
-    sel = document.createElement("select");
-    sel.id = "employee-filter-by";
-    sel.className = "ml-3 border rounded-xl px-3 py-2 bg-white text-slate-700";
-    sel.innerHTML = `
-      <option value="all">Todos</option>
-      <option value="role">Rol</option>
-      <option value="dui">DUI</option>
-      <option value="name">Nombre</option>
-      <option value="lastname">Apellido</option>
-      <option value="email">Correo</option>
-      <option value="username">Usuario</option>
-      <option value="address">Dirección</option>
-      <option value="hireDate">Fecha de contratación</option>
-      <option value="birthDate">Fecha de nacimiento</option>
-    `;
-    searchWrap.parentElement.insertBefore(sel, searchWrap.nextSibling);
-  }
-
-  // Handlers únicos (para no pisar la máscara)
-  const onType = () => {
-    EMP_FILTER.term = searchInput.value;
-    applyEmployeeFilter();
-  };
-
-  // Asegura listeners una sola vez
-  searchInput.removeEventListener("input", searchInput.__onType__);
-  searchInput.__onType__ = onType;
-  searchInput.addEventListener("input", onType);
-
-  // DUI mask handler separado
-  const duiMask = () => {
-    let v = searchInput.value.replace(/\D/g, "").slice(0, 9);
-    if (v.length > 8) v = v.slice(0, 8) + "-" + v.slice(8);
-    if (searchInput.value !== v) {
-      const pos = searchInput.selectionStart;
-      searchInput.value = v;
-      // intenta mantener el cursor
-      if (pos !== null) searchInput.setSelectionRange(Math.min(pos, v.length), Math.min(pos, v.length));
-    }
-  };
-  searchInput.__duiMask__ = duiMask; // guarda ref
-
-  // set inicial
-  EMP_FILTER.by = sel.value;
-  updateSearchInputBehavior(searchInput, sel.value);
-
-  // cambio de modo
-  sel.onchange = () => {
-    EMP_FILTER.by = sel.value;
-    searchInput.value = "";
-    EMP_FILTER.term = "";
-    updateSearchInputBehavior(searchInput, sel.value);
-    applyEmployeeFilter();
-  };
-}
-
-// Cambia placeholder/tipo y activa/desactiva máscara DUI
-function updateSearchInputBehavior(inp, mode) {
-  // reset visual
-  inp.type = "text";
-  inp.placeholder = "Buscar empleados...";
-  inp.removeAttribute("pattern");
-  inp.removeAttribute("maxLength");
-
-  // quita máscara DUI si estuviera activa
-  if (inp.__duiMaskAttached__) {
-    inp.removeEventListener("input", inp.__duiMask__);
-    inp.__duiMaskAttached__ = false;
-  }
-
-  switch (mode) {
-    case "role":
-      inp.placeholder = "Filtrar por rol (ADMIN, MESERO, CAJERO...)";
-      break;
-    case "dui":
-      inp.placeholder = "DUI: ########-#";
-      inp.maxLength = 10;
-      inp.pattern = "^\\d{8}-\\d$";
-      // activa máscara SIN pisar el oninput del filtro
-      if (inp.__duiMask__ && !inp.__duiMaskAttached__) {
-        inp.addEventListener("input", inp.__duiMask__);
-        inp.__duiMaskAttached__ = true;
-      }
-      break;
-    case "name":
-      inp.placeholder = "Nombre o nombres";
-      break;
-    case "lastname":
-      inp.placeholder = "Apellido paterno/materno";
-      break;
-    case "email":
-      inp.type = "email";
-      inp.placeholder = "correo@dominio.com";
-      break;
-    case "username":
-      inp.placeholder = "Usuario (login)";
-      break;
-    case "address":
-      inp.placeholder = "Dirección";
-      break;
-    case "hireDate":
-      inp.type = "date";
-      inp.placeholder = "YYYY-MM-DD";
-      break;
-    case "birthDate":
-      inp.type = "date";
-      inp.placeholder = "YYYY-MM-DD";
-      break;
-    default:
-      inp.placeholder = "Buscar empleados...";
-  }
-}
-
-
-// ======= Menú de usuario (Admin) con Cerrar sesión =======
-function setupUserMenu() {
-  const btn = document.querySelector(".navbar-user-avatar");
-  if (!btn) return;
-
-  // crea o reutiliza menú fijo
-  let menu = document.getElementById("user-dropdown");
-  if (!menu) {
-    menu = document.createElement("div");
-    menu.id = "user-dropdown";
-    menu.className = "hidden fixed w-56 bg-white rounded-xl border border-slate-200 shadow-xl z-[10000]";
-    menu.innerHTML = `
-      <div class="px-4 py-3 border-b">
-        <div class="text-slate-700 font-medium">Mi cuenta</div>
-        <div class="text-xs text-slate-500" id="user-email"></div>
-      </div>
-      <button id="btn-logout"
-              class="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center gap-2">
-        <i class="fa-solid fa-right-from-bracket text-slate-600"></i>
-        <span>Cerrar sesión</span>
-      </button>
-    `;
-    document.body.appendChild(menu);
-  }
-
-  // rellena email si lo guardas en storage
-  const email = localStorage.getItem("userEmail") || "";
-  const elEmail = menu.querySelector("#user-email");
-  if (elEmail) elEmail.textContent = email;
-
-  const toggleMenu = () => {
-    const r = btn.getBoundingClientRect();
-    // posiciona a la derecha del botón
-    menu.style.top  = `${r.bottom + 8}px`;
-    menu.style.left = `${Math.max(8, r.right - 224)}px`; // 224 ≈ w-56
-    menu.classList.toggle("hidden");
-  };
-
-  const closeMenu = () => menu.classList.add("hidden");
-
-  btn.__menuBound__ && btn.removeEventListener("click", btn.__menuBound__);
-  btn.__menuBound__ = (e) => { e.preventDefault(); toggleMenu(); };
-  btn.addEventListener("click", btn.__menuBound__);
-
-  document.__menuCloser__ && document.removeEventListener("click", document.__menuCloser__);
-  document.__menuCloser__ = (e) => {
-    if (!menu.contains(e.target) && !btn.contains(e.target)) closeMenu();
-  };
-  document.addEventListener("click", document.__menuCloser__);
-
-  // logout
-  const logout = menu.querySelector("#btn-logout");
-  if (logout && !logout.__bound__) {
-    logout.__bound__ = true;
-    logout.addEventListener("click", async () => {
-      try {
-        blockUI("Cerrando sesión...");
-        localStorage.removeItem("token");
-        sessionStorage.clear();
-        window.location.href = "index.html";
-      } finally {
-        unblockUI();
-      }
-    });
-  }
-}
-
-// ======= Mejora visual de <select> (ligero) =======
+// ===== Mejora visual de <select> (opcional en tu flujo)
 function enhanceSelect(nativeSelect) {
   if (!nativeSelect || nativeSelect.__enhanced__) return;
   nativeSelect.__enhanced__ = true;
@@ -1301,7 +1139,6 @@ function enhanceSelect(nativeSelect) {
   input.addEventListener("input", renderList);
 }
 
-// Aplica el enhancer a los selects que te interesan (llámalo después de crear los selects)
 function enhanceEmployeePageSelects() {
   const s1 = document.getElementById("employee-filter-by");
   if (s1) enhanceSelect(s1);
@@ -1313,12 +1150,73 @@ function enhanceEmployeePageSelects() {
   if (s3) enhanceSelect(s3);
 }
 
-
-// ===== Toast simple (conecta a tu sistema si ya tienes uno)
 function showToast(kind = "success", title = "", msg = "") {
-  // Reemplaza por tu sistema de notificaciones si lo tienes
   console[kind === "error" ? "error" : "log"](`${title}${msg ? " – " + msg : ""}`);
 }
 
+// ======= Menú de usuario (Admin) con Cerrar sesión =======
+function setupUserMenu() {
+  const btn = document.querySelector(".navbar-user-avatar");
+  if (!btn) return; // si no existe el botón/avatar, no hacemos nada
 
+  // crea o reutiliza el menú
+  let menu = document.getElementById("user-dropdown");
+  if (!menu) {
+    menu = document.createElement("div");
+    menu.id = "user-dropdown";
+    menu.className = "hidden fixed w-56 bg-white rounded-xl border border-slate-200 shadow-xl z-[10000]";
+    menu.innerHTML = `
+      <div class="px-4 py-3 border-b">
+        <div class="text-slate-700 font-medium">Mi cuenta</div>
+        <div class="text-xs text-slate-500" id="user-email"></div>
+      </div>
+      <button id="btn-logout"
+              class="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center gap-2">
+        <i class="fa-solid fa-right-from-bracket text-slate-600"></i>
+        <span>Cerrar sesión</span>
+      </button>
+    `;
+    document.body.appendChild(menu);
+  }
 
+  // pinta email (si lo guardas en storage)
+  const email = localStorage.getItem("userEmail") || "";
+  const elEmail = menu.querySelector("#user-email");
+  if (elEmail) elEmail.textContent = email;
+
+  // abrir/cerrar menú anclado al avatar
+  const toggleMenu = () => {
+    const r = btn.getBoundingClientRect();
+    menu.style.top  = `${r.bottom + 8}px`;
+    menu.style.left = `${Math.max(8, r.right - 224)}px`; // 224px ≈ w-56
+    menu.classList.toggle("hidden");
+  };
+  const closeMenu = () => menu.classList.add("hidden");
+
+  // bind único
+  btn.__menuBound__ && btn.removeEventListener("click", btn.__menuBound__);
+  btn.__menuBound__ = (e) => { e.preventDefault(); toggleMenu(); };
+  btn.addEventListener("click", btn.__menuBound__);
+
+  document.__menuCloser__ && document.removeEventListener("click", document.__menuCloser__);
+  document.__menuCloser__ = (e) => {
+    if (!menu.contains(e.target) && !btn.contains(e.target)) closeMenu();
+  };
+  document.addEventListener("click", document.__menuCloser__);
+
+  // logout
+  const logout = menu.querySelector("#btn-logout");
+  if (logout && !logout.__bound__) {
+    logout.__bound__ = true;
+    logout.addEventListener("click", async () => {
+      try {
+        blockUI("Cerrando sesión...");
+        localStorage.removeItem("token");
+        sessionStorage.clear();
+        window.location.href = "index.html";
+      } finally {
+        unblockUI();
+      }
+    });
+  }
+}
