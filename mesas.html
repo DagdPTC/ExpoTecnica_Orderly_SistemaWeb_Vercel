@@ -2,428 +2,333 @@
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orderly - Sistema de Gestión de Restaurante</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/mesas.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Orderly - Sistema de Gestión de Restaurante</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="css/mesas.css"/>
 </head>
 
-
 <body class="bg-gray-50 font-sans overflow-x-hidden">
-    <div class="mobile-overlay" id="mobileOverlay"></div>
+  <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <div class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
-        <div class="logo-container animate-fade-in">
-            <div class="flex items-center justify-center">
-                <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
-                    <img src= "img/Logo Orderly.jpg" alt="Logo Orderly"
-                        class="logo w-10 h-10">
-                </div>
-                <span class="logo-text ml-3 text-xl font-bold text-white">Orderly</span>
-            </div>
+  <!-- Sidebar -->
+  <div class="sidebar fixed h-full flex flex-col z-50" id="sidebar">
+    <div class="logo-container animate-fade-in">
+      <div class="flex items-center justify-center">
+        <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
+          <img src="img/Logo Orderly.jpg" alt="Logo Orderly" class="logo w-10 h-10"/>
         </div>
-
-        <div class="flex-1 overflow-y-auto px-4">
-            <div class="section-title">MAIN</div>
-            <a href="index.html" class="nav-item flex items-center p-3 rounded-xl mb-2 text-white hover:text-white">
-                <i class="fas fa-tachometer-alt w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Inicio</span>
-            </a>
-
-            <div class="section-title">OPERATIONS</div>
-            <a href="mesas.html"
-                class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2 active bg-gradient-to-r from-blue-500 to-blue-600">
-                <i class="fas fa-chair w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Mesas</span>
-            </a>
-            <a href="menu.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-                <i class="fas fa-book w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Menú</span>
-            </a>
-            <a href="reservas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-                <i class="fas fa-calendar-check w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Reservaciones</span>
-            </a>
-
-            <div class="section-title">MANAGEMENT</div>
-            <a href="empleados.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-                <i class="fas fa-users w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Empleados</span>
-            </a>
-            <a href="facturas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-                <i class="fas fa-file-invoice-dollar w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Facturas</span>
-            </a>
-
-            <div class="section-title">REPORTS</div>
-            <a href="ofertas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-                <i class="fas fa-chart-line w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Ofertas</span>
-            </a>
-            <a href="historial.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
-                <i class="fas fa-history w-6 text-center text-lg"></i>
-                <span class="nav-text ml-3 font-medium">Historial</span>
-            </a>
-        </div>
-
-        <div class="p-4 border-t border-white/20">
-            <div class="flex items-center glass-effect rounded-xl p-3">
-                <div class="user-info-icon w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                    <i class="fas fa-user text-white"></i>
-                </div>
-                <div class="user-info-text ml-3">
-                    <div class="text-sm font-semibold text-white">Admin User</div>
-                    <div class="text-xs text-white/70">Administrator</div>
-                </div>
-            </div>
-        </div>
+        <span class="logo-text ml-3 text-xl font-bold text-white">Orderly</span>
+      </div>
     </div>
 
-    <div class="main-content flex flex-col min-h-screen">
-        <header class="main-header flex items-center justify-between px-6 animate-fade-in">
-            <div class="flex items-center">
-                <button id="sidebarToggle"
-                    class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
-                    <i class="fas fa-bars text-lg"></i>
-                </button>
-                <button id="sidebarToggleDesktop"
-                    class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
-                    <i class="fas fa-bars text-lg"></i>
-                </button>
-                <h1 class="text-2xl font-bold text-gray-800">Gestión de Mesas</h1>
-            </div>
+    <div class="flex-1 overflow-y-auto px-4">
+      <div class="section-title">MAIN</div>
+      <a href="index.html" class="nav-item flex items-center p-3 rounded-xl mb-2 text-white hover:text-white">
+        <i class="fas fa-tachometer-alt w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Inicio</span>
+      </a>
 
-            <div class="flex items-center space-x-4">
-                <div class="relative">
-                    <button
-                        class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
-                        <i class="fas fa-bell text-lg"></i>
-                        <span class="notification-badge">3</span>
-                    </button>
-                </div>
-                <div class="relative">
-                    <button
-                        class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
-                        <i class="fas fa-envelope text-lg"></i>
-                        <span class="notification-badge bg-blue-500">5</span>
-                    </button>
-                </div>
-                <div class="relative">
-                    <button
-                        class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
-                        <div
-                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
-                        <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
-                    </button>
-                </div>
-            </div>
-        </header>
+      <div class="section-title">OPERATIONS</div>
+      <a href="mesas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2 active bg-gradient-to-r from-blue-500 to-blue-600">
+        <i class="fas fa-chair w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Mesas</span>
+      </a>
+      <a href="menu.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-book w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Menú</span>
+      </a>
+      <a href="reservas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-calendar-check w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Reservaciones</span>
+      </a>
 
-        <main class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
-            <div class="mb-8 animate-fade-in">
-                <div class="flex flex-wrap gap-3">
-                    <button onclick="filterTables('all')"
-                        class="btn-modern px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl font-medium shadow-lg active-filter">
-                        <i class="fas fa-th mr-2"></i>
-                        Todas las mesas
-                    </button>
-                    <button onclick="filterTables('libre')"
-                        class="btn-modern px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-medium shadow-lg">
-                        <i class="fas fa-check-circle mr-2"></i>
-                        Disponibles
-                    </button>
-                    <button onclick="filterTables('ocupada')"
-                        class="btn-modern px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-medium shadow-lg">
-                        <i class="fas fa-users mr-2"></i>
-                        Ocupadas
-                    </button>
-                    <button onclick="filterTables('reservada')"
-                        class="btn-modern px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium shadow-lg">
-                        <i class="fas fa-bookmark mr-2"></i>
-                        Reservadas
-                    </button>
-                    <button onclick="filterTables('limpieza')"
-                        class="btn-modern px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium shadow-lg">
-                        <i class="fas fa-broom mr-2"></i>
-                        En limpieza
-                    </button>
-                </div>
-            </div>
+      <div class="section-title">MANAGEMENT</div>
+      <a href="empleados.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-users w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Empleados</span>
+      </a>
+      <a href="facturas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-file-invoice-dollar w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Facturas</span>
+      </a>
 
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fade-in">
-                <div class="counter stat-card p-6 hover-lift">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm font-medium mb-1">Disponibles</p>
-                            <h3 class="text-3xl font-bold text-emerald-600" id="count-libre">0</h3>
-                        </div>
-                        <div class="stat-icon w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-check-circle text-emerald-600 text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <div class="flex items-center">
-                            <div class="w-3 h-3 bg-emerald-500 rounded-full mr-2"></div>
-                            <span class="text-xs text-gray-500">Listas para usar</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="counter stat-card p-6 hover-lift">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm font-medium mb-1">Ocupadas</p>
-                            <h3 class="text-3xl font-bold text-red-600" id="count-ocupada">0</h3>
-                        </div>
-                        <div class="stat-icon w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-users text-red-600 text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <div class="flex items-center">
-                            <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                            <span class="text-xs text-gray-500">Con clientes</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="counter stat-card p-6 hover-lift">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm font-medium mb-1">Reservadas</p>
-                            <h3 class="text-3xl font-bold text-blue-600" id="count-reservada">0</h3>
-                        </div>
-                        <div class="stat-icon w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-bookmark text-blue-600 text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <div class="flex items-center">
-                            <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                            <span class="text-xs text-gray-500">Apartadas</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="counter stat-card p-6 hover-lift">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm font-medium mb-1">En limpieza</p>
-                            <h3 class="text-3xl font-bold text-amber-600" id="count-limpieza">0</h3>
-                        </div>
-                        <div class="stat-icon w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-broom text-amber-600 text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <div class="flex items-center">
-                            <div class="w-3 h-3 bg-amber-500 rounded-full mr-2"></div>
-                            <span class="text-xs text-gray-500">Mantenimiento</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="mesas-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            </div>
-
-            <div id="empty-state" class="hidden col-span-full text-center py-16">
-                <div class="mx-auto w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                    <i class="fas fa-search text-3xl text-slate-400"></i>
-                </div>
-                <h3 class="text-xl font-semibold text-slate-600 mb-2">No se encontraron mesas</h3>
-                <p class="text-slate-500">Prueba con un filtro diferente o agrega nuevas mesas</p>
-            </div>
-        </main>
+      <div class="section-title">REPORTS</div>
+      <a href="ofertas.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-chart-line w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Ofertas</span>
+      </a>
+      <a href="historial.html" class="nav-item flex items-center p-3 rounded-xl text-white hover:text-white mb-2">
+        <i class="fas fa-history w-6 text-center text-lg"></i>
+        <span class="nav-text ml-3 font-medium">Historial</span>
+      </a>
     </div>
 
-    <div class="fab">
-        <button id="fab-main" class="fab-main flex items-center justify-center text-white focus:outline-none">
-            <i class="fas fa-plus text-xl"></i>
+    <div class="p-4 border-t border-white/20">
+      <div class="flex items-center glass-effect rounded-xl p-3">
+        <div class="user-info-icon w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+          <i class="fas fa-user text-white"></i>
+        </div>
+        <div class="user-info-text ml-3">
+          <div class="text-sm font-semibold text-white">Admin User</div>
+          <div class="text-xs text-white/70">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content flex flex-col min-h-screen">
+    <header class="main-header flex items-center justify-between px-6 animate-fade-in">
+      <div class="flex items-center">
+        <button id="sidebarToggle" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors lg:hidden">
+          <i class="fas fa-bars text-lg"></i>
         </button>
+        <button id="sidebarToggleDesktop" class="text-gray-700 focus:outline-none mr-4 p-2 rounded-xl hover:bg-gray-100 transition-colors hidden lg:block">
+          <i class="fas fa-bars text-lg"></i>
+        </button>
+        <h1 class="text-2xl font-bold text-gray-800">Gestión de Mesas</h1>
+      </div>
 
-        <div id="fab-menu" class="absolute bottom-16 right-0 space-y-3 hidden">
-            <button id="add-btn"
-                class="fab-option flex items-center bg-emerald-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-emerald-600 transition-all transform hover:scale-105">
-                <i class="fas fa-plus mr-2"></i>
-                <span class="font-medium">Agregar Mesa</span>
-            </button>
-            <button id="edit-btn"
-                class="fab-option flex items-center bg-amber-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-amber-600 transition-all transform hover:scale-105">
-                <i class="fas fa-edit mr-2"></i>
-                <span class="font-medium">Editar Mesa</span>
-            </button>
-            <button id="delete-btn"
-                class="fab-option flex items-center bg-red-500 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-red-600 transition-all transform hover:scale-105">
-                <i class="fas fa-trash mr-2"></i>
-                <span class="font-medium">Eliminar Mesa</span>
-            </button>
+      <div class="flex items-center space-x-4">
+        <div class="relative">
+          <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <i class="fas fa-bell text-lg"></i>
+            <span class="notification-badge">3</span>
+          </button>
         </div>
-    </div>
-
-    <div id="add-modal" class="modal fixed inset-0 z-50 hidden">
-        <div class="flex items-center justify-center min-h-screen px-4">
-            <div class="modal-content w-full max-w-md p-8">
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-plus text-2xl text-emerald-600"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-slate-800">Nueva Mesa</h2>
-                    <p class="text-slate-500 mt-2">Agrega una nueva mesa al restaurante</p>
-                </div>
-
-                <form class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Número de Mesa</label>
-                        <input id="add-numero" type="number" min="1" max="99"
-                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                            placeholder="Ej: 15">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Capacidad</label>
-                        <input id="add-capacidad" type="number" min="1" max="20"
-                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                            placeholder="Ej: 4 personas">
-                    </div>
-
-                    <div id="add-message" class="text-center text-sm"></div>
-                </form>
-
-                <div class="flex space-x-4 mt-8">
-                    <button onclick="closeAdd()"
-                        class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
-                        Cancelar
-                    </button>
-                    <button onclick="addMesa()"
-                        class="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all font-medium shadow-lg">
-                        Crear Mesa
-                    </button>
-                </div>
+        <div class="relative">
+          <button class="text-gray-600 hover:text-gray-800 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <i class="fas fa-envelope text-lg"></i>
+            <span class="notification-badge bg-blue-500">5</span>
+          </button>
+        </div>
+        <div class="relative">
+          <button class="flex items-center focus:outline-none navbar-user-avatar p-2 rounded-xl hover:bg-gray-100 transition-colors">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+              <i class="fas fa-user"></i>
             </div>
+            <span class="ml-2 text-gray-700 hidden md:inline font-medium">Admin</span>
+            <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
+          </button>
         </div>
-    </div>
+      </div>
+    </header>
 
-    <div id="update-modal-step1" class="modal fixed inset-0 z-50 hidden">
-        <div class="flex items-center justify-center min-h-screen px-4">
-            <div class="modal-content w-full max-w-md p-8">
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-search text-2xl text-amber-600"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-slate-800">Buscar Mesa</h2>
-                    <p class="text-slate-500 mt-2">Ingresa el número de la mesa a editar</p>
-                </div>
+    <main class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100">
+      <!-- Filtros y buscador -->
+      <div class="mb-6 animate-fade-in">
+        <div class="flex flex-wrap items-center gap-3">
+          <button onclick="filterTables('all', event)" class="btn-modern px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl font-medium shadow-lg active-filter">
+            <i class="fas fa-th mr-2"></i> Todas las mesas
+          </button>
+          <button onclick="filterTables('libre', event)" class="btn-modern px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-medium shadow-lg">
+            <i class="fas fa-check-circle mr-2"></i> Disponibles
+          </button>
+          <button onclick="filterTables('ocupada', event)" class="btn-modern px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-medium shadow-lg">
+            <i class="fas fa-users mr-2"></i> Ocupadas
+          </button>
+          <button onclick="filterTables('reservada', event)" class="btn-modern px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium shadow-lg">
+            <i class="fas fa-bookmark mr-2"></i> Reservadas
+          </button>
+          <button onclick="filterTables('limpieza', event)" class="btn-modern px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium shadow-lg">
+            <i class="fas fa-broom mr-2"></i> En limpieza
+          </button>
 
-                <form class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Número de Mesa</label>
-                        <input id="update-search-numero" type="number" min="1" max="99"
-                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-                            placeholder="Buscar mesa...">
-                    </div>
-
-                    <div id="update-message-step1" class="text-center text-sm"></div>
-                </form>
-
-                <div class="flex space-x-4 mt-8">
-                    <button onclick="closeUpdate()"
-                        class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
-                        Cancelar
-                    </button>
-                    <button onclick="nextUpdate()"
-                        class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-medium shadow-lg">
-                        Buscar Mesa
-                    </button>
-                </div>
+          <div class="ml-auto w-full sm:w-72">
+            <label for="search-mesa" class="sr-only">Buscar mesa</label>
+            <div class="relative">
+              <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+              <input id="search-mesa" type="text" placeholder="Buscar por nombre..." class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"/>
             </div>
+          </div>
+
+          <button id="add-btn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow">
+            <i class="fa fa-plus mr-2"></i> Nueva mesa
+          </button>
         </div>
-    </div>
+      </div>
 
-    <div id="update-modal-step2" class="modal fixed inset-0 z-50 hidden">
-        <div class="flex items-center justify-center min-h-screen px-4">
-            <div class="modal-content w-full max-w-md p-8">
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-edit text-2xl text-amber-600"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-slate-800">Editar Mesa</h2>
-                    <p class="text-slate-500 mt-2">Modifica los datos de la mesa</p>
-                </div>
-
-                <form class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Número de Mesa</label>
-                        <input id="update-numero" type="number" min="1" max="99"
-                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Capacidad</label>
-                        <input id="update-capacidad" type="number" min="1" max="20"
-                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all">
-                    </div>
-
-                    <div id="update-message-step2" class="text-center text-sm"></div>
-                </form>
-
-                <div class="flex space-x-4 mt-8">
-                    <button onclick="closeUpdate()"
-                        class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
-                        Cancelar
-                    </button>
-                    <button onclick="updateMesa()"
-                        class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-medium shadow-lg">
-                        Actualizar
-                    </button>
-                </div>
+      <!-- Contadores -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6 animate-fade-in">
+        <div class="counter stat-card p-6 hover-lift">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm font-medium mb-1">Disponibles</p>
+              <h3 class="text-3xl font-bold text-emerald-600" id="count-libre">0</h3>
             </div>
-        </div>
-    </div>
-
-    <div id="delete-modal" class="modal fixed inset-0 z-50 hidden">
-        <div class="flex items-center justify-center min-h-screen px-4">
-            <div class="modal-content w-full max-w-md p-8">
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-trash text-2xl text-red-600"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-slate-800">Eliminar Mesa</h2>
-                    <p class="text-slate-500 mt-2">Esta acción no se puede deshacer</p>
-                </div>
-
-                <form class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Número de Mesa</label>
-                        <input id="delete-numero" type="number" min="1" max="99"
-                            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-                            placeholder="Mesa a eliminar">
-                    </div>
-
-                    <div id="delete-message" class="text-center text-sm"></div>
-                </form>
-
-                <div class="flex space-x-4 mt-8">
-                    <button onclick="closeDelete()"
-                        class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">
-                        Cancelar
-                    </button>
-                    <button onclick="deleteMesa()"
-                        class="flex-1 py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all font-medium shadow-lg">
-                        Eliminar Mesa
-                    </button>
-                </div>
+            <div class="stat-icon w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+              <i class="fas fa-check-circle text-emerald-600 text-xl"></i>
             </div>
+          </div>
         </div>
-    </div>
 
-    <script type="module" src="js/jsControllers/ControllerMesas.js"></script>
-    <script src="js/mesas.js"></script>
+        <div class="counter stat-card p-6 hover-lift">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm font-medium mb-1">Ocupadas</p>
+              <h3 class="text-3xl font-bold text-red-600" id="count-ocupada">0</h3>
+            </div>
+            <div class="stat-icon w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+              <i class="fas fa-users text-red-600 text-xl"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="counter stat-card p-6 hover-lift">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm font-medium mb-1">Reservadas</p>
+              <h3 class="text-3xl font-bold text-blue-600" id="count-reservada">0</h3>
+            </div>
+            <div class="stat-icon w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <i class="fas fa-bookmark text-blue-600 text-xl"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="counter stat-card p-6 hover-lift">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm font-medium mb-1">En limpieza</p>
+              <h3 class="text-3xl font-bold text-amber-600" id="count-limpieza">0</h3>
+            </div>
+            <div class="stat-icon w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+              <i class="fas fa-broom text-amber-600 text-xl"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjetas -->
+      <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+
+      <div id="empty-state" class="hidden col-span-full text-center py-16">
+        <div class="mx-auto w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+          <i class="fas fa-search text-3xl text-slate-400"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-slate-600 mb-2">No se encontraron mesas</h3>
+        <p class="text-slate-500">Prueba con otro filtro o término de búsqueda</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODALES -->
+  <!-- Agregar -->
+  <div id="add-modal" class="modal fixed inset-0 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="modal-content w-full max-w-md p-0">
+        <div class="p-8 max-h-[85vh] overflow-y-auto">
+          <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-plus text-2xl text-emerald-600"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800">Nueva Mesa</h2>
+            <p class="text-slate-500 mt-1">Se creará automáticamente en estado Libre</p>
+          </div>
+
+          <form class="space-y-6">
+            <div>
+              <label for="add-nombre" class="block text-sm font-semibold text-slate-700 mb-2">Nombre de la mesa</label>
+              <input id="add-nombre" type="text" maxlength="100" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all" placeholder="Ej: Mesa 12"/>
+            </div>
+
+            <div>
+              <label for="add-tipoMesa" class="block text-sm font-semibold text-slate-700 mb-2">Tipo de mesa</label>
+              <select id="add-tipoMesa" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"></select>
+            </div>
+
+            <div>
+              <label for="add-estadoMesa" class="block text-sm font-semibold text-slate-700 mb-2">Estado</label>
+              <select id="add-estadoMesa" class="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-500" disabled></select>
+              <p class="text-xs text-slate-400 mt-1">Siempre Libre al crear</p>
+            </div>
+
+            <div id="add-message" class="text-center text-sm"></div>
+          </form>
+        </div>
+
+        <div class="px-8 pb-6 flex gap-4">
+          <button onclick="closeAdd()" class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">Cancelar</button>
+          <button onclick="addMesa()" class="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all font-medium shadow-lg">Crear Mesa</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editar -->
+  <div id="update-modal" class="modal fixed inset-0 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="modal-content w-full max-w-md p-0">
+        <div class="p-8 max-h-[85vh] overflow-y-auto">
+          <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-edit text-2xl text-amber-600"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800">Editar Mesa</h2>
+          </div>
+
+          <form class="space-y-6">
+            <div>
+              <label for="update-nombre" class="block text-sm font-semibold text-slate-700 mb-2">Nombre de la mesa</label>
+              <input id="update-nombre" type="text" maxlength="100" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"/>
+            </div>
+
+            <div>
+              <label for="update-tipoMesa" class="block text-sm font-semibold text-slate-700 mb-2">Tipo de mesa</label>
+              <select id="update-tipoMesa" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"></select>
+            </div>
+
+            <div>
+              <label for="update-estadoMesa" class="block text-sm font-semibold text-slate-700 mb-2">Estado</label>
+              <select id="update-estadoMesa" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"></select>
+            </div>
+
+            <div id="update-message" class="text-center text-sm"></div>
+          </form>
+        </div>
+
+        <div class="px-8 pb-6 flex gap-4">
+          <button onclick="closeUpdate()" class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">Cancelar</button>
+          <button onclick="updateMesa()" class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-medium shadow-lg">Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Eliminar -->
+  <div id="delete-modal" class="modal fixed inset-0 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="modal-content w-full max-w-md p-0">
+        <div class="p-8">
+          <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-trash text-2xl text-red-600"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800">Eliminar Mesa</h2>
+            <p class="text-slate-500 mt-1">Esta acción no se puede deshacer</p>
+          </div>
+
+          <form class="space-y-6">
+            <div>
+              <label for="delete-id" class="block text-sm font-semibold text-slate-700 mb-2">ID de la mesa</label>
+              <input id="delete-id" type="number" min="1" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="Ej: 25"/>
+            </div>
+            <div id="delete-message" class="text-center text-sm"></div>
+          </form>
+        </div>
+
+        <div class="px-8 pb-6 flex gap-4">
+          <button onclick="closeDelete()" class="flex-1 py-3 px-4 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all font-medium">Cancelar</button>
+          <button onclick="deleteMesa()" class="flex-1 py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all font-medium shadow-lg">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="js/jsControllers/ControllerMesas.js"></script>
 </body>
-
 </html>

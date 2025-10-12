@@ -1,6 +1,14 @@
 // ==========================
-// ServiceMesas.js (API layer)
+// ServiceMesas.js
 // ==========================
+
+export class ApiError extends Error {
+  constructor(status, message, details = null) {
+    super(message || `HTTP ${status}`);
+    this.status = status;
+    this.details = details;
+  }
+}
 
 const API_BASE = "https://orderly-api-b53514e40ebd.herokuapp.com";
 
@@ -14,6 +22,9 @@ const ENDPOINTS = {
   estadosMesa: {
     list: `${API_BASE}/apiEstadoMesa/getDataEstadoMesa`,
   },
+  tiposMesa: {
+    list: `${API_BASE}/apiTipoMesa/getDataTipoMesa`,
+  },
 };
 
 function baseHeaders() {
@@ -21,21 +32,40 @@ function baseHeaders() {
 }
 
 async function parseResponse(resp) {
-  if (!resp.ok) {
-    let msg = `Error ${resp.status}`;
-    try {
-      const j = await resp.json();
-      if (j?.message) msg = j.message;
-    } catch (_) {}
-    throw new Error(msg);
+  let text = "";
+  try { text = await resp.text(); } catch (_) {}
+  let data = null;
+  if (text) {
+    try { data = JSON.parse(text); } catch { data = text; }
   }
-  const text = await resp.text();
-  return text ? JSON.parse(text) : null;
+
+  if (!resp.ok) {
+    let message = `Error ${resp.status}`;
+    let details = null;
+    if (data && typeof data === "object") {
+      message = data.message || data.error || message;
+      details = data.errors || data.details || null;
+    }
+    if (resp.status === 401) message = "No autorizado - Token requerido";
+    if (resp.status === 403) message = "Prohibido - Sin permisos";
+    throw new ApiError(resp.status, message, details);
+  }
+
+  return data;
 }
 
 const ServiceMesas = {
   async getEstadosMesa() {
     const r = await fetch(ENDPOINTS.estadosMesa.list, {
+      method: "GET",
+      headers: baseHeaders(),
+      credentials: "include",
+    });
+    return parseResponse(r);
+  },
+
+  async getTiposMesa() {
+    const r = await fetch(ENDPOINTS.tiposMesa.list, {
       method: "GET",
       headers: baseHeaders(),
       credentials: "include",
