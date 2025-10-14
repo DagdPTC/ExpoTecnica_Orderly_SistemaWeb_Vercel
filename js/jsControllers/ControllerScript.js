@@ -13,7 +13,7 @@ const API_BASE = (() => {
 })();
 const ME_ENDPOINT = `${API_BASE}/api/auth/me`;
 const LOGOUT_ENDPOINT = `${API_BASE}/api/auth/logout`;
-const LOGIN_PAGE = "inicioSesion.html";
+const LOGIN_PAGE = "index.html";
 
 // Intenta inyectar la base al Service (si lo soporta)
 try {
@@ -502,11 +502,11 @@ function renderPedidos(containerSel, page, topN) {
   container.innerHTML = "";
 
   // Si no hay sesión, mostramos CTA y salimos
-  if (!IS_AUTH) {
+  if (IS_AUTH) {
     container.innerHTML = `
       <div class="text-gray-500">
         Inicia sesión para ver los pedidos.
-        <a href="inicioSesion.html" class="text-blue-600 underline ml-1">Ir a iniciar sesión</a>
+        <a href="index.html" class="text-blue-600 underline ml-1">Ir a iniciar sesión</a>
       </div>`;
     return;
   }
