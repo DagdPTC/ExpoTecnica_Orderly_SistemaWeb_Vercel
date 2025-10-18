@@ -106,12 +106,17 @@ export async function getPlatillos(page = 0, size = 50) {
 
 /* ===================== UPDATE ESTADO ===================== */
 export async function setEstadoPedido(idPedido, nuevoIdEstado) {
+  const pedido = await getPedidoById(idPedido);
+
+  pedido.idEstadoPedido = nuevoIdEstado;
+
   const url = `${API_HOST}/apiPedido/modificarPedido/${encodeURIComponent(idPedido)}`;
   const res = await authFetch(url, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ idEstadoPedido: nuevoIdEstado }),
+    body: JSON.stringify(pedido),
   });
+
   if (!res.ok) await throwJsonError(res);
   return await res.json();
 }
