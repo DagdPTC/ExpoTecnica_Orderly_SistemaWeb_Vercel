@@ -367,7 +367,7 @@ function bindAdminMenu() {
   logoutBtn?.addEventListener("click", () => {
     localStorage.clear();
     sessionStorage.clear();
-    window.location.href = "login.html";
+    window.location.href = "index.html";
   });
 }
 
