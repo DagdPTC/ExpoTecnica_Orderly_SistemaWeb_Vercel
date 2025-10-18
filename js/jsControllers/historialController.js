@@ -176,16 +176,26 @@ function renderTabla() {
 }
 
 /* ====================== cambio estado ====================== */
+let currentSelector = null; // 🔹 Guarda el selector abierto actualmente
+
 function openEstadoSelector(anchorEl, idPedido, currentEstado) {
+  // Si ya hay un selector abierto, ciérralo antes de abrir otro
+  if (currentSelector && document.body.contains(currentSelector)) {
+    currentSelector.remove();
+  }
+
   const wrapper = document.createElement("div");
   wrapper.className =
     "absolute z-[10000] bg-white border rounded-lg shadow-lg p-2";
+
   const rect = anchorEl.getBoundingClientRect();
   wrapper.style.top = `${window.scrollY + rect.bottom + 6}px`;
   wrapper.style.left = `${window.scrollX + rect.left}px`;
 
   const select = document.createElement("select");
   select.className = "text-sm px-2 py-1 border rounded";
+
+  // Crear las opciones del select con el estado actual actualizado
   for (const [id, nombre] of Array.from(MAP_ESTADOS.entries())) {
     const opt = document.createElement("option");
     opt.value = id;
@@ -197,6 +207,7 @@ function openEstadoSelector(anchorEl, idPedido, currentEstado) {
   const btnOk = document.createElement("button");
   btnOk.className = "px-3 py-1 rounded bg-blue-600 text-white text-xs";
   btnOk.textContent = "Cambiar";
+
   const btnCancel = document.createElement("button");
   btnCancel.className =
     "px-3 py-1 rounded bg-gray-100 text-gray-700 text-xs ml-2";
@@ -205,28 +216,46 @@ function openEstadoSelector(anchorEl, idPedido, currentEstado) {
   wrapper.append(select, btnOk, btnCancel);
   document.body.appendChild(wrapper);
 
+  currentSelector = wrapper; // 🔹 Guardar el selector actual
+
   const cleanup = () => {
     if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+    currentSelector = null;
   };
+
   btnCancel.addEventListener("click", cleanup);
 
   btnOk.addEventListener("click", async () => {
     const nuevo = Number(select.value);
-    if (!nuevo || nuevo === currentEstado) return cleanup();
+    if (!nuevo) return cleanup();
+
     try {
       anchorEl.textContent = "Actualizando…";
       await setEstadoPedido(idPedido, nuevo);
+
       const nuevoNom = MAP_ESTADOS.get(nuevo) || `Estado ${nuevo}`;
       anchorEl.className = `btn-estado inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${badgeEstadoCss(
         nuevoNom
       )}`;
       anchorEl.textContent = nuevoNom;
+      anchorEl.dataset.estado = nuevo; // 🔹 Actualiza el atributo con el nuevo estado
     } catch (err) {
       alert("No se pudo actualizar el estado: " + err.message);
     } finally {
       cleanup();
     }
   });
+
+  // 🔹 Cierra el selector si se hace clic fuera de él
+  document.addEventListener(
+    "click",
+    (e) => {
+      if (!wrapper.contains(e.target) && e.target !== anchorEl) {
+        cleanup();
+      }
+    },
+    { once: true }
+  );
 }
 
 /* ====================== modal detalles ====================== */
