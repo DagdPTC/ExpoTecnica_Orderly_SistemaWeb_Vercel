@@ -634,12 +634,11 @@ async function initCreateForm() {
     if (inpBirth) inpBirth.max = minusYearsYYYYMMDD(18);
 
     if (inpHire) {
-      const nowMax = nowLocalYYYYMMDDTHHMM();
-      inpHire.max = nowMax;
-      if (inpHire.value && !isHireDateNotFuture(inpHire.value)) {
-        inpHire.value = nowMax;
-      }
-    }
+  const nowMax = nowLocalYYYYMMDDTHHMM();
+  inpHire.max = nowMax;
+  inpHire.value = nowMax; // establece por defecto la fecha y hora actual
+}
+
 
     inpBirth?.addEventListener("change", () => {
       if (!isBirthDateAdult(inpBirth.value)) {
@@ -1220,3 +1219,18 @@ function setupUserMenu() {
     });
   }
 }
+
+
+// ======== VALIDACIÓN DE NOMBRES Y APELLIDOS ========
+document.addEventListener("input", (e) => {
+  const input = e.target;
+  if (!input.name) return;
+
+  const soloLetras = /^(firstName|secondName|lastNameP|lastNameM)$/;
+  if (soloLetras.test(input.name)) {
+    input.value = input.value
+      .replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]/g, "") // permite letras y espacios
+      .replace(/\s{2,}/g, " ")                    // evita dobles espacios
+      .trimStart();                               // quita espacio inicial
+  }
+});
